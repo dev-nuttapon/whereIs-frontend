@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhereIs</title>
+    <meta name="description" content="WhereIs inventory and storage workflows" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <script>
+      (() => {
+        try {
+          const raw = localStorage.getItem('whereis-ui');
+          const parsed = raw ? JSON.parse(raw) : null;
+          const storedTheme = parsed?.state?.theme;
+          const storedLocale = parsed?.state?.locale;
+          const theme =
+            storedTheme === 'dark' || storedTheme === 'light' || storedTheme === 'system'
+              ? storedTheme
+              : 'system';
+          const resolvedTheme = theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
+          const locale = storedLocale === 'th' || storedLocale === 'en' ? storedLocale : navigator.language.toLowerCase().startsWith('th') ? 'th' : 'en';
+          document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+          document.documentElement.style.colorScheme = resolvedTheme;
+          document.documentElement.lang = locale;
+        } catch {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.style.colorScheme = 'light';
+          document.documentElement.lang = 'en';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

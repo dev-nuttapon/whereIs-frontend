@@ -2,6 +2,8 @@
 
 # WhereIs Frontend Project Context
 
+This repo is the frontend POC for the WhereIs inventory and storage demo.
+
 ## Project Information
 
 **Project Name:** WhereIs
@@ -47,7 +49,7 @@ The primary goal is to answer the following questions:
 * When was it moved?
 * Has it been returned?
 
-The frontend should make these answers available quickly with a simple and intuitive user experience.
+The frontend should make these answers available quickly with a simple and intuitive user experience, while still making the demo/POC nature obvious to anyone opening the app.
 
 ---
 

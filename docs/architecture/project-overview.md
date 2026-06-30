@@ -5,6 +5,7 @@
 
 ## 1. WhereIs คืออะไร
 WhereIs เป็น **Inventory / Storage Management System** — ระบบช่วย **ค้นหา จัดเก็บ ย้าย ยืม คืน และติดตามสิ่งของจริง**
+repo นี้คือ **frontend POC / demo** ของระบบดังกล่าว จึงเน้นให้เห็น flow หลักและหน้าจอที่พร้อมสาธิตมากกว่าการเป็นโปรดักชันเต็มรูปแบบ
 
 ออกแบบให้ใช้ได้หลายสถานการณ์: Office, Home, Warehouse, Retail, School, Workshop, องค์กรเล็ก
 
