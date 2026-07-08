@@ -1,3 +1,3 @@
 # whereis-frontend
 
-Frontend POC for the WhereIs inventory and storage workflow demo.
+Frontend POC and documentation for the WhereIs workspace-based asset and stock tracking system.

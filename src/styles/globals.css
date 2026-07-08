@@ -20,7 +20,7 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  --font-sans: "Inter", "Noto Sans Thai", sans-serif;
+  --font-sans: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 0.75rem;
 }
 

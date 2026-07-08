@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { Modal as AntModal } from 'antd';
 import { cn } from '@/lib/cn';
 
 export interface DialogProps {
@@ -8,20 +9,20 @@ export interface DialogProps {
 }
 
 export function Dialog({ open = false, onOpenChange, children }: DialogProps) {
-  if (!open) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 py-12">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0 bg-black/50"
-        onClick={() => onOpenChange?.(false)}
-      />
-      <div className="relative z-10 w-full">{children}</div>
-    </div>
+    <AntModal
+      open={open}
+      onCancel={() => onOpenChange?.(false)}
+      footer={null}
+      centered
+      destroyOnClose
+      styles={{
+        body: { padding: 0 },
+        mask: { backdropFilter: 'blur(4px)' },
+      }}
+    >
+      {children}
+    </AntModal>
   );
 }
 
@@ -31,7 +32,7 @@ export function DialogContent({ className, ...props }: HTMLAttributes<HTMLDivEle
       role="dialog"
       aria-modal="true"
       className={cn(
-        'mx-auto w-full max-w-lg rounded-lg border border-border bg-background p-6 shadow-lg',
+        'w-full max-w-lg rounded-3xl border border-border/70 bg-card/95 p-6 shadow-none backdrop-blur-xl',
         className,
       )}
       {...props}
@@ -40,11 +41,11 @@ export function DialogContent({ className, ...props }: HTMLAttributes<HTMLDivEle
 }
 
 export function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('mb-4 space-y-1.5', className)} {...props} />;
+  return <div className={cn('mb-4 space-y-2', className)} {...props} />;
 }
 
 export function DialogTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)} {...props} />;
+  return <h2 className={cn('text-lg font-semibold leading-tight tracking-tight sm:text-xl', className)} {...props} />;
 }
 
 export function DialogDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {

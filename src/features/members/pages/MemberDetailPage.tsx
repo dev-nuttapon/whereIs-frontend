@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { Avatar, Descriptions, Space, Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { LoadingState } from '@/components/feedback/LoadingState';
@@ -7,7 +8,6 @@ import { useMember } from '@/features/members/hooks/useMembers';
 import { PermissionMatrix } from '@/features/permissions/components/PermissionMatrix';
 import { useI18n } from '@/hooks/useI18n';
 import { MOCK_WORKSPACES } from '@/mocks/mock-data';
-import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/common/StatCard';
 import { useMemberPermissions } from '@/features/permissions/hooks/usePermissions';
 
@@ -29,18 +29,19 @@ export function MemberDetailPage() {
         <div className="space-y-4">
           <Card>
             <CardContent className="space-y-4 p-6">
-              <div className="space-y-1">
-                <CardTitle className="text-base">{memberQuery.data.user.name}</CardTitle>
-                <CardDescription>{memberQuery.data.user.email}</CardDescription>
+              <div className="flex items-center gap-4">
+                <Avatar size={48}>{memberQuery.data.user.name.slice(0, 1).toUpperCase()}</Avatar>
+                <div className="space-y-1">
+                  <CardTitle className="text-base">{memberQuery.data.user.name}</CardTitle>
+                  <CardDescription>{memberQuery.data.user.email}</CardDescription>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">
-                  {t('members.detail.role')}: {t(`members.role.${memberQuery.data.role}`)}
-                </Badge>
-                <Badge variant="outline">
-                  {t('members.detail.workspace')}: {workspace?.name ?? wsId}
-                </Badge>
-              </div>
+              <Descriptions bordered column={{ xs: 1, md: 2 }} size="middle">
+                <Descriptions.Item label={t('members.detail.role')}>
+                  <Tag color="blue">{t(`members.role.${memberQuery.data.role}`)}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label={t('members.detail.workspace')}>{workspace?.name ?? wsId}</Descriptions.Item>
+              </Descriptions>
             </CardContent>
           </Card>
 
@@ -54,13 +55,13 @@ export function MemberDetailPage() {
             <Card>
               <CardContent className="space-y-3 p-6">
                 <CardTitle className="text-base">{t('members.detail.samplePermissions')}</CardTitle>
-                <div className="flex flex-wrap gap-2">
+                <Space wrap>
                   {highlightedPermissions.map((permission) => (
-                    <Badge key={permission} variant="outline" className="rounded-full">
+                    <Tag key={permission} className="rounded-full">
                       {t(`permissions.label.${permission}`, permission)}
-                    </Badge>
+                    </Tag>
                   ))}
-                </div>
+                </Space>
               </CardContent>
             </Card>
           ) : null}

@@ -33,7 +33,7 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
   },
   {
     title: 'permissions.group.structure',
-    permissions: ['site.view', 'site.create', 'site.update', 'site.delete', 'location.view', 'location.create', 'location.update', 'location.delete', 'container.view', 'container.create', 'container.update', 'container.delete'],
+    permissions: ['container.view', 'container.create', 'container.update', 'container.delete'],
   },
   {
     title: 'permissions.group.activity',
@@ -111,7 +111,7 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
             {t('permissions.resetDefault')}
           </Button>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Checkbox checked={overrides['item.create'] ? true : false} readOnly />
+            <Checkbox checked={overrides['item.create'] ? true : false} disabled />
             {t('permissions.implication')}
           </label>
           {permissionsQuery.data?.role === 'owner' ? (

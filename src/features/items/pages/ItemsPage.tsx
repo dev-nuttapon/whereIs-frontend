@@ -1,18 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { PageShell } from '@/components/common/PageShell';
+import { Input, Segmented } from 'antd';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/feedback/EmptyState';
-import { StatCard } from '@/components/common/StatCard';
 import { ItemFormDialog } from '@/features/items/components/ItemFormDialog';
+import { ItemActionDialogs, type ItemActionDialogsProps } from '@/features/items/components/ItemActionDialogs';
 import { ItemEditDialog } from '@/features/items/components/ItemEditDialog';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { MOCK_CONTAINERS, MOCK_ITEMS, MOCK_MEMBERS } from '@/mocks/mock-data';
-import { ItemIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
+import { ContainerIcon, EditIcon, FilterIcon, ItemIcon, MemberIcon, OpenIcon, PlusIcon, ReturnIcon, SearchIcon, TakeOutIcon } from '@/components/ui/icons';
 import type { Item } from '@/types/domain.types';
 import { getItemStockState } from '@/lib/item-stock';
 
@@ -22,14 +22,65 @@ export function ItemsPage() {
   const { t } = useI18n();
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<Item | null>(null);
+  const [actionItem, setActionItem] = useState<Item | null>(null);
+  const [openAction, setOpenAction] = useState<ItemActionDialogsProps['openAction']>(null);
 
+  const queryText = searchParams.get('q') ?? '';
   const filterStatus = searchParams.get('status');
   const filterStock = searchParams.get('stock');
   const filterUsageType = searchParams.get('usageType');
-  const filterReturnPolicy = searchParams.get('returnPolicy');
+  const [draftQuery, setDraftQuery] = useState(queryText);
+
+  useEffect(() => {
+    setDraftQuery(queryText);
+  }, [queryText]);
+
+  useEffect(() => {
+    const normalizedQuery = draftQuery.trim();
+    const timeoutId = window.setTimeout(() => {
+      if (normalizedQuery === queryText) {
+        return;
+      }
+
+      setSearchParams((previousParams) => {
+        const nextParams = new URLSearchParams(previousParams);
+        if (normalizedQuery) {
+          nextParams.set('q', normalizedQuery);
+        } else {
+          nextParams.delete('q');
+        }
+        return nextParams;
+      }, { replace: true });
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [draftQuery, queryText, setSearchParams]);
+
+  function updateItemParams(updates: Record<string, string | undefined>) {
+    setSearchParams((previousParams) => {
+      const nextParams = new URLSearchParams(previousParams);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (!value) {
+          nextParams.delete(key);
+        } else {
+          nextParams.set(key, value);
+        }
+      });
+      return nextParams;
+    }, { replace: true });
+  }
+
   const filteredItems = useMemo(() => {
     const workspaceItems = MOCK_ITEMS.filter((item) => item.workspaceId === wsId);
     return workspaceItems.filter((item) => {
+      const searchableText = [item.name, item.code, item.description, item.containerId, item.currentHolderId]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (queryText && !searchableText.includes(queryText.toLowerCase())) {
+        return false;
+      }
+
       if (filterStatus === 'stored' || filterStatus === 'taken_out' || filterStatus === 'missing') {
         return item.status === filterStatus;
       }
@@ -48,73 +99,96 @@ export function ItemsPage() {
         }
       }
 
-      if (filterReturnPolicy === 'due' || filterReturnPolicy === 'indefinite') {
-        if (item.returnPolicy !== filterReturnPolicy) {
-          return false;
-        }
-      }
-
       return true;
     });
-  }, [filterReturnPolicy, filterStatus, filterStock, filterUsageType, wsId]);
+  }, [filterStatus, filterStock, filterUsageType, queryText, wsId]);
   const containerMap = useMemo(() => new Map(MOCK_CONTAINERS.map((container) => [container.id, container])), []);
   const holderMap = useMemo(() => new Map(MOCK_MEMBERS.map((member) => [member.id, member])), []);
-  const storedCount = filteredItems.filter((item) => item.status === 'stored').length;
-  const takenOutCount = filteredItems.filter((item) => item.status === 'taken_out').length;
   const kindLabel = (kind: Item['kind']) => (kind === 'single' ? t('items.detail.kindSingle') : t('items.detail.kindBulk'));
   const usageLabel = (usageType: Item['usageType']) =>
     usageType === 'consumable' ? t('items.detail.usageTypeConsumable') : t('items.detail.usageTypeReturnable');
-  const returnPolicyLabel = (item: Item) =>
-    item.returnPolicy === 'due'
-      ? t('items.detail.returnPolicyDue', undefined, { days: item.returnDays ?? 7 })
-      : t('items.detail.returnPolicyIndefinite');
-  const lowStockCount = filteredItems.filter((item) => getItemStockState(item) === 'low_stock').length;
-  const outOfStockCount = filteredItems.filter((item) => getItemStockState(item) === 'out_of_stock').length;
-  const activeFilterLabel =
-    filterStatus === 'stored'
-      ? t('dashboard.stored')
-      : filterStatus === 'taken_out'
-        ? t('dashboard.takenOut')
-        : filterStatus === 'missing'
-          ? t('dashboard.missing')
-          : filterStock === 'low'
-            ? t('dashboard.lowStock')
-            : filterStock === 'out'
-              ? t('dashboard.outOfStock')
-              : filterReturnPolicy === 'due'
-                ? t('dashboard.returnDue')
-                : filterReturnPolicy === 'indefinite'
-                  ? t('dashboard.returnIndefinite')
-              : '';
-
+  const returnPolicyLabel = () => t('items.detail.noReturnRequired');
+  const activeActionItem = actionItem && openAction ? actionItem : null;
   return (
-    <PageShell
-      title={t('items.list.title')}
-      description={t('items.list.description')}
-      actions={
-        <Button onClick={() => setCreateOpen(true)} className="rounded-full">
-          <PlusIcon className="h-4 w-4" />
-          {t('items.list.create')}
-        </Button>
-      }
-    >
-      {activeFilterLabel ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{activeFilterLabel}</Badge>
-          <Button variant="ghost" size="sm" onClick={() => setSearchParams({})}>
-            {t('search.clear')}
-          </Button>
-        </div>
-      ) : null}
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard label={t('items.list.count')} value={filteredItems.length} />
-        <StatCard label={t('dashboard.stored')} value={storedCount} />
-        <StatCard label={t('dashboard.takenOut')} value={takenOutCount} />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <StatCard label={t('items.detail.stockStateLow')} value={lowStockCount} description={t('items.detail.reorderPoint')} />
-        <StatCard label={t('items.detail.stockStateOut')} value={outOfStockCount} description={t('items.stock.restockSubmit')} />
-      </div>
+    <div className="space-y-4 sm:space-y-6">
+      <Card className="border-border/70 bg-card/95 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+        <CardContent className="space-y-4 p-5 sm:p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-xl tracking-tight sm:text-2xl">{t('items.list.title')}</CardTitle>
+              <CardDescription className="max-w-2xl">{t('items.list.description')}</CardDescription>
+            </div>
+            <Button onClick={() => setCreateOpen(true)} className="rounded-full">
+              <PlusIcon className="h-4 w-4" />
+              {t('items.list.create')}
+            </Button>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+            <Input
+              size="large"
+              prefix={<SearchIcon className="h-4 w-4 text-muted-foreground" />}
+              aria-label={t('search.placeholder')}
+              placeholder={t('search.placeholder')}
+              value={draftQuery}
+              onChange={(event) => setDraftQuery(event.target.value)}
+            />
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+              <Badge variant="secondary">{t('items.list.count')}: {filteredItems.length}</Badge>
+              {queryText ? <Badge variant="outline">{queryText}</Badge> : null}
+              {queryText || filterStatus || filterStock || filterUsageType ? (
+                <Button variant="outline" size="sm" onClick={() => setSearchParams({})}>
+                  <FilterIcon className="h-4 w-4" />
+                  {t('search.clear')}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="min-w-0">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{t('search.all')}</p>
+              <Segmented
+                className="w-full"
+                value={filterStatus ?? 'all'}
+                options={[
+                  { label: t('search.all'), value: 'all' },
+                  { label: t('dashboard.stored'), value: 'stored' },
+                  { label: t('dashboard.takenOut'), value: 'taken_out' },
+                  { label: t('dashboard.missing'), value: 'missing' },
+                ]}
+                onChange={(value) => updateItemParams({ status: value === 'all' ? undefined : String(value) })}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{t('items.list.status')}</p>
+              <Segmented
+                className="w-full"
+                value={filterStock ?? 'all'}
+                options={[
+                  { label: t('search.all'), value: 'all' },
+                  { label: t('dashboard.lowStock'), value: 'low' },
+                  { label: t('dashboard.outOfStock'), value: 'out' },
+                ]}
+                onChange={(value) => updateItemParams({ stock: value === 'all' ? undefined : String(value) })}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{t('search.usageType')}</p>
+              <Segmented
+                className="w-full"
+                value={filterUsageType ?? 'all'}
+                options={[
+                  { label: t('search.all'), value: 'all' },
+                  { label: t('items.detail.usageTypeConsumable'), value: 'consumable' },
+                  { label: t('items.detail.usageTypeReturnable'), value: 'returnable' },
+                ]}
+                onChange={(value) => updateItemParams({ usageType: value === 'all' ? undefined : String(value) })}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {filteredItems.length === 0 ? (
         <EmptyState
@@ -125,56 +199,100 @@ export function ItemsPage() {
           icon={<ItemIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="space-y-3">
           {filteredItems.map((item) => {
             const container = item.containerId ? containerMap.get(item.containerId) : null;
             const holder = item.currentHolderId ? holderMap.get(item.currentHolderId) : null;
-
+            const itemQuantity = item.kind === 'bulk' ? item.quantity ?? 1 : 1;
             return (
-              <Card key={item.id} className="hover:-translate-y-0.5 hover:shadow-md">
-                <CardContent className="space-y-4 p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg">{item.name}</CardTitle>
-                      <CardDescription>{item.code ?? t('items.detail.noCode')}</CardDescription>
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        <Badge variant="outline">
-                          {kindLabel(item.kind)}
-                          {item.kind === 'bulk' && item.quantity ? ` · ${item.quantity}` : ''}
+              <Card key={item.id} className="border-border/70 bg-card/95 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-lg sm:text-xl">{item.name}</CardTitle>
+                      <Badge variant="outline">{item.code ?? t('items.detail.noCode')}</Badge>
+                      <Badge variant="secondary">
+                        {t('items.detail.quantity')}: {itemQuantity}
+                      </Badge>
+                      <StatusBadge status={item.status} />
+                    </div>
+
+                    <CardDescription className="max-w-3xl leading-6">
+                      {item.description ?? t('items.detail.noDescription')}
+                    </CardDescription>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">
+                        {kindLabel(item.kind)}
+                        {item.kind === 'bulk' && item.quantity ? ` · ${item.quantity}` : ''}
+                      </Badge>
+                      <Badge variant="secondary">{usageLabel(item.usageType)}</Badge>
+                      {item.usageType === 'returnable' ? <Badge variant="outline">{returnPolicyLabel()}</Badge> : null}
+                      {item.usageType === 'consumable' && item.kind === 'bulk' ? (
+                        <Badge
+                          variant={getItemStockState(item) === 'out_of_stock' ? 'destructive' : getItemStockState(item) === 'low_stock' ? 'outline' : 'secondary'}
+                        >
+                          {getItemStockState(item) === 'out_of_stock'
+                            ? t('items.detail.stockStateOut')
+                            : getItemStockState(item) === 'low_stock'
+                              ? t('items.detail.stockStateLow')
+                              : t('items.detail.stockStateIn')}
                         </Badge>
-                        <Badge variant="secondary">{usageLabel(item.usageType)}</Badge>
-                        {item.usageType === 'returnable' ? <Badge variant="outline">{returnPolicyLabel(item)}</Badge> : null}
-                        {item.usageType === 'consumable' && item.kind === 'bulk' ? (
-                          <Badge
-                            variant={getItemStockState(item) === 'out_of_stock' ? 'destructive' : getItemStockState(item) === 'low_stock' ? 'outline' : 'secondary'}
-                          >
-                            {getItemStockState(item) === 'out_of_stock'
-                              ? t('items.detail.stockStateOut')
-                              : getItemStockState(item) === 'low_stock'
-                                ? t('items.detail.stockStateLow')
-                                : t('items.detail.stockStateIn')}
-                          </Badge>
-                        ) : null}
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <ContainerIcon className="h-4 w-4 shrink-0" />
+                        <span>
+                          {t('items.list.container')}: {container ? `${container.code}${container.name ? ` · ${container.name}` : ''}` : t('items.detail.noContainer')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MemberIcon className="h-4 w-4 shrink-0" />
+                        <span>
+                          {t('items.list.holder')}: {holder?.user.name ?? t('items.detail.noHolder')}
+                        </span>
                       </div>
                     </div>
-                    <StatusBadge status={item.status} />
                   </div>
-                  <div className="grid gap-2 text-sm text-muted-foreground">
-                    <div>
-                      {t('items.list.container')}: {container ? `${container.code}${container.name ? ` · ${container.name}` : ''}` : t('items.detail.noContainer')}
-                    </div>
-                    <div>
-                      {t('items.list.holder')}: {holder?.user.name ?? t('items.detail.noHolder')}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button asChild variant="outline" size="sm" className="rounded-full">
-                      <Link to={ROUTES.workspaceItemDetail(wsId, item.id)}>
+
+                  <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4 lg:flex-col lg:items-end lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+                    <Button asChild variant="outline" size="sm" className="h-10 rounded-full px-4">
+                      <Link to={ROUTES.workspaceItemDetail(wsId, item.code ?? item.id)}>
                         <OpenIcon className="h-4 w-4" />
                         {t('items.list.open')}
                       </Link>
                     </Button>
-                    <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setEditItem(item)}>
+                    {item.status === 'stored' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 rounded-full px-4"
+                        onClick={() => {
+                          setActionItem(item);
+                          setOpenAction('takeout');
+                        }}
+                      >
+                        <TakeOutIcon className="h-4 w-4" />
+                        {t('items.detail.takeOut')}
+                      </Button>
+                    ) : item.usageType === 'returnable' && item.status === 'taken_out' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 rounded-full px-4"
+                        onClick={() => {
+                          setActionItem(item);
+                          setOpenAction('return');
+                        }}
+                      >
+                        <ReturnIcon className="h-4 w-4" />
+                        {t('items.detail.return')}
+                      </Button>
+                    ) : null}
+                    <Button variant="outline" size="sm" className="h-10 rounded-full px-4" onClick={() => setEditItem(item)}>
+                      <EditIcon className="h-4 w-4" />
                       {t('items.detail.edit')}
                     </Button>
                   </div>
@@ -186,9 +304,22 @@ export function ItemsPage() {
       )}
 
       <ItemFormDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />
+      {activeActionItem ? (
+        <ItemActionDialogs
+          wsId={wsId}
+          item={activeActionItem}
+          openAction={openAction}
+          onOpenActionChange={(action) => {
+            setOpenAction(action);
+            if (!action) {
+              setActionItem(null);
+            }
+          }}
+        />
+      ) : null}
       {editItem ? (
         <ItemEditDialog wsId={wsId} item={editItem} open={Boolean(editItem)} onOpenChange={(open) => !open && setEditItem(null)} />
       ) : null}
-    </PageShell>
+    </div>
   );
 }

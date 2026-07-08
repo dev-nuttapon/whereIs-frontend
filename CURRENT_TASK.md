@@ -40,25 +40,25 @@ Sprint 0
 
 Sprint Goal
 
-Prepare the frontend foundation for future feature development.
+Define and prepare MVP Phase 1 for the new workspace-based asset tracking design.
 
 ---
 
 # Current Milestone
 
-Frontend Foundation
+MVP Definition
 
 ---
 
 # Current Feature
 
-Project Initialization
+Requirement Reset
 
 ---
 
 # Current Task
 
-Create the frontend project structure using React, Vite, and TypeScript.
+Split the new system into MVP phases and align the current frontend context to MVP Phase 1.
 
 No business feature should be implemented in this task.
 
@@ -68,19 +68,10 @@ No business feature should be implemented in this task.
 
 The current objectives are:
 
-* Create React Vite TypeScript project
-* Configure folder structure
-* Configure routing
-* Configure protected route structure
-* Configure layout structure
-* Configure API client
-* Configure TanStack Query
-* Configure Zustand
-* Configure React Hook Form
-* Configure Tailwind CSS
-* Configure shadcn/ui if applicable
-* Configure environment variables
-* Configure basic error/loading/empty components
+* Define MVP Phase 1 scope
+* Separate single-item core flow from stock flow
+* Align docs and architecture terms to the new domain model
+* Keep the frontend foundation ready for the redesigned structure
 
 No real API integration should be implemented yet.
 
@@ -116,22 +107,6 @@ Not Started
 
 ---
 
-Site
-
-Status
-
-Not Started
-
----
-
-Location
-
-Status
-
-Not Started
-
----
-
 Container
 
 Status
@@ -141,6 +116,14 @@ Not Started
 ---
 
 Item
+
+Status
+
+Not Started
+
+---
+
+Stock Item
 
 Status
 
@@ -192,20 +175,11 @@ Not Started
 
 This task is complete only if:
 
-* React Vite TypeScript project created
-* Folder structure created
-* Routing configured
-* Public route structure created
-* Protected route structure created
-* AppLayout created
-* AuthLayout created
-* API client created
-* TanStack Query provider configured
-* Zustand store structure prepared
-* Tailwind CSS configured
-* Environment variables configured
-* Basic common components created
-* Project builds successfully
+* MVP Phase 1 scope is clearly defined
+* Single-item core flow is separated from stock flow
+* Requirement summary reference exists
+* Project context and docs use the new domain model consistently
+* Project build/status remains aligned with the current foundation
 
 ---
 
@@ -217,8 +191,6 @@ Do NOT implement:
 * Real Register
 * Real API Integration
 * Workspace CRUD
-* Site CRUD
-* Location Explorer
 * Container Detail
 * Item Search
 * Item Detail
@@ -228,8 +200,9 @@ Do NOT implement:
 * QR Code
 * Barcode
 * File Upload
+* Stock restock / consume flows
 
-Only build the frontend foundation.
+Only define the MVP and keep the frontend foundation ready.
 
 ---
 

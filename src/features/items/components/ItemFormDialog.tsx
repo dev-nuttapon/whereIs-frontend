@@ -28,7 +28,6 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
     handleSubmit,
     reset,
     watch,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ItemValues>({
     resolver: zodResolver(itemSchema) as never,
@@ -36,8 +35,6 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
     defaultValues: {
       kind: 'single',
       usageType: 'returnable',
-      returnPolicy: 'due',
-      returnDays: 7,
       name: 'Sample Item',
       code: 'ITEM-001',
       description: 'Sample item used to show item create and search flow',
@@ -48,14 +45,11 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
   });
   const kind = watch('kind');
   const usageType = watch('usageType');
-  const returnPolicy = watch('returnPolicy');
 
   useEffect(() => {
     reset({
       kind: 'single',
       usageType: 'returnable',
-      returnPolicy: 'due',
-      returnDays: 7,
       name: 'Sample Item',
       code: 'ITEM-001',
       description: 'Sample item used to show item create and search flow',
@@ -65,34 +59,11 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
     });
   }, [open, reset]);
 
-  useEffect(() => {
-    if (kind === 'bulk') {
-      setValue('quantity', 1, { shouldDirty: false });
-      return;
-    }
-
-    setValue('quantity', undefined, { shouldDirty: false });
-  }, [kind, setValue]);
-
-  useEffect(() => {
-    if (usageType !== 'returnable') {
-      setValue('returnPolicy', 'indefinite', { shouldDirty: false });
-      setValue('returnDays', undefined, { shouldDirty: false });
-      return;
-    }
-
-    if (returnPolicy === 'indefinite') {
-      setValue('returnDays', undefined, { shouldDirty: false });
-    }
-  }, [returnPolicy, setValue, usageType]);
-
   const onSubmit = handleSubmit(async (values) => {
     await createMutation.mutateAsync({
       name: values.name,
       kind: values.kind,
       usageType: values.usageType,
-      returnPolicy: values.usageType === 'returnable' ? values.returnPolicy : 'indefinite',
-      returnDays: values.usageType === 'returnable' && values.returnPolicy === 'due' ? values.returnDays : undefined,
       quantity: values.kind === 'bulk' ? values.quantity : undefined,
       reorderPoint: values.kind === 'bulk' && values.usageType === 'consumable' ? values.reorderPoint : undefined,
       code: values.code,
@@ -124,23 +95,6 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
             </Select>
             <p className="text-xs text-muted-foreground">{t('items.form.usageTypeHelp')}</p>
           </FormField>
-          {usageType === 'returnable' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={t('items.form.returnPolicy')} htmlFor="item-return-policy" error={errors.returnPolicy?.message}>
-                <Select id="item-return-policy" {...register('returnPolicy')}>
-                  <option value="due">{t('items.form.returnPolicyDue')}</option>
-                  <option value="indefinite">{t('items.form.returnPolicyIndefinite')}</option>
-                </Select>
-                <p className="text-xs text-muted-foreground">{t('items.form.returnPolicyHelp')}</p>
-              </FormField>
-              {returnPolicy === 'due' ? (
-                <FormField label={t('items.form.returnDays')} htmlFor="item-return-days" error={errors.returnDays?.message}>
-                  <Input id="item-return-days" type="number" min={1} {...register('returnDays')} />
-                  <p className="text-xs text-muted-foreground">{t('items.form.returnDaysHelp')}</p>
-                </FormField>
-              ) : null}
-            </div>
-          ) : null}
           <FormField label={t('items.form.name')} htmlFor="item-name" error={errors.name?.message}>
             <Input id="item-name" {...register('name')} />
           </FormField>

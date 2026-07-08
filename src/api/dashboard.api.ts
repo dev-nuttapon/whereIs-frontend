@@ -9,8 +9,7 @@ export interface DashboardSummary {
   missing: number;
   lowStock: number;
   outOfStock: number;
-  returnDue: number;
-  returnIndefinite: number;
+  returnableItems: number;
 }
 
 export async function getDashboardSummary(wsId: string): Promise<DashboardSummary> {

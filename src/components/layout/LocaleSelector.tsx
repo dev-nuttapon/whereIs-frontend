@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Segmented } from 'antd';
 import { uiStore } from '@/stores/ui.store';
 import { useI18n } from '@/hooks/useI18n';
 import { LanguageIcon } from '@/components/ui/icons';
@@ -13,26 +13,18 @@ export function LocaleSelector({ onSelect }: LocaleSelectorProps) {
   const { t } = useI18n();
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {(['en', 'th'] as const).map((value) => {
-        const active = locale === value;
-        return (
-          <Button
-            key={value}
-            variant={active ? 'secondary' : 'outline'}
-            size="sm"
-            className="h-auto flex-col gap-1 px-3 py-3 text-xs"
-            onClick={() => {
-              setLocale(value);
-              onSelect?.(value);
-            }}
-            aria-pressed={active}
-          >
-            <LanguageIcon className="h-4 w-4" />
-            <span className="font-medium">{value === 'en' ? t('common.english') : t('common.thai')}</span>
-          </Button>
-        );
-      })}
-    </div>
+    <Segmented
+      className="w-full"
+      value={locale}
+      options={[
+        { label: <span className="inline-flex items-center gap-2"><LanguageIcon className="h-4 w-4" />{t('common.english')}</span>, value: 'en' },
+        { label: <span className="inline-flex items-center gap-2"><LanguageIcon className="h-4 w-4" />{t('common.thai')}</span>, value: 'th' },
+      ]}
+      onChange={(value) => {
+        const nextLocale = value as 'en' | 'th';
+        setLocale(nextLocale);
+        onSelect?.(nextLocale);
+      }}
+    />
   );
 }

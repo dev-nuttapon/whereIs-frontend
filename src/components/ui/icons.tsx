@@ -162,6 +162,35 @@ export function OpenIcon(props: IconProps) {
   );
 }
 
+export function TakeOutIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4v10" />
+      <path d="m8 8 4-4 4 4" />
+      <path d="M5 20h14" />
+    </Icon>
+  );
+}
+
+export function ReturnIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 20V10" />
+      <path d="m16 16-4 4-4-4" />
+      <path d="M5 4h14" />
+    </Icon>
+  );
+}
+
+export function EditIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m4 20 4.5-1 10-10a1.6 1.6 0 0 0 0-2.3l-1.2-1.2a1.6 1.6 0 0 0-2.3 0l-10 10Z" />
+      <path d="M13.5 6.5 17.5 10.5" />
+    </Icon>
+  );
+}
+
 export function LanguageIcon(props: IconProps) {
   return (
     <Icon {...props}>

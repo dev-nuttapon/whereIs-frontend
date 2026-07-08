@@ -1,22 +1,24 @@
 import { PageShell } from '@/components/common/PageShell';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/hooks/useI18n';
 import { LanguageIcon, SettingsIcon, SunIcon } from '@/components/ui/icons';
 import { ThemeSelector } from '@/components/layout/ThemeSelector';
 import { LocaleSelector } from '@/components/layout/LocaleSelector';
+import { Card, Space, Typography } from 'antd';
 
 export function SettingsPage() {
   const { t } = useI18n();
 
   return (
     <PageShell title={t('settings.title')} description={t('settings.description')}>
-      <Card>
-        <CardContent className="space-y-3 p-6">
-          <CardTitle className="flex items-center gap-2 text-base">
+      <Card styles={{ body: { padding: 24 } }}>
+        <Space direction="vertical" size={12} className="w-full">
+          <Typography.Title level={4} className="!mb-0 !mt-0 flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
             <span>{t('settings.foundation')}</span>
-          </CardTitle>
-          <CardDescription>{t('settings.foundationDescription')}</CardDescription>
+          </Typography.Title>
+          <Typography.Paragraph className="!mb-0 text-muted-foreground">
+            {t('settings.foundationDescription')}
+          </Typography.Paragraph>
           <div className="grid gap-3 pt-2 md:grid-cols-2">
             <div className="space-y-2 rounded-lg border border-border p-4">
               <p className="flex items-center gap-2 text-sm font-medium">
@@ -35,7 +37,7 @@ export function SettingsPage() {
               <LocaleSelector />
             </div>
           </div>
-        </CardContent>
+        </Space>
       </Card>
     </PageShell>
   );

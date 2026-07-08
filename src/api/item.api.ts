@@ -19,7 +19,8 @@ import { delay } from '@/utils/mock-api';
 export interface SearchItemsParams extends Record<string, string | number | undefined> {
   workspaceId?: string;
   q?: string;
-  siteId?: string;
+  kind?: string;
+  usageType?: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -29,8 +30,6 @@ export interface CreateItemInput {
   name: string;
   kind: 'single' | 'bulk';
   usageType: 'consumable' | 'returnable';
-  returnPolicy: 'due' | 'indefinite';
-  returnDays?: number;
   quantity?: number;
   reorderPoint?: number;
   code?: string;
@@ -47,12 +46,11 @@ export interface UpdateItemInput {
   name?: string;
   code?: string;
   description?: string;
-  returnPolicy?: 'due' | 'indefinite';
-  returnDays?: number;
 }
 
 export interface TakeOutInput {
   holderId: string;
+  quantity: number;
   note?: string;
 }
 
@@ -98,7 +96,7 @@ export async function moveItem(id: string, input: MoveItemInput): Promise<Item> 
 }
 
 export async function takeOutItem(id: string, input: TakeOutInput): Promise<Item> {
-  return delay(takeOutItemRecord(id, input.holderId, input.note));
+  return delay(takeOutItemRecord(id, input.holderId, input.quantity, input.note));
 }
 
 export async function returnItem(id: string, input: ReturnInput): Promise<Item> {

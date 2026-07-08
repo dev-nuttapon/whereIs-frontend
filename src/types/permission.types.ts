@@ -7,14 +7,6 @@ export type PermissionKey =
   | 'member.update_role'
   | 'member.remove'
   | 'permission.override'
-  | 'site.view'
-  | 'site.create'
-  | 'site.update'
-  | 'site.delete'
-  | 'location.view'
-  | 'location.create'
-  | 'location.update'
-  | 'location.delete'
   | 'container.view'
   | 'container.create'
   | 'container.update'
@@ -30,4 +22,3 @@ export type PermissionKey =
   | 'item.mark_found'
   | 'item.dispose'
   | 'activity.view';
-

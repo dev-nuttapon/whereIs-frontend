@@ -4,19 +4,15 @@ import type {
   Item,
   ItemEvent,
   ItemEventType,
-  Location,
   Member,
   Role,
-  Site,
   Workspace,
 } from '@/types/domain.types';
 import {
   MOCK_ACTIVITY as SEED_ACTIVITY,
   MOCK_CONTAINERS as SEED_CONTAINERS,
   MOCK_ITEMS as SEED_ITEMS,
-  MOCK_LOCATIONS as SEED_LOCATIONS,
   MOCK_MEMBERS as SEED_MEMBERS,
-  MOCK_SITES as SEED_SITES,
   MOCK_WORKSPACES as SEED_WORKSPACES,
   MOCK_USER,
 } from '@/mocks/mock-data';
@@ -37,14 +33,6 @@ const ROLE_DEFAULT_PERMISSIONS: Record<Role, PermissionKey[]> = {
     'member.update_role',
     'member.remove',
     'permission.override',
-    'site.view',
-    'site.create',
-    'site.update',
-    'site.delete',
-    'location.view',
-    'location.create',
-    'location.update',
-    'location.delete',
     'container.view',
     'container.create',
     'container.update',
@@ -66,12 +54,6 @@ const ROLE_DEFAULT_PERMISSIONS: Record<Role, PermissionKey[]> = {
     'member.view',
     'member.invite',
     'member.update_role',
-    'site.view',
-    'site.create',
-    'site.update',
-    'location.view',
-    'location.create',
-    'location.update',
     'container.view',
     'container.create',
     'container.update',
@@ -88,8 +70,6 @@ const ROLE_DEFAULT_PERMISSIONS: Record<Role, PermissionKey[]> = {
 };
 
 let workspaces: MutableRecord<Workspace> = clone(SEED_WORKSPACES);
-let sites: MutableRecord<Site> = clone(SEED_SITES);
-let locations: MutableRecord<Location> = clone(SEED_LOCATIONS);
 let containers: MutableRecord<Container> = clone(SEED_CONTAINERS);
 let members: MutableRecord<Member> = clone(SEED_MEMBERS);
 let items: MutableRecord<Item> = clone(SEED_ITEMS);
@@ -193,48 +173,6 @@ export function createWorkspace(name: string) {
   return clone(workspace);
 }
 
-export function listSites(wsId: string) {
-  return clone(sites.filter((site) => site.workspaceId === wsId));
-}
-
-export function getSite(id: string) {
-  return clone(sites.find((site) => site.id === id) ?? sites[0]);
-}
-
-export function createSite(wsId: string, name: string, description?: string) {
-  const site: Site = {
-    id: createId('site', name),
-    workspaceId: wsId,
-    name,
-    description,
-    createdAt: now(),
-    updatedAt: now(),
-  };
-  sites = [site, ...sites];
-  return clone(site);
-}
-
-export function updateSite(id: string, wsId: string, name: string, description?: string) {
-  const site = sites.find((entry) => entry.id === id) ?? sites[0];
-  const updated: Site = {
-    ...site,
-    workspaceId: wsId,
-    name,
-    description,
-    updatedAt: now(),
-  };
-  sites = [updated, ...sites.filter((entry) => entry.id !== id)];
-  return clone(updated);
-}
-
-export function listLocations(wsId: string) {
-  return clone(locations.filter((location) => location.workspaceId === wsId));
-}
-
-export function getLocation(id: string) {
-  return clone(locations.find((location) => location.id === id) ?? locations[0]);
-}
-
 export function listContainers(wsId: string) {
   return clone(containers.filter((container) => container.workspaceId === wsId));
 }
@@ -311,7 +249,8 @@ export function updateMemberPermissions(memberId: string, overrides: Record<stri
 
 export interface SearchFilter {
   q?: string;
-  siteId?: string;
+  kind?: string;
+  usageType?: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -328,12 +267,12 @@ export function listItems(wsId: string, filter: SearchFilter = {}) {
       return false;
     }
 
-    if (filter.siteId) {
-      const container = item.containerId ? containers.find((entry) => entry.id === item.containerId) : null;
-      const location = container ? locations.find((entry) => entry.id === container.locationId) : null;
-      if (location?.siteId !== filter.siteId) {
-        return false;
-      }
+    if (filter.kind && item.kind !== filter.kind) {
+      return false;
+    }
+
+    if (filter.usageType && item.usageType !== filter.usageType) {
+      return false;
     }
 
     if (!keyword) {
@@ -360,8 +299,8 @@ export function listItems(wsId: string, filter: SearchFilter = {}) {
   } satisfies { data: Item[]; meta: ApiMeta };
 }
 
-export function getItem(id: string) {
-  return clone(items.find((entry) => entry.id === id) ?? items[0]);
+export function getItem(identifier: string) {
+  return clone(items.find((entry) => entry.id === identifier || entry.code === identifier) ?? items[0]);
 }
 
 export function listItemEvents(itemId?: string) {
@@ -378,8 +317,7 @@ export function getDashboardSummary(wsId: string) {
     missing: workspaceItems.filter((item) => item.status === 'missing').length,
     lowStock: workspaceItems.filter((item) => getItemStockState(item) === 'low_stock').length,
     outOfStock: workspaceItems.filter((item) => getItemStockState(item) === 'out_of_stock').length,
-    returnDue: workspaceItems.filter((item) => item.usageType === 'returnable' && item.returnPolicy === 'due').length,
-    returnIndefinite: workspaceItems.filter((item) => item.usageType === 'returnable' && item.returnPolicy === 'indefinite').length,
+    returnableItems: workspaceItems.filter((item) => item.usageType === 'returnable').length,
   };
 }
 
@@ -392,8 +330,6 @@ export function createItem(input: {
   name: string;
   kind: 'single' | 'bulk';
   usageType: 'consumable' | 'returnable';
-  returnPolicy: 'due' | 'indefinite';
-  returnDays?: number;
   quantity?: number;
   reorderPoint?: number;
   code?: string;
@@ -406,8 +342,7 @@ export function createItem(input: {
     name: input.name,
     kind: input.kind,
     usageType: input.usageType,
-    returnPolicy: input.usageType === 'returnable' ? input.returnPolicy : 'indefinite',
-    returnDays: input.usageType === 'returnable' && input.returnPolicy === 'due' ? input.returnDays ?? 7 : undefined,
+    returnPolicy: 'indefinite',
     quantity: input.kind === 'bulk' ? input.quantity ?? 1 : undefined,
     reorderPoint: input.kind === 'bulk' && input.usageType === 'consumable' ? input.reorderPoint ?? 5 : undefined,
     code: input.code,
@@ -428,24 +363,15 @@ export function createItem(input: {
   return clone(item);
 }
 
-export function updateItem(id: string, input: { name?: string; code?: string; description?: string; returnPolicy?: 'due' | 'indefinite'; returnDays?: number }) {
+export function updateItem(id: string, input: { name?: string; code?: string; description?: string }) {
   return clone(
     updateItemState(
       id,
       (item) => {
-        const nextReturnPolicy = item.usageType === 'returnable' ? input.returnPolicy ?? item.returnPolicy : 'indefinite';
-        const nextReturnDays =
-          item.usageType === 'returnable'
-            ? nextReturnPolicy === 'due'
-              ? input.returnDays ?? item.returnDays ?? 7
-              : undefined
-            : undefined;
-
         return {
           ...item,
           ...input,
-          returnPolicy: nextReturnPolicy,
-          returnDays: nextReturnDays,
+          returnPolicy: 'indefinite',
           updatedAt: now(),
         };
       },
@@ -503,7 +429,7 @@ export function moveItem(id: string, toContainerId: string) {
   );
 }
 
-export function takeOutItem(id: string, holderId: string, note?: string) {
+export function takeOutItem(id: string, holderId: string, quantity: number, note?: string) {
   return clone(
     updateItemState(
       id,
@@ -516,7 +442,7 @@ export function takeOutItem(id: string, holderId: string, note?: string) {
       {
         type: 'taken_out',
         actor: { id: MOCK_USER.id, name: MOCK_USER.name },
-        payload: { holderId, note },
+        payload: { holderId, quantity, note },
       },
     ),
   );
@@ -602,8 +528,6 @@ export function disposeItem(id: string, reason?: string) {
 
 export function resetDemoDb() {
   workspaces = clone(SEED_WORKSPACES);
-  sites = clone(SEED_SITES);
-  locations = clone(SEED_LOCATIONS);
   containers = clone(SEED_CONTAINERS);
   members = clone(SEED_MEMBERS);
   items = clone(SEED_ITEMS);

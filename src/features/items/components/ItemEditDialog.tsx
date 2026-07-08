@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
 import { FormField } from '@/components/forms/FormField';
 import { FormActions } from '@/components/forms/FormActions';
 import { createUpdateItemSchema, type UpdateItemValues } from '@/features/items/validation/itemSchema';
@@ -24,12 +23,10 @@ export function ItemEditDialog({ wsId, item, open, onOpenChange }: ItemEditDialo
   const updateMutation = useUpdateItem(wsId, item.id);
   const { t } = useI18n();
   const updateItemSchema = createUpdateItemSchema(t);
-  const isReturnable = item.usageType === 'returnable';
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<UpdateItemValues>({
     resolver: zodResolver(updateItemSchema) as never,
@@ -37,27 +34,20 @@ export function ItemEditDialog({ wsId, item, open, onOpenChange }: ItemEditDialo
       name: item.name,
       code: item.code ?? '',
       description: item.description ?? '',
-      returnPolicy: item.returnPolicy,
-      returnDays: item.returnDays,
     },
   });
-  const returnPolicy = watch('returnPolicy');
 
   useEffect(() => {
     reset({
       name: item.name,
       code: item.code ?? '',
       description: item.description ?? '',
-      returnPolicy: item.returnPolicy,
-      returnDays: item.returnDays,
     });
   }, [item, open, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     await updateMutation.mutateAsync({
       ...values,
-      returnPolicy: isReturnable ? values.returnPolicy : undefined,
-      returnDays: isReturnable && values.returnPolicy === 'due' ? values.returnDays : undefined,
     });
     reset();
     onOpenChange(false);
@@ -80,21 +70,6 @@ export function ItemEditDialog({ wsId, item, open, onOpenChange }: ItemEditDialo
           <FormField label={t('items.edit.descriptionLabel')} htmlFor="edit-item-description" error={errors.description?.message}>
             <Textarea id="edit-item-description" rows={4} {...register('description')} />
           </FormField>
-          {isReturnable ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={t('items.form.returnPolicy')} htmlFor="edit-item-return-policy" error={errors.returnPolicy?.message}>
-                <Select id="edit-item-return-policy" {...register('returnPolicy')}>
-                  <option value="due">{t('items.form.returnPolicyDue')}</option>
-                  <option value="indefinite">{t('items.form.returnPolicyIndefinite')}</option>
-                </Select>
-              </FormField>
-              {returnPolicy === 'due' ? (
-                <FormField label={t('items.form.returnDays')} htmlFor="edit-item-return-days" error={errors.returnDays?.message}>
-                  <Input id="edit-item-return-days" type="number" min={1} {...register('returnDays')} />
-                </FormField>
-              ) : null}
-            </div>
-          ) : null}
           <FormActions>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('items.edit.cancel')}

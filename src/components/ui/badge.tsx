@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from 'react';
+import { Tag as AntTag } from 'antd';
 import { cn } from '@/lib/cn';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -14,14 +15,10 @@ const badgeVariants = {
 
 export function Badge({ className, variant = 'default', ...props }: BadgeProps) {
   return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors',
-        badgeVariants[variant],
-        className,
-      )}
+    <AntTag
+      className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold', className)}
+      color={variant === 'destructive' ? 'red' : variant === 'default' ? 'blue' : undefined}
       {...props}
     />
   );
 }
-

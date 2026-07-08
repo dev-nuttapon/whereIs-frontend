@@ -1,18 +1,13 @@
-import type { InputHTMLAttributes } from 'react';
+import { Checkbox as AntCheckbox, type CheckboxProps as AntCheckboxProps } from 'antd';
 import { cn } from '@/lib/cn';
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {}
+export type CheckboxProps = AntCheckboxProps;
 
 export function Checkbox({ className, ...props }: CheckboxProps) {
   return (
-    <input
-      type="checkbox"
-      className={cn(
-        'h-4 w-4 rounded border-border text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        className,
-      )}
+    <AntCheckbox
+      className={cn(className)}
       {...props}
     />
   );
 }
-

@@ -2,9 +2,10 @@ import { z } from 'zod';
 
 type TFn = (key: string, fallback?: string, params?: Record<string, string | number>) => string;
 
-export function createTakeOutSchema(t: TFn) {
+export function createTakeOutSchema(t: TFn, maxQuantity: number) {
   return z.object({
     holderId: z.string().min(1, t('items.validation.holderRequired')),
+    quantity: z.coerce.number().int().min(1, t('items.validation.quantityMin')).max(maxQuantity, t('items.validation.quantityMax')),
     note: z.string().trim().optional(),
   });
 }

@@ -1,7 +1,19 @@
 import type { ReactNode } from 'react';
+import { Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 
-export function DropdownMenu({ children }: { children: ReactNode }) {
-  return <div className="relative inline-block">{children}</div>;
+export interface DropdownMenuProps {
+  trigger: ReactNode;
+  items: NonNullable<MenuProps['items']>;
+  children?: ReactNode;
+}
+
+export function DropdownMenu({ trigger, items, children }: DropdownMenuProps) {
+  return (
+    <Dropdown menu={{ items }} trigger={['click']}>
+      <span>{trigger ?? children}</span>
+    </Dropdown>
+  );
 }
 
 export function DropdownMenuTrigger({ children }: { children: ReactNode }) {
@@ -9,9 +21,9 @@ export function DropdownMenuTrigger({ children }: { children: ReactNode }) {
 }
 
 export function DropdownMenuContent({ children }: { children: ReactNode }) {
-  return <div className="absolute right-0 top-full mt-2 min-w-48 rounded-md border border-border bg-background p-2 shadow-lg">{children}</div>;
+  return <>{children}</>;
 }
 
 export function DropdownMenuItem({ children }: { children: ReactNode }) {
-  return <div className="cursor-pointer rounded px-2 py-1.5 text-sm hover:bg-muted">{children}</div>;
+  return <>{children}</>;
 }

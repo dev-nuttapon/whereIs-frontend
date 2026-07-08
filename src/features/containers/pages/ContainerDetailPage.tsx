@@ -1,8 +1,9 @@
 import { useParams } from 'react-router-dom';
+import { Descriptions, List, Space, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS, MOCK_LOCATIONS, MOCK_SITES } from '@/mocks/mock-data';
+import { MOCK_CONTAINERS } from '@/mocks/mock-data';
 import { useSearchItems } from '@/features/items/hooks/useItems';
 
 export function ContainerDetailPage() {
@@ -10,8 +11,6 @@ export function ContainerDetailPage() {
   const { t } = useI18n();
   const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
   const container = MOCK_CONTAINERS.find((entry) => entry.id === containerId) ?? null;
-  const location = container ? MOCK_LOCATIONS.find((entry) => entry.id === container.locationId) ?? null : null;
-  const site = location ? MOCK_SITES.find((entry) => entry.id === location.siteId) ?? null : null;
   const items = (itemsQuery.data?.data ?? []).filter((item) => item.containerId === containerId);
 
   return (
@@ -25,34 +24,29 @@ export function ContainerDetailPage() {
               </CardTitle>
               <CardDescription>{container?.name ?? t('container.detail.itemlist')}</CardDescription>
             </div>
-            <div className="grid gap-3 text-sm md:grid-cols-3">
-              <div>
-                <p className="text-muted-foreground">Site</p>
-                <p className="font-medium">{site?.name ?? '—'}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">{t('locations.list.title')}</p>
-                <p className="font-medium">{location?.name ?? '—'}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">{t('items.list.count')}</p>
-                <p className="font-medium">{items.length}</p>
-              </div>
-            </div>
+            <Descriptions bordered column={{ xs: 1, md: 3 }} size="middle">
+              <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.code ?? containerId}</Descriptions.Item>
+              <Descriptions.Item label={t('items.list.count')}>{items.length}</Descriptions.Item>
+              <Descriptions.Item label={t('containers.list.title')}>{container?.name ?? '—'}</Descriptions.Item>
+            </Descriptions>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="space-y-3 p-6">
             <CardTitle className="text-base">Items in this container</CardTitle>
             {items.length > 0 ? (
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {items.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-border/70 bg-background/70 p-3 text-sm">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-muted-foreground">{item.code ?? t('items.detail.noCode')}</p>
-                  </div>
-                ))}
-              </div>
+              <List
+                bordered
+                dataSource={items}
+                renderItem={(item) => (
+                  <List.Item>
+                    <Space direction="vertical" size={0}>
+                      <Typography.Text strong>{item.name}</Typography.Text>
+                      <Typography.Text type="secondary">{item.code ?? t('items.detail.noCode')}</Typography.Text>
+                    </Space>
+                  </List.Item>
+                )}
+              />
             ) : (
               <CardDescription>{t('container.detail.itemlist')}</CardDescription>
             )}

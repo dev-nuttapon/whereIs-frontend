@@ -1,29 +1,17 @@
+import { cloneElement, forwardRef, isValidElement } from 'react';
 import type { ButtonHTMLAttributes, ReactElement, ReactNode } from 'react';
-import { cloneElement, isValidElement } from 'react';
+import { Button as AntButton, type ButtonProps as AntButtonProps } from 'antd';
 import { cn } from '@/lib/cn';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<AntButtonProps, 'type' | 'size' | 'children' | 'danger' | 'shape' | 'variant'> {
   variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
   children: ReactNode;
   asChild?: boolean;
+  type?: ButtonHTMLAttributes<HTMLButtonElement>['type'];
 }
 
-const variants = {
-  default: 'bg-primary text-primary-foreground hover:opacity-90',
-  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-  outline: 'border border-border bg-transparent hover:bg-muted',
-  ghost: 'bg-transparent hover:bg-muted',
-  destructive: 'bg-destructive text-destructive-foreground hover:opacity-90',
-};
-
-const sizes = {
-  sm: 'h-8 px-3 text-xs',
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-11 px-5 text-sm',
-};
-
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   className,
   variant = 'default',
   size = 'md',
@@ -31,28 +19,42 @@ export function Button({
   type = 'button',
   asChild = false,
   ...props
-}: ButtonProps) {
-  const buttonClassName = cn(
-    'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-    variants[variant],
-    sizes[size],
-    className,
-  );
+}, ref) {
+  const antType: AntButtonProps['type'] = variant === 'default' ? 'primary' : variant === 'destructive' ? 'primary' : 'default';
+  const danger = variant === 'destructive';
+  const shape = 'round';
 
   if (asChild && isValidElement(children)) {
     const child = children as ReactElement<{ className?: string }>;
     return cloneElement(child, {
-      className: cn(child.props.className, buttonClassName),
+      className: cn(
+        'ant-btn ant-btn-default inline-flex items-center justify-center gap-2 font-medium transition-colors',
+        variant === 'default' ? 'ant-btn-primary' : '',
+        variant === 'secondary' ? 'ant-btn-default' : '',
+        variant === 'outline' ? 'ant-btn-default ant-btn-outlined' : '',
+        variant === 'ghost' ? 'ant-btn-text' : '',
+        variant === 'destructive' ? 'ant-btn-primary ant-btn-dangerous' : '',
+        size === 'sm' ? 'ant-btn-sm' : '',
+        size === 'lg' ? 'ant-btn-lg' : '',
+        'rounded-full',
+        className,
+        child.props.className,
+      ),
     });
   }
 
   return (
-    <button
-      type={type}
-      className={buttonClassName}
+    <AntButton
+      ref={ref}
+      htmlType={type}
+      type={antType}
+      danger={danger}
+      shape={shape}
+      size={size === 'sm' ? 'small' : size === 'lg' ? 'large' : 'middle'}
+      className={cn('inline-flex items-center gap-2', className)}
       {...props}
     >
       {children}
-    </button>
+    </AntButton>
   );
-}
+});

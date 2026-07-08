@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { useEffect, useMemo } from 'react';
+import { Layout } from 'antd';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { workspaceStore } from '@/stores/workspace.store';
@@ -24,18 +25,18 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="min-h-screen lg:flex">
+    <Layout className="min-h-screen bg-background">
+      <div className="flex min-h-screen w-full">
         <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <Layout className="min-w-0 flex-1 bg-transparent">
           <Topbar />
-          <main className="flex-1 px-3 py-6 sm:px-4 lg:px-6 lg:py-6">
+          <Layout.Content className="flex-1 px-3 py-6 sm:px-4 lg:px-6 lg:py-6">
             <div className="mx-auto w-full max-w-screen-xl">
               <Outlet />
             </div>
-          </main>
-        </div>
+          </Layout.Content>
+        </Layout>
       </div>
-    </div>
+    </Layout>
   );
 }

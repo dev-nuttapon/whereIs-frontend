@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import { Empty, Typography } from 'antd';
 import { Button } from '@/components/ui/button';
 
 export interface EmptyStateProps {
@@ -12,23 +12,24 @@ export interface EmptyStateProps {
 
 export function EmptyState({ title, description, actionLabel, onAction, icon }: EmptyStateProps) {
   return (
-    <Card className="border-dashed border-border">
-      <CardContent className="flex flex-col items-center gap-3 py-8 text-center sm:gap-4 sm:py-10">
-        {icon ? (
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <div className="text-xl">{icon}</div>
-          </div>
-        ) : null}
+    <Empty
+      image={icon ? <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary text-2xl">{icon}</div> : Empty.PRESENTED_IMAGE_SIMPLE}
+      description={
         <div className="space-y-1">
-          <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
-          <CardDescription className="max-w-md">{description}</CardDescription>
+          <Typography.Title level={5} className="!mb-0 !mt-0">
+            {title}
+          </Typography.Title>
+          <Typography.Paragraph className="!mb-0 !text-sm text-muted-foreground">
+            {description}
+          </Typography.Paragraph>
         </div>
-        {actionLabel && onAction ? (
-          <Button onClick={onAction} className="px-5">
-            {actionLabel}
-          </Button>
-        ) : null}
-      </CardContent>
-    </Card>
+      }
+    >
+      {actionLabel && onAction ? (
+        <Button onClick={onAction} className="px-5">
+          {actionLabel}
+        </Button>
+      ) : null}
+    </Empty>
   );
 }

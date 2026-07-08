@@ -1,10 +1,10 @@
 import { useParams } from 'react-router-dom';
+import { Tag, Timeline, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useActivity } from '@/features/items/hooks/useItems';
 import { useI18n } from '@/hooks/useI18n';
-import { Badge } from '@/components/ui/badge';
 import { MOCK_CONTAINERS, MOCK_ITEMS, MOCK_MEMBERS } from '@/mocks/mock-data';
 import { buildActivityDisplay } from '@/features/activity/lib/activityDisplay';
 
@@ -26,9 +26,8 @@ export function ActivityPage() {
       {query.isLoading ? <LoadingState label={t('activity.loading')} /> : null}
       {query.isError ? <ErrorState message={t('activity.error')} onRetry={() => query.refetch()} /> : null}
       {query.data ? (
-        <div className="relative space-y-0">
-          <div className="absolute left-[17px] top-3 bottom-3 w-px bg-border" />
-          {query.data.map((event) => {
+        <Timeline
+          items={query.data.map((event) => {
             const display = buildActivityDisplay(event, {
               events: query.data ?? [],
               items: MOCK_ITEMS,
@@ -38,45 +37,30 @@ export function ActivityPage() {
               t,
             });
 
-            return (
-              <div key={event.id} className="relative flex gap-3 py-3 pl-10">
-                <div className={`absolute left-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border ${activityToneClasses[display.tone]}`}>
-                  <span className="text-sm leading-none">{display.glyph}</span>
-                </div>
-                <div className="min-w-0 flex-1 rounded-xl border border-border bg-card p-4 text-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <p className="font-medium">{event.actor.name}</p>
-                      <Badge variant="outline" className={`text-[0.65rem] uppercase tracking-[0.18em] ${activityToneClasses[display.tone]}`}>
-                        {display.eventLabel}
-                      </Badge>
-                      <span className="truncate text-xs text-muted-foreground">{display.itemName}</span>
-                    </div>
+            return {
+              color: display.tone === 'emerald' ? 'green' : display.tone === 'amber' ? 'gold' : display.tone === 'rose' ? 'red' : 'blue',
+              dot: <span className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm ${activityToneClasses[display.tone]}`}>{display.glyph}</span>,
+              children: (
+                <div className="space-y-2 rounded-2xl border border-border/70 bg-card/80 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Typography.Text strong>{event.actor.name}</Typography.Text>
+                    <Tag className={`uppercase tracking-[0.18em] ${activityToneClasses[display.tone]}`}>{display.eventLabel}</Tag>
+                    <Typography.Text type="secondary" className="truncate text-xs">
+                      {display.itemName}
+                    </Typography.Text>
                   </div>
-                  <p className="mt-2 text-muted-foreground">{display.summary}</p>
-                  <div className="mt-2 flex flex-wrap gap-2 text-[0.7rem]">
-                    {display.currentStateLabel ? (
-                      <Badge variant="secondary" className="rounded-full px-2 py-0.5 font-medium">
-                        {t('activity.current.status')}: {display.currentStateLabel}
-                      </Badge>
-                    ) : null}
-                    {display.currentLocationLabel ? (
-                      <Badge variant="outline" className="rounded-full px-2 py-0.5 font-medium">
-                        {t('activity.current.location')}: {display.currentLocationLabel}
-                      </Badge>
-                    ) : null}
-                    {display.currentReturnLabel ? (
-                      <Badge variant="outline" className="rounded-full px-2 py-0.5 font-medium">
-                        {t('activity.current.return')}: {display.currentReturnLabel}
-                      </Badge>
-                    ) : null}
+                  <Typography.Paragraph className="!mb-0 text-muted-foreground">{display.summary}</Typography.Paragraph>
+                  <div className="flex flex-wrap gap-2 text-[0.7rem]">
+                    {display.currentStateLabel ? <Tag>{t('activity.current.status')}: {display.currentStateLabel}</Tag> : null}
+                    {display.currentLocationLabel ? <Tag>{t('activity.current.location')}: {display.currentLocationLabel}</Tag> : null}
+                    {display.currentReturnLabel ? <Tag>{t('activity.current.return')}: {display.currentReturnLabel}</Tag> : null}
                   </div>
-                  {display.detail ? <p className="mt-1 text-xs text-muted-foreground">{display.detail}</p> : null}
+                  {display.detail ? <Typography.Text type="secondary" className="text-xs">{display.detail}</Typography.Text> : null}
                 </div>
-              </div>
-            );
+              ),
+            };
           })}
-        </div>
+        />
       ) : null}
     </PageShell>
   );

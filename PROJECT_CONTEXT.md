@@ -2,7 +2,7 @@
 
 # WhereIs Frontend Project Context
 
-This repo is the frontend POC for the WhereIs inventory and storage demo.
+This repo is the frontend POC for the WhereIs workspace-based asset and stock tracking system.
 
 ## Project Information
 
@@ -10,7 +10,7 @@ This repo is the frontend POC for the WhereIs inventory and storage demo.
 
 **Version:** 0.1.0
 
-**Project Type:** Inventory / Storage Management System
+**Project Type:** Workspace-based Asset and Stock Management System
 
 **Frontend Stack:**
 
@@ -29,7 +29,7 @@ This repo is the frontend POC for the WhereIs inventory and storage demo.
 
 # Project Vision
 
-WhereIs is an Inventory and Storage Management System designed to help users locate, organize, move, borrow, and track physical items.
+WhereIs is a workspace-based asset and stock management system designed to help users organize, track, borrow, return, restock, and consume items.
 
 The system is designed for multiple scenarios:
 
@@ -45,9 +45,11 @@ The primary goal is to answer the following questions:
 
 * Where is this item?
 * Who currently has this item?
-* Where was it previously stored?
-* When was it moved?
-* Has it been returned?
+* Is it a single item or a stock item?
+* What container path does it belong to?
+* When is it due back, if ever?
+* Why was it marked missing, disposed, or sold?
+* How much stock remains, who used it, and when was it restocked?
 
 The frontend should make these answers available quickly with a simple and intuitive user experience, while still making the demo/POC nature obvious to anyone opening the app.
 
@@ -59,7 +61,7 @@ The UI should prioritize:
 
 * Fast Search
 * Simple Navigation
-* Clear Location Display
+* Clear Container Display
 * Minimal Clicks
 * Responsive Layout
 * Consistent Design
@@ -75,10 +77,9 @@ The Search page is the most important page of the application.
 * Authentication
 * Workspace Management
 * Dashboard
-* Site Management
-* Location Explorer
 * Container Management
 * Item Management
+* Stock Management
 * Item Search
 * Item Detail
 * Move Item
@@ -102,13 +103,11 @@ Dashboard
 
 ├── Search
 
-├── Sites
-
-├── Locations
-
 ├── Containers
 
 ├── Items
+
+├── Stock
 
 ├── Members
 
@@ -214,11 +213,10 @@ Examples:
 
 * auth.api.ts
 * workspace.api.ts
-* site.api.ts
-* location.api.ts
 * container.api.ts
 * item.api.ts
 * member.api.ts
+* permission.api.ts
 
 ---
 
@@ -302,7 +300,7 @@ Search results should always display:
 * Item Image
 * Item Name
 * Current Status
-* Current Location
+* Current Container Path
 * Current Holder
 
 ---

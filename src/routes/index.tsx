@@ -18,10 +18,6 @@ const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/Workspac
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
 const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
-const SitesPage = lazy(() => import('@/features/sites/pages/SitesPage').then((module) => ({ default: module.SitesPage })));
-const SiteDetailPage = lazy(() => import('@/features/sites/pages/SiteDetailPage').then((module) => ({ default: module.SiteDetailPage })));
-const LocationExplorerPage = lazy(() => import('@/features/sites/pages/LocationExplorerPage').then((module) => ({ default: module.LocationExplorerPage })));
-const LocationsPage = lazy(() => import('@/features/locations/pages/LocationsPage').then((module) => ({ default: module.LocationsPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
 const MemberDetailPage = lazy(() => import('@/features/members/pages/MemberDetailPage').then((module) => ({ default: module.MemberDetailPage })));
@@ -81,19 +77,11 @@ export function AppRoutes() {
               <Route element={<PermissionRoute permission="item.view" />}>
                 <Route path="search" element={<SearchPage />} />
                 <Route path="items" element={<ItemsPage />} />
-                <Route path="items/:itemId" element={<ItemDetailPage />} />
+                <Route path="items/:itemCode" element={<ItemDetailPage />} />
               </Route>
               <Route element={<PermissionRoute permission="container.view" />}>
                 <Route path="containers" element={<ContainersPage />} />
                 <Route path="containers/:containerId" element={<ContainerDetailPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="location.view" />}>
-                <Route path="locations" element={<LocationsPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="site.view" />}>
-                <Route path="sites" element={<SitesPage />} />
-                <Route path="sites/:siteId" element={<SiteDetailPage />} />
-                <Route path="sites/:siteId/explorer" element={<LocationExplorerPage />} />
               </Route>
               <Route element={<PermissionRoute permission="member.view" />}>
                 <Route path="members" element={<MembersPage />} />

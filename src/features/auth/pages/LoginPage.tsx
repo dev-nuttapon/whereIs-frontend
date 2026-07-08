@@ -2,10 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, Button, Input, Typography } from 'antd';
 import { ROUTES } from '@/constants/routes';
 import { createLoginSchema, type LoginValues } from '@/features/auth/validation/loginSchema';
 import { useLogin } from '@/features/auth/hooks/useLogin';
@@ -43,19 +40,17 @@ export function LoginPage() {
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="email">{t('auth.email')}</Label>
+        <Typography.Text className="text-sm font-medium">{t('auth.email')}</Typography.Text>
         <Input id="email" type="email" autoComplete="email" {...register('email')} />
         {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">{t('auth.password')}</Label>
-        <Input id="password" type="password" autoComplete="current-password" {...register('password')} />
+        <Typography.Text className="text-sm font-medium">{t('auth.password')}</Typography.Text>
+        <Input.Password id="password" autoComplete="current-password" {...register('password')} />
         {errors.password ? <p className="text-sm text-destructive">{errors.password.message}</p> : null}
       </div>
-      <Alert>
-        <AlertDescription>{t('auth.login.mock')}</AlertDescription>
-      </Alert>
-      <Button className="w-full" type="submit" disabled={isSubmitting || loginMutation.isPending}>
+      <Alert type="info" showIcon message={t('auth.login.mock')} />
+      <Button className="w-full" type="primary" htmlType="submit" disabled={isSubmitting || loginMutation.isPending}>
         {isSubmitting || loginMutation.isPending ? `${t('common.signIn')}...` : t('common.signIn')}
       </Button>
       <p className="text-center text-sm text-muted-foreground">

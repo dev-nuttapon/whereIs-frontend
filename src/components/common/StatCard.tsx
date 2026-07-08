@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import { Statistic, Typography } from 'antd';
+import { Card, CardContent } from '@/components/ui/card';
 
 export interface StatCardProps {
   label: string;
@@ -10,10 +11,12 @@ export interface StatCardProps {
 
 export function StatCard({ label, value, description, to }: StatCardProps) {
   const content = (
-    <Card className={to ? 'transition-colors hover:border-foreground/15 hover:bg-muted/20' : undefined}>
+    <Card className={to ? 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-32px_rgba(2,6,23,0.55)]' : undefined}>
       <CardContent className="space-y-1.5 p-5 sm:space-y-2 sm:p-6">
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl sm:text-3xl">{value}</CardTitle>
+        <Typography.Text type="secondary" className="text-sm">
+          {label}
+        </Typography.Text>
+        <Statistic value={value} valueStyle={{ fontSize: '2rem', lineHeight: 1.1 }} />
         {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       </CardContent>
     </Card>

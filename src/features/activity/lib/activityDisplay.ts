@@ -34,27 +34,12 @@ function getNumber(value: unknown) {
   return typeof value === 'number' ? value : null;
 }
 
-function formatDate(locale: 'en' | 'th', value: Date) {
-  return new Intl.DateTimeFormat(locale === 'th' ? 'th-TH' : 'en-US', {
-    dateStyle: 'medium',
-  }).format(value);
-}
-
-function getCurrentReturnLabel(locale: 'en' | 'th', t: TFn, item: Item, issuedAt?: string) {
+function getCurrentReturnLabel(t: TFn, item: Item) {
   if (item.usageType !== 'returnable') {
     return undefined;
   }
 
-  if (item.returnPolicy === 'indefinite') {
-    return t('activity.current.returnIndefinite');
-  }
-
-  const dueAt = new Date(issuedAt ?? item.updatedAt);
-  dueAt.setDate(dueAt.getDate() + (item.returnDays ?? 7));
-
-  return new Date() > dueAt
-    ? t('activity.current.returnOverdue', undefined, { date: formatDate(locale, dueAt) })
-    : t('activity.current.returnDueOn', undefined, { date: formatDate(locale, dueAt) });
+  return t('items.detail.noReturnRequired');
 }
 
 function getEventLabel(t: TFn, type: ItemEvent['type']) {
@@ -111,8 +96,6 @@ export function buildActivityDisplay(event: ItemEvent, context: ActivityContext)
   const { tone, glyph } = getTone(event.type);
   const currentContainer = item?.containerId ? containerMap.get(item.containerId) : null;
   const currentHolder = item?.currentHolderId ? memberMap.get(item.currentHolderId) : null;
-  const latestTakeOutEvent = context.events.find((entry) => entry.itemId === event.itemId && entry.type === 'taken_out');
-
   let summary = '';
   let detail: string | undefined;
 
@@ -203,7 +186,7 @@ export function buildActivityDisplay(event: ItemEvent, context: ActivityContext)
           : item?.status === 'missing'
             ? context.t('activity.current.locationUnknown')
             : undefined,
-    currentReturnLabel: item?.status === 'taken_out' ? getCurrentReturnLabel(context.locale, context.t, item, latestTakeOutEvent?.createdAt) : undefined,
+    currentReturnLabel: item?.status === 'taken_out' ? getCurrentReturnLabel(context.t, item) : undefined,
     tone,
     glyph,
   };

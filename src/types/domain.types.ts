@@ -37,29 +37,9 @@ export interface Workspace {
   description?: string;
 }
 
-export interface Site {
-  id: string;
-  workspaceId: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Location {
-  id: string;
-  workspaceId: string;
-  siteId: string;
-  parentId: string | null;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Container {
   id: string;
   workspaceId: string;
-  locationId: string;
   code: string;
   name?: string;
   photoUrl?: string;
@@ -75,7 +55,6 @@ export interface Item {
   kind: ItemKind;
   usageType: ItemUsageType;
   returnPolicy: ItemReturnPolicy;
-  returnDays?: number;
   quantity?: number;
   reorderPoint?: number;
   code?: string;

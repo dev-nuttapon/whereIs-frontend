@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState } from 'react';
+import { Avatar, List, Space, Tag, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,20 +39,27 @@ export function MembersPage() {
           icon={<MemberIcon className="h-5 w-5" />}
         />
       ) : null}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {membersQuery.data?.map((member) => (
-          <Card key={member.id}>
-            <CardContent className="space-y-1 p-6">
-              <CardTitle className="text-base">
-                <MemberIcon className="mr-2 inline-block h-4 w-4" />
-                {member.user.name}
-                {currentUser?.id === member.user.id ? ` (${t('members.you')})` : ''}
-              </CardTitle>
-              <CardDescription>{member.user.email}</CardDescription>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <List
+        className="rounded-2xl border border-border/70 bg-card/70"
+        itemLayout="horizontal"
+        dataSource={membersQuery.data ?? []}
+        renderItem={(member) => (
+          <List.Item actions={currentUser?.id === member.user.id ? [<Tag key="self" color="blue">{t('members.you')}</Tag>] : undefined}>
+            <List.Item.Meta
+              avatar={<Avatar>{member.user.name.slice(0, 1).toUpperCase()}</Avatar>}
+              title={
+                <Space size={8} wrap>
+                  <Typography.Text strong>
+                    <MemberIcon className="mr-2 inline-block h-4 w-4" />
+                    {member.user.name}
+                  </Typography.Text>
+                </Space>
+              }
+              description={member.user.email}
+            />
+          </List.Item>
+        )}
+      />
       <InviteMemberDialog wsId={wsId} open={inviteOpen} onOpenChange={setInviteOpen} />
     </PageShell>
   );

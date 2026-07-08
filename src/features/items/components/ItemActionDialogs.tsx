@@ -38,6 +38,7 @@ import {
 } from '@/features/items/hooks/useItems';
 import { useI18n } from '@/hooks/useI18n';
 import { MOCK_CONTAINERS, MOCK_MEMBERS } from '@/mocks/mock-data';
+import { authStore } from '@/stores/auth.store';
 
 export interface ItemActionDialogsProps {
   wsId: string;
@@ -48,6 +49,7 @@ export interface ItemActionDialogsProps {
 
 export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }: ItemActionDialogsProps) {
   const { t } = useI18n();
+  const currentUser = authStore((state) => state.user);
   const moveMutation = useMoveItem(wsId, item.id);
   const takeOutMutation = useTakeOutItemMutation(wsId, item.id);
   const returnMutation = useReturnItemMutation(wsId, item.id);
@@ -58,7 +60,8 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
   const disposeMutation = useDisposeItemMutation(wsId, item.id);
 
   const moveItemSchema = createMoveItemSchema(t);
-  const takeOutSchema = createTakeOutSchema(t);
+  const takeOutMaxQuantity = item.kind === 'bulk' ? item.quantity ?? 1 : 1;
+  const takeOutSchema = createTakeOutSchema(t, takeOutMaxQuantity);
   const returnSchema = createReturnSchema();
   const consumeStockSchema = createConsumeStockSchema(t, item.quantity ?? 0);
   const restockStockSchema = createRestockStockSchema(t);
@@ -66,9 +69,9 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
   const disposeSchema = createDisposeSchema(t);
 
   const currentContainerId = item.containerId ?? MOCK_CONTAINERS[0]?.id ?? '';
-  const currentHolderId = item.currentHolderId ?? MOCK_MEMBERS[0]?.id ?? '';
+  const currentHolderId = MOCK_MEMBERS.find((member) => member.user.id === currentUser?.id)?.id ?? '';
   const currentContainerLabel = MOCK_CONTAINERS.find((container) => container.id === currentContainerId)?.code ?? t('items.detail.noContainer');
-  const currentHolderLabel = MOCK_MEMBERS.find((member) => member.id === currentHolderId)?.user.name ?? t('items.detail.noHolder');
+  const currentHolderLabel = currentUser?.name ?? t('items.detail.noHolder');
   const canReturnItem = item.usageType === 'returnable';
   const isConsumableStockItem = item.kind === 'bulk' && item.usageType === 'consumable';
 
@@ -77,8 +80,8 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
     defaultValues: { toContainerId: currentContainerId },
   });
   const takeOutForm = useForm<TakeOutActionValues>({
-    resolver: zodResolver(takeOutSchema),
-    defaultValues: { holderId: currentHolderId, note: '' },
+    resolver: zodResolver(takeOutSchema) as never,
+    defaultValues: { holderId: currentHolderId, quantity: 1, note: '' },
   });
   const returnForm = useForm<ReturnActionValues>({
     resolver: zodResolver(returnSchema),
@@ -106,7 +109,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
       moveForm.reset({ toContainerId: currentContainerId });
     }
     if (openAction === 'takeout') {
-      takeOutForm.reset({ holderId: currentHolderId, note: '' });
+      takeOutForm.reset({ holderId: currentHolderId, quantity: 1, note: '' });
     }
     if (openAction === 'return') {
       returnForm.reset({ note: '' });
@@ -183,20 +186,22 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               onOpenActionChange(null);
             })}
           >
-            <FormField
-              label={t('items.action.holder')}
-              htmlFor="takeout-holder"
-              description={t('items.action.currentHolder', undefined, { holder: currentHolderLabel })}
-              error={takeOutForm.formState.errors.holderId?.message}
-            >
-              <Select id="takeout-holder" {...takeOutForm.register('holderId')}>
-                {MOCK_MEMBERS.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.user.name}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
+            <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{t('items.action.holder')}</p>
+              <p className="mt-1 font-medium">{currentHolderLabel}</p>
+              <p className="text-xs text-muted-foreground">{t('items.action.currentHolder', undefined, { holder: currentHolderLabel })}</p>
+            </div>
+            <input type="hidden" {...takeOutForm.register('holderId')} />
+            {item.kind === 'bulk' ? (
+              <FormField
+                label={t('items.action.takeOutQuantity')}
+                htmlFor="takeout-quantity"
+                description={t('items.action.takeOutAvailable', undefined, { quantity: item.quantity ?? 1 })}
+                error={takeOutForm.formState.errors.quantity?.message}
+              >
+                <Input id="takeout-quantity" type="number" min={1} max={takeOutMaxQuantity} {...takeOutForm.register('quantity')} />
+              </FormField>
+            ) : null}
             <FormField label={t('items.action.note')} htmlFor="takeout-note" error={takeOutForm.formState.errors.note?.message}>
               <Textarea id="takeout-note" rows={3} {...takeOutForm.register('note')} />
             </FormField>

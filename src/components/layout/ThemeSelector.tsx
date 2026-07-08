@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Segmented } from 'antd';
 import { uiStore, type Theme } from '@/stores/ui.store';
 import { useI18n } from '@/hooks/useI18n';
 import { MoonIcon, SunIcon, SystemIcon } from '@/components/ui/icons';
@@ -23,26 +23,18 @@ export function ThemeSelector({ onSelect }: ThemeSelectorProps) {
   const { t } = useI18n();
 
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {OPTIONS.map(({ value, icon: Icon, labelKey }) => {
-        const active = theme === value;
-        return (
-          <Button
-            key={value}
-            variant={active ? 'secondary' : 'outline'}
-            size="sm"
-            className="h-auto flex-col gap-1.5 px-3 py-3 text-xs"
-            onClick={() => {
-              setTheme(value);
-              onSelect?.(value);
-            }}
-            aria-pressed={active}
-          >
-            <Icon className="h-4 w-4" />
-            <span>{t(labelKey)}</span>
-          </Button>
-        );
-      })}
-    </div>
+    <Segmented
+      className="w-full"
+      value={theme}
+      options={OPTIONS.map(({ value, icon: Icon, labelKey }) => ({
+        label: <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4" />{t(labelKey)}</span>,
+        value,
+      }))}
+      onChange={(value) => {
+        const nextTheme = value as Theme;
+        setTheme(nextTheme);
+        onSelect?.(nextTheme);
+      }}
+    />
   );
 }

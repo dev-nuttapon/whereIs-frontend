@@ -2,11 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Alert, Avatar, Button, Card, Divider, Input, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { authStore } from '@/stores/auth.store';
 import { queryKeys } from '@/lib/queryKeys';
@@ -124,80 +120,85 @@ export function ProfilePage() {
   return (
     <PageShell title={t('profile.title')} description={t('profile.description')}>
       <Card className="overflow-hidden">
-        <CardContent className="space-y-5 p-5 sm:p-6">
+        <div className="space-y-5 p-5 sm:p-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold">
+            <Avatar size={48} className="bg-primary text-primary-foreground">
               {initials}
-            </div>
+            </Avatar>
             <div className="space-y-1">
-              <CardTitle className="text-base">{t('profile.cardTitle')}</CardTitle>
-              <CardDescription>{t('profile.cardDescription')}</CardDescription>
+              <Typography.Title level={5} className="!mb-0 !mt-0 text-base">
+                {t('profile.cardTitle')}
+              </Typography.Title>
+              <Typography.Paragraph className="!mb-0 text-muted-foreground">
+                {t('profile.cardDescription')}
+              </Typography.Paragraph>
             </div>
           </div>
 
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
+              <Typography.Text className="flex items-center gap-2 font-medium">
                 <UserIcon className="h-4 w-4" />
                 <span>{t('profile.name')}</span>
-              </Label>
+              </Typography.Text>
               <Input id="name" autoComplete="name" {...register('name')} />
               {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">{t('profile.email')}</Label>
+              <Typography.Text className="text-sm font-medium">{t('profile.email')}</Typography.Text>
               <Input id="email" type="email" autoComplete="email" {...register('email')} />
               {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
             </div>
             {saved ? (
-              <Alert className="border-border/80 bg-muted/40">
-                <AlertDescription>{t('profile.saved')}</AlertDescription>
-              </Alert>
+              <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.saved')} />
             ) : null}
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" disabled={isSubmitting || !isDirty}>
+              <Button type="primary" htmlType="submit" disabled={isSubmitting || !isDirty}>
                 {isSubmitting ? t('profile.saving') : t('profile.save')}
               </Button>
             </div>
           </form>
-        </CardContent>
+        </div>
       </Card>
+      <Divider />
       <Card className="overflow-hidden">
-        <CardContent className="space-y-5 p-5 sm:p-6">
+        <div className="space-y-5 p-5 sm:p-6">
           <div className="space-y-1">
-            <CardTitle className="text-base">{t('profile.securityTitle')}</CardTitle>
-            <CardDescription>{t('profile.securityDescription')}</CardDescription>
+            <Typography.Title level={5} className="!mb-0 !mt-0 text-base">
+              {t('profile.securityTitle')}
+            </Typography.Title>
+            <Typography.Paragraph className="!mb-0 text-muted-foreground">
+              {t('profile.securityDescription')}
+            </Typography.Paragraph>
           </div>
 
           <form className="space-y-4" onSubmit={onPasswordSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">{t('profile.currentPassword')}</Label>
-              <Input id="currentPassword" type="password" autoComplete="current-password" {...registerPassword('currentPassword')} />
+              <Typography.Text className="text-sm font-medium">{t('profile.currentPassword')}</Typography.Text>
+              <Input.Password id="currentPassword" autoComplete="current-password" {...registerPassword('currentPassword')} />
               {passwordErrors.currentPassword ? <p className="text-sm text-destructive">{passwordErrors.currentPassword.message}</p> : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword">{t('profile.newPassword')}</Label>
-              <Input id="newPassword" type="password" autoComplete="new-password" {...registerPassword('newPassword')} />
+              <Typography.Text className="text-sm font-medium">{t('profile.newPassword')}</Typography.Text>
+              <Input.Password id="newPassword" autoComplete="new-password" {...registerPassword('newPassword')} />
               {passwordErrors.newPassword ? <p className="text-sm text-destructive">{passwordErrors.newPassword.message}</p> : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t('profile.confirmNewPassword')}</Label>
-              <Input id="confirmPassword" type="password" autoComplete="new-password" {...registerPassword('confirmPassword')} />
+              <Typography.Text className="text-sm font-medium">{t('profile.confirmNewPassword')}</Typography.Text>
+              <Input.Password id="confirmPassword" autoComplete="new-password" {...registerPassword('confirmPassword')} />
               {passwordErrors.confirmPassword ? <p className="text-sm text-destructive">{passwordErrors.confirmPassword.message}</p> : null}
             </div>
-            {passwordError ? <Alert variant="destructive"><AlertDescription>{passwordError}</AlertDescription></Alert> : null}
+            {passwordError ? <Alert type="error" showIcon message={passwordError} /> : null}
             {passwordSaved ? (
-              <Alert className="border-border/80 bg-muted/40">
-                <AlertDescription>{t('profile.passwordChanged')}</AlertDescription>
-              </Alert>
+              <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.passwordChanged')} />
             ) : null}
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" disabled={isPasswordSubmitting || !isPasswordDirty}>
+              <Button type="primary" htmlType="submit" disabled={isPasswordSubmitting || !isPasswordDirty}>
                 {isPasswordSubmitting ? t('profile.saving') : t('profile.changePassword')}
               </Button>
             </div>
           </form>
-        </CardContent>
+        </div>
       </Card>
     </PageShell>
   );

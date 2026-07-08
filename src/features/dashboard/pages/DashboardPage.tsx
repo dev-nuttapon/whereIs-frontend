@@ -1,11 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { Avatar, List, Space, Tag, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { queryKeys } from '@/lib/queryKeys';
 import { getDashboardSummary } from '@/api/dashboard.api';
 import { ROUTES } from '@/constants/routes';
@@ -67,14 +67,9 @@ export function DashboardPage() {
           <StatCard label={t('dashboard.lowStock')} value={summaryQuery.data.lowStock} to={itemsLink({ stock: 'low' })} />
           <StatCard label={t('dashboard.outOfStock')} value={summaryQuery.data.outOfStock} to={itemsLink({ stock: 'out' })} />
           <StatCard
-            label={t('dashboard.returnDue')}
-            value={summaryQuery.data.returnDue}
-            to={itemsLink({ usageType: 'returnable', returnPolicy: 'due' })}
-          />
-          <StatCard
-            label={t('dashboard.returnIndefinite')}
-            value={summaryQuery.data.returnIndefinite}
-            to={itemsLink({ usageType: 'returnable', returnPolicy: 'indefinite' })}
+            label={t('dashboard.returnableItems')}
+            value={summaryQuery.data.returnableItems}
+            to={itemsLink({ usageType: 'returnable' })}
           />
         </div>
       ) : null}
@@ -93,8 +88,9 @@ export function DashboardPage() {
           {activityQuery.isLoading ? <LoadingState label={t('dashboard.loadingActivity')} /> : null}
           {activityQuery.isError ? <ErrorState message={t('dashboard.activityError')} onRetry={() => activityQuery.refetch()} /> : null}
           {recentActivity.length > 0 ? (
-            <div className="space-y-2">
-              {recentActivity.map((event) => {
+            <List
+              dataSource={recentActivity}
+              renderItem={(event) => {
                 const display = buildActivityDisplay(event, {
                   events: activityQuery.data ?? [],
                   items: MOCK_ITEMS,
@@ -105,43 +101,39 @@ export function DashboardPage() {
                 });
 
                 return (
-                  <div key={event.id} className="flex gap-3 rounded-xl border border-border px-3 py-3 text-sm">
-                    <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${activityToneClasses[display.tone]}`}>
-                      <span className="text-sm leading-none">{display.glyph}</span>
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{event.actor.name}</p>
-                        <Badge variant="outline" className={`text-[0.65rem] uppercase tracking-[0.18em] ${activityToneClasses[display.tone]}`}>
-                          {display.eventLabel}
-                        </Badge>
-                        <span className="truncate text-xs text-muted-foreground">{display.itemName}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{display.summary}</p>
-                      <div className="flex flex-wrap gap-2 text-[0.7rem]">
-                        {display.currentStateLabel ? (
-                          <Badge variant="secondary" className="rounded-full px-2 py-0.5 font-medium">
-                            {t('activity.current.status')}: {display.currentStateLabel}
-                          </Badge>
-                        ) : null}
-                        {display.currentLocationLabel ? (
-                          <Badge variant="outline" className="rounded-full px-2 py-0.5 font-medium">
-                            {t('activity.current.location')}: {display.currentLocationLabel}
-                          </Badge>
-                        ) : null}
-                        {display.currentReturnLabel ? (
-                          <Badge variant="outline" className="rounded-full px-2 py-0.5 font-medium">
-                            {t('activity.current.return')}: {display.currentReturnLabel}
-                          </Badge>
-                        ) : null}
-                      </div>
-                      {display.detail ? <p className="text-xs text-muted-foreground">{display.detail}</p> : null}
-                    </div>
-                    <p className="shrink-0 text-xs text-muted-foreground">{eventTime(event.createdAt)}</p>
-                  </div>
+                  <List.Item className="!px-0">
+                    <List.Item.Meta
+                      avatar={<Avatar className={`${activityToneClasses[display.tone]}`}>{display.glyph}</Avatar>}
+                      title={
+                        <Space size={8} wrap>
+                          <Typography.Text strong>{event.actor.name}</Typography.Text>
+                          <Tag className={`uppercase tracking-[0.18em] ${activityToneClasses[display.tone]}`}>{display.eventLabel}</Tag>
+                          <Typography.Text type="secondary" className="truncate text-xs">
+                            {display.itemName}
+                          </Typography.Text>
+                        </Space>
+                      }
+                      description={
+                        <div className="space-y-2">
+                          <Typography.Paragraph className="!mb-0 text-sm text-muted-foreground">
+                            {display.summary}
+                          </Typography.Paragraph>
+                          <div className="flex flex-wrap gap-2 text-[0.7rem]">
+                            {display.currentStateLabel ? <Tag>{t('activity.current.status')}: {display.currentStateLabel}</Tag> : null}
+                            {display.currentLocationLabel ? <Tag>{t('activity.current.location')}: {display.currentLocationLabel}</Tag> : null}
+                            {display.currentReturnLabel ? <Tag>{t('activity.current.return')}: {display.currentReturnLabel}</Tag> : null}
+                          </div>
+                          {display.detail ? <Typography.Text type="secondary" className="text-xs">{display.detail}</Typography.Text> : null}
+                        </div>
+                      }
+                    />
+                    <Typography.Text type="secondary" className="shrink-0 text-xs">
+                      {eventTime(event.createdAt)}
+                    </Typography.Text>
+                  </List.Item>
                 );
-              })}
-            </div>
+              }}
+            />
           ) : (
             <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
               {t('dashboard.recentEmpty')}

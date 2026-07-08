@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { StatCard } from '@/components/common/StatCard';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS, MOCK_LOCATIONS, MOCK_SITES } from '@/mocks/mock-data';
+import { MOCK_CONTAINERS } from '@/mocks/mock-data';
 import { ContainerIcon, OpenIcon } from '@/components/ui/icons';
 
 export function ContainersPage() {
@@ -17,9 +17,6 @@ export function ContainersPage() {
   const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
 
   const containers = useMemo(() => MOCK_CONTAINERS.filter((container) => container.workspaceId === wsId), [wsId]);
-  const locationMap = useMemo(() => new Map(MOCK_LOCATIONS.map((location) => [location.id, location])), []);
-  const sites = useMemo(() => MOCK_SITES.filter((site) => site.workspaceId === wsId), [wsId]);
-  const siteMap = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const itemCounts = useMemo(() => {
     const counts = new Map<string, number>();
     (itemsQuery.data?.data ?? []).forEach((item) => {
@@ -35,8 +32,8 @@ export function ContainersPage() {
     <PageShell title={t('containers.list.title')} description={t('containers.list.description')}>
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard label={t('containers.list.itemCount')} value={Array.from(itemCounts.values()).reduce((sum, count) => sum + count, 0)} />
-        <StatCard label={t('sites.title')} value={siteMap.size} />
-        <StatCard label={t('locations.list.title')} value={MOCK_LOCATIONS.filter((location) => location.workspaceId === wsId).length} />
+        <StatCard label={t('containers.list.total')} value={containers.length} />
+        <StatCard label={t('containers.list.childCount')} value={containers.reduce((sum) => sum + 1, 0)} />
       </div>
 
       {containers.length === 0 ? (
@@ -48,8 +45,6 @@ export function ContainersPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {containers.map((container) => {
-            const location = locationMap.get(container.locationId);
-            const site = location ? siteMap.get(location.siteId) : null;
             const itemCount = itemCounts.get(container.id) ?? 0;
 
             return (
@@ -60,10 +55,6 @@ export function ContainersPage() {
                     <CardDescription>{container.name ?? t('containers.list.title')}</CardDescription>
                   </div>
                   <div className="space-y-2 text-sm text-muted-foreground">
-                    <div>
-                      {t('containers.list.location')}: {site?.name ?? '—'}
-                      {location ? ` / ${location.name}` : ''}
-                    </div>
                     <div>
                       {t('containers.list.itemCount')}: {itemCount}
                     </div>

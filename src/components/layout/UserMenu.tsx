@@ -1,83 +1,105 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 import { Button } from '@/components/ui/button';
-import { uiStore } from '@/stores/ui.store';
 import { authStore } from '@/stores/auth.store';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { LogoutIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
 
-export function UserMenu() {
+export interface UserMenuProps {
+  workspaceId?: string | null;
+}
+
+export function UserMenu({ workspaceId }: UserMenuProps) {
   const navigate = useNavigate();
-  const { wsId = workspaceStore.getState().currentWorkspaceId ?? 'ws-warehouse' } = useParams();
+  const { wsId } = useParams();
   const user = authStore((state) => state.user);
   const logout = authStore((state) => state.logout);
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const activeWorkspaceId = workspaceId ?? wsId ?? workspaceStore.getState().currentWorkspaceId;
+  const showWorkspaceLinks = Boolean(activeWorkspaceId);
+  const items = useMemo<MenuProps['items']>(() => {
+    const next: NonNullable<MenuProps['items']> = [
+      {
+        key: 'user',
+        disabled: true,
+        label: (
+          <div className="space-y-0.5">
+            <div className="truncate text-sm font-semibold text-foreground">{user?.name ?? 'Guest'}</div>
+            <div className="truncate text-xs text-muted-foreground">{user?.email ?? ''}</div>
+          </div>
+        ),
+      },
+    ];
 
-  useEffect(() => {
-    function handleOutsideClick(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+    if (showWorkspaceLinks) {
+      next.push(
+        {
+          type: 'divider',
+        },
+        {
+          key: 'profile',
+          icon: <UserIcon className="h-4 w-4" />,
+          label: t('nav.profile'),
+        },
+        {
+          key: 'settings',
+          icon: <SettingsIcon className="h-4 w-4" />,
+          label: t('nav.settings'),
+        },
+      );
     }
 
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
+    next.push(
+      { type: 'divider' },
+      {
+        key: 'logout',
+        danger: true,
+        icon: <LogoutIcon className="h-4 w-4" />,
+        label: t('common.logout'),
+      },
+    );
+
+    return next;
+  }, [showWorkspaceLinks, t, user?.email, user?.name]);
 
   return (
-    <div ref={menuRef} className="relative flex items-center gap-2">
+    <Dropdown
+      trigger={['click']}
+      placement="bottomRight"
+      menu={{
+        items,
+        onClick: ({ key }) => {
+          if (key === 'profile' && activeWorkspaceId) {
+            navigate(ROUTES.workspaceProfile(activeWorkspaceId));
+            return;
+          }
+
+          if (key === 'settings' && activeWorkspaceId) {
+            navigate(ROUTES.workspaceSettings(activeWorkspaceId));
+            return;
+          }
+
+          if (key === 'logout') {
+            logout();
+            navigate(ROUTES.login);
+          }
+        },
+      }}
+      dropdownRender={(menu) => <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/95 shadow-lg backdrop-blur-xl">{menu}</div>}
+    >
       <Button
         variant="outline"
         size="sm"
-        className="h-10 w-10 rounded-full bg-card/80 shadow-none backdrop-blur"
-        onClick={() => setOpen((state) => !state)}
+        className="h-10 w-10 rounded-full border-border/70 bg-card/80 shadow-none backdrop-blur transition-colors hover:bg-card"
         aria-label={t('common.menu')}
         title={t('common.menu')}
       >
         <MenuIcon className="h-4 w-4" />
       </Button>
-      {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-[0_20px_45px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl">
-          <div className="border-b border-border/70 px-3 py-3">
-            <p className="truncate text-sm font-medium">{user?.name ?? 'Guest'}</p>
-            <p className="truncate text-xs text-muted-foreground">{user?.email ?? ''}</p>
-          </div>
-          <div className="p-2">
-            <Link
-              to={ROUTES.workspaceProfile(wsId)}
-              onClick={() => setOpen(false)}
-              className="flex h-10 w-full items-center gap-2 rounded-lg px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              <UserIcon className="h-4 w-4" />
-              {t('nav.profile')}
-            </Link>
-            <Link
-              to={ROUTES.workspaceSettings(wsId)}
-              onClick={() => setOpen(false)}
-              className="flex h-10 w-full items-center gap-2 rounded-lg px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              <SettingsIcon className="h-4 w-4" />
-              {t('nav.settings')}
-            </Link>
-            <Button
-              className="h-10 w-full justify-start rounded-lg px-3 font-normal"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                logout();
-                navigate(ROUTES.login);
-              }}
-            >
-              <LogoutIcon className="h-4 w-4" />
-              {t('common.logout')}
-            </Button>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    </Dropdown>
   );
 }

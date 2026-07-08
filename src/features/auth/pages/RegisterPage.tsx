@@ -2,10 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, Button, Input, Typography } from 'antd';
 import { ROUTES } from '@/constants/routes';
 import { createRegisterSchema, type RegisterValues } from '@/features/auth/validation/registerSchema';
 import { useRegister } from '@/features/auth/hooks/useRegister';
@@ -45,29 +42,27 @@ export function RegisterPage() {
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="name">{t('auth.name')}</Label>
+        <Typography.Text className="text-sm font-medium">{t('auth.name')}</Typography.Text>
         <Input id="name" {...register('name')} />
         {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">{t('auth.email')}</Label>
+        <Typography.Text className="text-sm font-medium">{t('auth.email')}</Typography.Text>
         <Input id="email" type="email" autoComplete="email" {...register('email')} />
         {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">{t('auth.password')}</Label>
-        <Input id="password" type="password" autoComplete="new-password" {...register('password')} />
+        <Typography.Text className="text-sm font-medium">{t('auth.password')}</Typography.Text>
+        <Input.Password id="password" autoComplete="new-password" {...register('password')} />
         {errors.password ? <p className="text-sm text-destructive">{errors.password.message}</p> : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
-        <Input id="confirmPassword" type="password" autoComplete="new-password" {...register('confirmPassword')} />
+        <Typography.Text className="text-sm font-medium">{t('auth.confirmPassword')}</Typography.Text>
+        <Input.Password id="confirmPassword" autoComplete="new-password" {...register('confirmPassword')} />
         {errors.confirmPassword ? <p className="text-sm text-destructive">{errors.confirmPassword.message}</p> : null}
       </div>
-      <Alert>
-        <AlertDescription>{t('auth.register.mock')}</AlertDescription>
-      </Alert>
-      <Button className="w-full" type="submit" disabled={isSubmitting || registerMutation.isPending}>
+      <Alert type="info" showIcon message={t('auth.register.mock')} />
+      <Button className="w-full" type="primary" htmlType="submit" disabled={isSubmitting || registerMutation.isPending}>
         {isSubmitting || registerMutation.isPending ? `${t('common.createAccount')}...` : t('common.createAccount')}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
