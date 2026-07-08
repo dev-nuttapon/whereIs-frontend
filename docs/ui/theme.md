@@ -32,9 +32,11 @@ Design tokens, สี, typography, spacing และการ theme ของ sh
 | Status | สี (role) | Tailwind ตัวอย่าง |
 |--------|-----------|-------------------|
 | `stored` | success / เขียว | `bg-green-100 text-green-800` |
-| `taken_out` | warning / เหลือง-ส้ม | `bg-amber-100 text-amber-800` |
+| `taken_out` / `borrowed` | warning / เหลือง-ส้ม | `bg-amber-100 text-amber-800` |
 | `missing` | danger / แดง | `bg-red-100 text-red-800` |
 | `disposed` | neutral / เทา | `bg-gray-100 text-gray-600` |
+| `reserved` | info / ฟ้า | `bg-blue-100 text-blue-800` |
+| `repair` | secondary / ม่วง | `bg-purple-100 text-purple-800` |
 
 > map นี้นิยามครั้งเดียวใน `StatusBadge` (เช่นผ่าน `cva`) ห้ามเขียนสี status ซ้ำที่อื่น
 

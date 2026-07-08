@@ -1,103 +1,116 @@
 # Module: Item
 
-> หัวใจของระบบ — จัดการ **Item** (CRUD), หน้า **Item Detail**, การกระทำกับของ (**Move / Take Out / Return / Mark Missing / Mark Found / Dispose**) และ **Activity (ItemEvent)**
-> อ้างอิง: [../domain-model.md](../architecture/domain-model.md#4-item-lifecycle-status) · [search.md](search.md) · [container.md](container.md) · [../permission-ui.md](../security/permission-ui.md)
+> หัวใจของระบบ — จัดการ **Item** 2 แบบ: Individual Item และ Quantity Item
+> อ้างอิง: [../domain-model.md](../architecture/domain-model.md) · [container.md](container.md) · [../permission-ui.md](../security/permission-ui.md)
 
 ## 1. Purpose
-ให้ผู้ใช้เพิ่ม/แก้ไขของ และทำ action ตาม lifecycle (ยืม/คืน/ย้าย/หาย) โดยทุก action ถูกบันทึกเป็น ItemEvent เพื่อให้ตอบได้ว่า "ของอยู่ไหน ใครถือ ย้ายเมื่อไหร่"
+ให้ผู้ใช้เพิ่ม/แก้ของ และทำ action ตามประเภทของ item โดยทุก action ถูกบันทึกเป็น ItemEvent เพื่อให้ตอบได้ว่า "ของอยู่ไหน ใครถือ จำนวนเท่าไร อยู่ใน lot ไหน และเกิดอะไรขึ้นบ้าง"
 
 ## 2. User Stories
-- ในฐานะ member ฉันต้องการ **เพิ่มของ** พร้อมรูป/รหัส/คำอธิบาย และเลือก container
-- ฉันต้องการ **แก้ไข/ลบ** ของ
-- ฉันต้องการดู **Item Detail**: รูป, สถานะ, ตำแหน่งปัจจุบัน, ผู้ถือ, ประวัติ
-- ฉันต้องการ **Take Out** (ยืม) ของ และ **Return** (คืน)
-- ฉันต้องการ **Move** ของไป container อื่น
-- ฉันต้องการ **Mark Missing** เมื่อหาไม่เจอ และ **Mark Found** เมื่อเจอ
-- ฉันต้องการเห็น **ประวัติ (Activity)** ของของชิ้นนั้น
+- ฉันต้องการเพิ่มของรายชิ้นและระบุว่าของอยู่ที่ไหน
+- ฉันต้องการเพิ่มของแบบจำนวนและกำหนดจำนวนตั้งต้น
+- ฉันต้องการดูรายละเอียดรายชิ้นและประวัติการทำรายการ
+- ฉันต้องการยืม/คืน/เบิก/สำรอง/ถอน/ซ่อม/จำหน่ายของรายชิ้น
+- ฉันต้องการเบิก/เติม/ตรวจนับ/ปรับยอดของแบบจำนวนเป็นหน่วย
+- ฉันต้องการดู unit conversion, batch/lot, received date, expiry date, warranty, maintenance, และ custom schedule
 
 ## 3. Screen Description
 | หน้า | Route | คำอธิบาย |
 |------|-------|----------|
-| Item Detail | `/w/:wsId/items/:itemId` | ข้อมูล + action buttons + event history |
-| Add Item | `/w/:wsId/items/new` (หรือ dialog, prefill container ได้) | ฟอร์มสร้าง |
-| Edit Item | `/w/:wsId/items/:itemId/edit` (หรือ dialog) | ฟอร์มแก้ไข |
+| Item Detail | `/w/:wsId/items/:itemId` | ข้อมูล + action buttons + event history + metadata sections |
+| Add Item | `/w/:wsId/items/new` หรือ dialog | ฟอร์มสร้าง item |
+| Edit Item | `/w/:wsId/items/:itemId/edit` หรือ dialog | ฟอร์มแก้ไข |
 | Activity Log (workspace) | `/w/:wsId/activity` | feed ItemEvent ทั้ง ws |
-(รายการ item ดูที่ [search.md](search.md) / [container.md](container.md))
 
 ## 4. Components
-- `ItemDetailHeader`, `ItemActions` (กลุ่มปุ่ม + เปิด dialog), `ItemForm`
-- Action dialogs: `TakeOutDialog` (เลือก holder + note), `ReturnDialog`, `MoveItemDialog` (เลือก container ปลายทาง), `MarkMissingDialog`, `DisposeDialog` (confirm)
-- `ItemEventTimeline`, `ActivityItem`, `StatusBadge`, `LocationBreadcrumb`
-- `ContainerPicker` (cascading Site→Location→Container)
-- UI primitives: `Dialog`, `Select`, `Button`, `Input`, `Textarea`, `Tabs`
+- `ItemDetailHeader`, `ItemActions`, `ItemForm`
+- Metadata sections: `ItemMetadataPanel`, `UnitConversionPanel`, `BatchLotPanel`, `SchedulePanel`, `WarrantyPanel`
+- Action dialogs: `BorrowDialog`, `ReturnDialog`, `WithdrawDialog`, `ReserveDialog`, `RepairDialog`, `MoveItemDialog`, `MarkMissingDialog`, `MarkFoundDialog`, `DisposeDialog`, `ConsumeStockDialog`, `RestockStockDialog`, `StockCountDialog`, `AdjustmentDialog`
+- `ItemEventTimeline`, `ActivityItem`, `StatusBadge`
+- `ContainerPicker`
 
 ## 5. Forms
 
-**Add/Edit Item Form** — `ItemForm`
+**Add/Edit Item Form**
 | Field | Type | Validation |
 |-------|------|------------|
 | Name | `<Input>` | required 2–120 ตัวอักษร |
-| Code | `<Input>` | optional, ≤50 ตัว (unique ใน ws — backend 409 → map ลง field `code`) |
+| Type | `<Select>` | required ∈ {single, stock} |
+| Code | `<Input>` | optional, ≤50 ตัว |
 | Description | `<Textarea>` | optional, ≤1000 ตัวอักษร |
-| Container | `ContainerPicker` | required ตอนสร้าง (cascading Site→Location→Container) |
-| Submit | button | disable + spinner ขณะ `isSubmitting` |
+| Container | `ContainerPicker` | required |
+| Quantity | `<Input type="number">` | required เมื่อเป็น stock |
+| Unit | `<Input>` | required เมื่อเป็น quantity item |
+| Base Unit | `<Input>` | required เมื่อเป็น quantity item |
+| Unit Conversion | editor | optional, item-specific |
+| Batch / Lot | `<Input>` | optional, recommended for quantity item |
+| Received Date | `<Input type="date">` | optional |
+| Expiry Date | `<Input type="date">` | optional |
+| Warranty End Date | `<Input type="date">` | optional |
+| Maintenance Next Due | `<Input type="date">` | optional |
+| Custom Schedule | editor | optional |
+| Reorder Point | `<Input type="number">` | optional/required ตาม policy |
+| Submit | button | disable + spinner |
 
 **Action Dialogs**
 | Dialog | Fields | Validation |
 |--------|--------|------------|
-| `TakeOutDialog` | Holder (`<Select>` สมาชิก ws), Note (optional) | holderId required |
+| `BorrowDialog` | Holder, Due Date (optional), Note | holder required |
 | `ReturnDialog` | Note (optional) | — |
-| `MoveItemDialog` | Target Container (`ContainerPicker`) | toContainerId required, ต้องต่างจาก container เดิม |
-| `MarkFoundDialog` | Container (`ContainerPicker`) | containerId required |
-| `DisposeDialog` | Confirm checkbox | irreversible — ต้อง confirm ก่อน submit |
-
-- action dialog: submit → ปิด dialog อัตโนมัติ + toast + refetch item
+| `WithdrawDialog` | Holder / Destination / Note | required ตาม workflow |
+| `ReserveDialog` | Holder / Reservation window / Note | required ตาม workflow |
+| `RepairDialog` | Reason / ETA / Note | required ตาม workflow |
+| `MoveItemDialog` | Target Container | required |
+| `MarkMissingDialog` | Reason | optional/required ตาม policy |
+| `MarkFoundDialog` | Container | required |
+| `DisposeDialog` | Reason + Confirm | confirm required |
+| `ConsumeStockDialog` | Quantity + Note | quantity required |
+| `RestockStockDialog` | Quantity + Note | quantity required |
+| `StockCountDialog` | Counted quantity + note | counted quantity required |
+| `AdjustmentDialog` | Variance + reason + approval | reason required |
 
 ## 6. API Calls
-ผ่าน `src/api/item.api.ts` (ดู [../api-contract.md](../api/api-contract.md#items)):
+ผ่าน `src/api/item.api.ts`:
 - `GET /workspaces/:wsId/items/:id` → `Item`
 - `POST /workspaces/:wsId/items` → `Item`
 - `PUT /workspaces/:wsId/items/:id` → `Item`
 - `DELETE /workspaces/:wsId/items/:id`
 - `GET /workspaces/:wsId/items/:id/events` → `ItemEvent[]`
-- Actions (ต่างก็ POST, คืน `Item` ใหม่):
-  - `POST .../items/:id/move` `{ toContainerId }`
-  - `POST .../items/:id/take-out` `{ holderId, note? }`
-  - `POST .../items/:id/return` `{ note? }`
+- Actions:
+  - `POST .../items/:id/move`
+  - `POST .../items/:id/borrow`
+  - `POST .../items/:id/return`
+  - `POST .../items/:id/withdraw`
+  - `POST .../items/:id/reserve`
+  - `POST .../items/:id/repair`
   - `POST .../items/:id/mark-missing`
-  - `POST .../items/:id/mark-found` `{ containerId }`
-  - `POST .../items/:id/dispose` `{ reason? }`
-- Activity ทั้ง ws: `GET /workspaces/:wsId/activity?page&limit`
+  - `POST .../items/:id/mark-found`
+  - `POST .../items/:id/dispose`
+  - `POST .../items/:id/consume-stock`
+  - `POST .../items/:id/restock-stock`
+  - `POST .../items/:id/count-stock`
+  - `POST .../items/:id/adjust-stock`
 
 ## 7. React Query Usage
 - `useItem(wsId, id)` = `useQuery(['ws', wsId, 'item', id])`
 - `useItemEvents(wsId, id)` = `useQuery(['ws', wsId, 'item', id, 'events'])`
-- `useActivity(wsId, params)` = `useQuery(['ws', wsId, 'activity', params])` (Activity Log + dashboard recent)
-- Mutations: `useCreateItem/useUpdateItem/useDeleteItem` + action mutations `useMoveItem/useTakeOutItem/useReturnItem/useMarkMissing/useMarkFound/useDisposeItem`
-- **Cache invalidation rules** (สำคัญ — ดู [../state-management.md](../state/state-management.md#cache-rules)):
-  - หลัง create/update/delete → invalidate: items search list, item detail, container items, dashboard summary, activity
-  - หลัง action (move/takeout/return/missing/found/dispose) → invalidate: item detail, item events, search list, container items (ต้นทาง+ปลายทาง), dashboard, activity
-- พิจารณา **optimistic update** ของ status badge เพื่อ UX เร็ว (rollback ถ้า error)
+- Mutations invalidate item detail, item events, container views, search, dashboard, activity, reports, and notifications where relevant
 
 ## 8. Zustand Usage
-- ไม่เก็บ item ใน Zustand (เป็น server state)
-- ใช้ `workspaceStore` (wsId, permissions) และ `authStore` (เพื่อ default holder = ตัวเองตอน take out)
+- ไม่เก็บ item ใน Zustand
+- ใช้ `workspaceStore` และ `authStore` สำหรับ permission / default holder
 
 ## 9. Form Validation
-Add/Edit (Zod): `name` required 2–120; `code` optional ≤ 50 (unique ใน ws → 409 map ลง field); `description` ≤ 1000; `containerId` required ตอนสร้าง (ของใหม่ต้องมีที่อยู่)
-Action dialogs:
-- Take Out: `holderId` required; `note` optional
-- Move: `toContainerId` required, ต้องต่างจาก container เดิม
-- Mark Found: `containerId` required (เลือกที่จะนำกลับไปเก็บ)
-- Dispose: ต้อง confirm (พิมพ์ยืนยัน/checkbox) เพราะ irreversible
+- individual vs quantity ต้องบังคับเงื่อนไขต่างกัน
+- quantity ต้องเป็นจำนวนเต็มบวก
+- due date เป็น optional
+- unit conversion ต้องผูกกับ item เดียว ห้ามใช้ conversion กลาง
 
 ## 10. Navigation Flow
 ```
-Search/Container/Dashboard → คลิก item → Item Detail
-Add Item (จาก container = prefill / จาก global = เลือก container) → สำเร็จ → Item Detail
-Edit → form → สำเร็จ → กลับ Item Detail
-Action (dialog) → ยืนยัน → mutation → อยู่หน้าเดิม + refetch + toast
-Delete → confirm → กลับไป container/search list
+Search/Container/Dashboard → click item → Item Detail
+Add/Edit → submit → Item Detail
+Action dialog → confirm → mutation → stay on page + refetch + toast
 ```
 
 ## 11. Permission Rules
@@ -108,57 +121,46 @@ Delete → confirm → กลับไป container/search list
 | Edit | `item.update` |
 | Delete | `item.delete` |
 | Move | `item.move` |
-| Take Out | `item.takeout` |
+| Borrow | `item.borrow` |
 | Return | `item.return` |
+| Withdraw | `item.withdraw` |
+| Reserve | `item.reserve` |
 | Mark Missing | `item.mark_missing` |
 | Mark Found | `item.mark_found` |
+| Repair | `item.repair` |
 | Dispose | `item.dispose` |
-ปุ่มที่ไม่มีสิทธิ์ → **ซ่อน** (ดู [../permission-ui.md](../security/permission-ui.md))
+| เบิก/เติมสต็อก | `stock.consume` / `stock.restock` |
+| ตรวจนับ / ปรับยอด | `stock.count` / `stock.adjust` |
 
-## State changes (status → action ที่แสดง)
-| status ปัจจุบัน | action ที่ valid |
-|-----------------|------------------|
-| `stored` | Take Out · Move · Mark Missing · Edit · Dispose |
-| `taken_out` | Return · Mark Missing · Edit · Dispose |
-| `missing` | Mark Found · Edit · Dispose |
-| `disposed` | (none — terminal) · ดูได้อย่างเดียว |
-UI ต้อง derive ปุ่มจาก status + permission เสมอ ห้าม hardcode แสดงทุกปุ่ม
+## State changes
+UI ต้องแยก action ตามประเภท item:
+- individual: move / borrow / return / withdraw / reserve / repair / missing / found / dispose
+- quantity: consume / restock (receive) / count / adjust / dispose / view history
 
 ## 12. Loading State
-- detail → skeleton header + tabs
+- detail → skeleton header
 - events → skeleton timeline
-- ปุ่ม action ตอน mutation → spinner + disable
 
 ## 13. Empty State
-- item ไม่มี event (เพิ่งสร้าง) → timeline แสดงอย่างน้อย event `created`
-- Activity Log ว่าง → `EmptyState` "ยังไม่มีกิจกรรม"
+- item ไม่มี event → timeline แสดง event created อย่างน้อย 1 รายการ
 
 ## 14. Error State
-- โหลด item 404 → หน้า "ไม่พบรายการนี้" + ปุ่มกลับ
-- action ล้มเหลว (เช่น 409 status เปลี่ยนไปแล้วโดยคนอื่น) → toast + refetch detail เพื่อ sync status ล่าสุด
-- code ซ้ำ → field error
-- ดู error format [../api-contract.md](../api/api-contract.md#error-format)
+- detail 404 → not found
+- action ล้มเหลว → toast + refetch
 
 ## 15. Responsive Behavior
-- Detail: desktop = รูป/ข้อมูลซ้าย + actions ขวาบน; mobile = แนวตั้ง, action เป็นปุ่มเรียง/`⋯` menu หรือ bottom action bar
-- Activity timeline: 1 คอลัมน์ทุกขนาด
-- form: field เต็มกว้างบน mobile; ContainerPicker เป็น step/drawer บน mobile
+- desktop: detail + actions แยกชัด
+- mobile: action เป็นปุ่มเรียง/overflow menu
 
 ## 16. Future Improvements
-- Upload รูปจริง (หลาย รูป), tags, custom fields
-- Barcode/QR scan เพื่อเปิด item, bulk actions
-- ประวัติแบบ filter ตาม type, export
-- การแจ้งเตือนของค้างคืน / missing นาน
-- Optimistic UI เต็มรูปแบบ
+- barcode/QR scan
+- export report รายชิ้น
+- bulk action สำหรับ stock
 
 ## 17. Definition of Done
-- [ ] Item Detail (header + status + location + holder + tabs)
-- [ ] Add/Edit/Delete item + ContainerPicker
-- [ ] Action dialogs ครบ: take out, return, move, mark missing, mark found, dispose
-- [ ] ปุ่ม action derive จาก status + permission (ซ่อนถ้าทำไม่ได้)
+- [ ] Item Detail ครบสำหรับ individual และ quantity
+- [ ] Add/Edit/Delete item
+- [ ] Action dialogs ครบ (borrow/return/withdraw/reserve/repair/count/adjust)
 - [ ] ItemEvent timeline + Activity Log page
-- [ ] `item.api.ts` ครบ (CRUD + 6 actions + events + activity)
-- [ ] React Query + **cache invalidation ตามกติกา**
-- [ ] Validation (Zod) ทุกฟอร์ม/ dialog + 409 handling
-- [ ] Loading/Empty/Error (รวม 404, 409 conflict)
-- [ ] Responsive detail + action bar
+- [ ] Validation + error handling
+- [ ] Permission guard + status-dependent actions

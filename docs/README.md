@@ -1,6 +1,6 @@
 # WhereIs Frontend — Documentation
 
-เอกสาร frontend ของ **WhereIs** (Inventory / Storage Management System)
+เอกสาร frontend ของ **WhereIs** (Workspace-based item, storage, workflow, report, and notification system)
 Stack: React · Vite · TypeScript · React Router · TanStack Query · React Hook Form · Zustand · Axios · Tailwind CSS · shadcn/ui
 
 > 📖 **เริ่มที่นี่:** อ่านตามลำดับใน [reading-order.md](ai/reading-order.md)
@@ -35,7 +35,7 @@ Stack: React · Vite · TypeScript · React Router · TanStack Query · React Ho
 ## Security
 | เอกสาร | เนื้อหา |
 |--------|---------|
-| [permission-ui.md](security/permission-ui.md) | roles, **permission keys (canonical)**, role matrix, การซ่อน/แสดง UI |
+| [permission-ui.md](security/permission-ui.md) | roles, primary role + extra permissions + container access scope, permission keys, role matrix |
 
 ## State
 | เอกสาร | เนื้อหา |
@@ -44,7 +44,7 @@ Stack: React · Vite · TypeScript · React Router · TanStack Query · React Ho
 
 ## Modules (feature specs)
 ดู [modules/](modules/) — แต่ละไฟล์ละเอียดพอให้ implement ได้:
-[auth](modules/auth.md) · [workspace](modules/workspace.md) · [dashboard](modules/dashboard.md) · [site](modules/site.md) · [location](modules/location.md) · [container](modules/container.md) · [item](modules/item.md) · [member](modules/member.md) · [permission](modules/permission.md) · [search](modules/search.md) · [activity](modules/activity.md) · [settings](modules/settings.md)
+[auth](modules/auth.md) · [workspace](modules/workspace.md) · [dashboard](modules/dashboard.md) · [container](modules/container.md) · [item](modules/item.md) · [member](modules/member.md) · [permission](modules/permission.md) · [search](modules/search.md) · [activity](modules/activity.md) · [reports](modules/reports.md) · [notifications](modules/notifications.md) · [settings](modules/settings.md)
 
 ## Architecture Decisions
 ดู [decisions/](decisions/) — เหตุผลเบื้องหลังการตัดสินใจสถาปัตยกรรม:

@@ -8,7 +8,7 @@
 |--------|--------|------|
 | **AuthLayout** | หน้า public: Login, Register | `src/layouts/AuthLayout.tsx` |
 | **WorkspaceSelectLayout** | หน้า Workspace List (login แล้ว แต่ยังไม่เลือก ws) | `src/layouts/WorkspaceSelectLayout.tsx` |
-| **AppLayout** | ทุกหน้าใน workspace (Dashboard, Search, Sites…) | `src/layouts/AppLayout.tsx` |
+| **AppLayout** | ทุกหน้าใน workspace (Dashboard, Search, Containers, Reports, Notifications…) | `src/layouts/AppLayout.tsx` |
 
 ## 2. AuthLayout
 ```
@@ -35,9 +35,11 @@
 │           │  ┌────────────────────────────────────┐  │
 │ • Dashboard│  │                                    │  │
 │ • Search  │  │        Main Content (page)         │  │
-│ • Sites   │  │                                    │  │
+│ • Containers│  │                                    │  │
 │ • Members │  │                                    │  │
 │ • Activity│  └────────────────────────────────────┘  │
+│ • Reports │                                          │
+│ • Notifications │                                    │
 │ • Settings│                                          │
 └───────────┴──────────────────────────────────────────┘
 ```
@@ -46,16 +48,17 @@
 - ปุ่ม toggle sidebar (mobile/tablet)
 - **Workspace switcher** (dropdown) — เปลี่ยน workspace ปัจจุบัน (ดู [modules/workspace.md](../modules/workspace.md))
 - **Global Search** — เด่นเสมอ, เข้าถึงได้ทุกหน้า (ดู [modules/search.md](../modules/search.md))
-- Notifications (future), **User menu** (profile, logout)
+- Notifications (center / drawer), **User menu** (profile, logout)
 
 ### Sidebar
 - เมนูหลัก ตาม [navigation](screen-flow.md)
 - แต่ละ item **ซ่อน/แสดงตาม permission** (ดู [permission-ui.md](../security/permission-ui.md))
+- เมนูและผลลัพธ์ที่อ้าง container ต้องเคารพ container access scope
 - ไฮไลต์ route ปัจจุบัน (active state)
 - collapse ได้ (เก็บสถานะใน `uiStore.sidebarOpen` — ดู [state-management.md](../state/state-management.md))
 
 ### Content area
-- มี **Breadcrumb** ด้านบน (เช่น `Sites > Building A > Room 1`)
+- มี **Breadcrumb** ด้านบน (เช่น `ห้อง 3 > ลิ้นชัก 4 > กล่อง 2`)
 - page content render ตรงนี้ (ผ่าน `<Outlet/>` ของ React Router)
 - กว้างสุด `max-w-screen-xl` จัดกึ่งกลาง สำหรับจอใหญ่
 

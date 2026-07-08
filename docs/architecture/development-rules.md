@@ -64,10 +64,10 @@ features/items/
 | Store | เก็บอะไร |
 |-------|---------|
 | `auth.store.ts` | `accessToken`, `user`, `isAuthenticated` |
-| `workspace.store.ts` | `currentWorkspaceId`, `currentWorkspace`, `permissions` |
+| `workspace.store.ts` | `currentWorkspaceId`, `currentWorkspace`, `permissions`, `containerAccessScope` |
 | `ui.store.ts` | `sidebarOpen`, `theme` |
 
-**ห้าม:** เก็บ server data (items, members, sites) ใน store — ใช้ TanStack Query
+**ห้าม:** เก็บ server data (items, members, containers) ใน store — ใช้ TanStack Query
 
 ---
 
@@ -158,7 +158,7 @@ Component ใหม่จะวางที่ไหน?
 
 | สถานะ | วางที่ไหน | เหตุผล |
 |-------|----------|--------|
-| ข้อมูลจาก API (items, sites, members) | TanStack Query | caching, sync, revalidation |
+| ข้อมูลจาก API (items, containers, members) | TanStack Query | caching, sync, revalidation |
 | Auth token + user | `authStore` | ต้องการทุก request |
 | Workspace ปัจจุบัน + permissions | `workspaceStore` | ใช้ทั่วแอป + persist |
 | Sidebar open/close, theme | `uiStore` | UI state global |

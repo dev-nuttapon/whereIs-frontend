@@ -6,23 +6,25 @@
 > วางบล็อกนี้ตอนเริ่ม session กับ AI
 
 ```
-โปรเจกต์: WhereIs — เว็บค้นหา/จัดเก็บ/ย้าย/ยืม/คืน/ติดตามสิ่งของ (frontend only)
-Entities: Workspace → Site → Location → Container → Item; + Member, ItemEvent
+โปรเจกต์: WhereIs — เว็บจัดการทรัพย์สิน สต็อก และ workflow แบบแยกตาม workspace (frontend only)
+Entities: Workspace → Container (tree อิสระ) → Item; + Member, ItemEvent, Notification, Report
+         Item มี 2 แบบ: Individual / Quantity
          (Activity = view ของ ItemEvent) — ใช้คำตาม docs/domain-model.md เป๊ะ
-Roles: owner / admin / member / viewer (สิทธิ์เป็น permission list ต่อ workspace)
+Roles: owner / admin / member / viewer (สิทธิ์เป็น primary role + extra permissions + container access scope)
 Stack: React 18 + Vite + TypeScript, React Router, TanStack Query,
        React Hook Form + Zod, Zustand, Axios, Tailwind CSS, shadcn/ui
 
 กติกาสำคัญ:
-- Search เป็นฟีเจอร์หลัก / Item Card ต้องมีรูป+สถานะ+ตำแหน่ง / Action อยู่ใน Item Detail
-- ปุ่ม action ต้องซ่อนตาม permission (item.create/update/move/takeout/return/mark_*/dispose)
+- Search เป็นฟีเจอร์หลัก / Item ต้องแสดงสถานะ + container + metadata / Action อยู่ใน Item Detail
+- ปุ่ม action ต้องซ่อนตาม permission และ container access scope (item.*, stock.*, container.*, member.*, workspace.*, report.*, notification.*)
 - Server state ใช้ TanStack Query เท่านั้น, ห้ามเก็บ server data ใน Zustand
 - Client state ใช้ Zustand (auth/workspace/ui), local ใช้ useState, filter ใช้ URL params
 - เรียก API ผ่าน api/*.api.ts (เอกพจน์) + custom hook เท่านั้น (ห้าม fetch กระจาย)
 - styling ด้วย Tailwind + shadcn/ui, ใช้ design token (ห้าม hardcode สี) ดู docs/theme.md
 - function component + hooks, named export, TypeScript strict (ห้าม any)
 - แยก feature folder ชัดเจน ตาม docs/folder-structure.md
-- ใช้ Mock API ก่อนได้ถ้า Backend ยังไม่พร้อม (contract = docs/api-contract.md)
+- ใช้ Mock API ก่อนได้ถ้า Backend ยังไม่พร้อม (contract = docs/api/api-contract.md)
+- หน้าจอที่ควรวาง mockup ก่อน backend: dashboard, search, item detail, reports, notifications, member/permission, container tree
 ```
 
 ## ขั้นตอนก่อนเริ่มงานทุกครั้ง
@@ -45,6 +47,7 @@ Stack: React 18 + Vite + TypeScript, React Router, TanStack Query,
 | ต่อ API / สร้าง query hook | [api-contract.md](../api/api-contract.md), [state-management.md](../state/state-management.md) |
 | จัดการ state | [state-management.md](../state/state-management.md) |
 | ทำ auth / สิทธิ์ / ปุ่ม action | [permission-ui.md](../security/permission-ui.md) |
+| ทำ reports / notifications | [modules/reports.md](../modules/reports.md), [modules/notifications.md](../modules/notifications.md) |
 | วางไฟล์ใหม่ | [folder-structure.md](../architecture/folder-structure.md) |
 | flow / routing | [screen-flow.md](../ui/screen-flow.md) |
 | มาตรฐานโค้ด | [coding-style.md](../architecture/coding-style.md) |
@@ -88,7 +91,7 @@ Stack: React 18 + Vite + TypeScript, React Router, TanStack Query,
 ## สิ่งที่ต้องย้ำกับ AI (ข้อผิดที่พบบ่อย)
 - ❌ fetch ด้วย axios ตรงใน component → ต้องผ่าน `api/*.api.ts` + custom hook + Query
 - ❌ เก็บ server data ลง Zustand/useState
-- ❌ ปุ่ม Add/Edit/Move/TakeOut/Return ที่ไม่เช็ค permission
+- ❌ ปุ่ม Add/Edit/Move/Borrow/Return/Withdraw/Reserve/Repair ที่ไม่เช็ค permission
 - ❌ ใช้ `any` / `@ts-ignore`
 - ❌ hardcode สี/ระยะห่าง → ใช้ design token
 - ❌ import ข้าม feature ตรงๆ

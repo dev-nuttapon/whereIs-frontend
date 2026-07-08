@@ -24,6 +24,7 @@ WhereIs มีระบบสิทธิ์ที่ซับซ้อน:
 2. Frontend เก็บ list นี้ใน `workspaceStore.permissions`
 3. ทุก permission check ผ่าน **helper กลาง** `can(permission: string): boolean`
 4. Permission keys มี **canonical list** เดียวที่ [security/permission-ui.md](../security/permission-ui.md) — ห้ามคิด key ใหม่โดยไม่อัปเดตที่นั้น
+5. Container access scope ถูกเก็บแยกจาก permission และใช้กรอง navigation/search/dashboard/reports/item visibility
 
 ```ts
 // helper อยู่ใน src/utils/permission.ts หรือ src/hooks/usePermission.ts
@@ -51,7 +52,7 @@ const can = (perm: string) => workspaceStore.permissions.includes(perm);
 ```ts
 // ใน ItemDetailPage.tsx
 const { permissions } = useWorkspaceStore();
-const canTakeOut = permissions.includes('item.takeout');
+const canBorrow = permissions.includes('item.borrow');
 ```
 
 **ปัญหา:** logic ซ้ำซ้อน, refactor ยาก, ลืมเช็คง่าย
@@ -77,6 +78,7 @@ permissionService.can('item.create');
 - `can()` helper เป็น **pure function** ง่ายต่อ test
 - **1 canonical key list** ใน `security/permission-ui.md` ป้องกัน typo และ key drift
 - ใช้ทั้ง `can()` function (สำหรับ conditional render ใน JS) และ `<PermissionGuard>` wrapper (สำหรับ JSX) — ครบทุก use case
+- container scope gate แยกจาก permission gate ทำให้ logic ชัดว่า "ทำอะไรได้" กับ "ทำกับพื้นที่ไหน"
 
 ---
 
@@ -87,6 +89,7 @@ permissionService.can('item.create');
 - เปลี่ยน permission logic ที่ backend → frontend รับค่าใหม่อัตโนมัติ ไม่ต้องแก้โค้ด
 - Test ง่าย: mock `workspaceStore.permissions` → test `can()` ได้ทันที
 - Type-safe ได้ถ้า define `PermissionKey` union type
+- access scope สามารถเปลี่ยนผลแสดง UI ได้ทันทีโดยไม่ต้องรอ role change
 
 **ลบ:**
 - Frontend **ไม่รู้** permission logic จริง (อยู่ที่ backend) → ถ้า backend เปลี่ยน key name ต้องอัปเดต canonical list ใน docs

@@ -4,29 +4,26 @@
 
 ## Route Map
 
-> path เป็นค่าเริ่มต้น ปรับตาม requirement จริง ทุก route หลัง login ผูกกับ workspace ปัจจุบัน
-
 | Route | หน้าจอ | สิทธิ์ที่ต้องมี | หมายเหตุ |
 |-------|--------|----------------|----------|
 | `/login` | Login | public | login แล้ว redirect ออก |
 | `/register` | Register | public | สมัครใช้งาน |
 | `/workspaces` | Workspace List | authenticated | เลือก/สร้าง workspace |
 | `/w/:wsId` | Dashboard | member ของ ws | หน้าหลักของ workspace |
-| `/w/:wsId/search` | Item Search | `item.view` | ค้นหาสิ่งของ |
-| `/w/:wsId/items/:id` | Item Detail | `item.view` | รายละเอียด + actions |
+| `/w/:wsId/search` | Item Search | `item.view` | ค้นหาของ |
+| `/w/:wsId/items/:id` | Item Detail | `item.view` | individual/quantity detail + actions |
 | `/w/:wsId/items/new` | Add Item | `item.create` | ฟอร์มเพิ่มของ |
 | `/w/:wsId/items/:id/edit` | Edit Item | `item.update` | ฟอร์มแก้ไข |
-| `/w/:wsId/sites` | Site List | `site.view` | จัดการ Site |
-| `/w/:wsId/sites/:siteId` | Site Detail | `site.view` | รายละเอียด site |
-| `/w/:wsId/sites/:siteId/explorer` | Location Explorer | `location.view` | tree ของ location/container ใน site |
-| `/w/:wsId/containers/:id` | Container Detail | `container.view` | ของในกล่อง + QR |
+| `/w/:wsId/structure` | Storage Structure | `container.view` | tree ของ container ทั้ง workspace |
+| `/w/:wsId/containers/:id` | Container Detail | `container.view` | child containers + items |
 | `/w/:wsId/members` | Members | `member.view` | จัดการสมาชิก |
-| `/w/:wsId/members/:memberId` | Member Detail / Permissions | `member.view` (+`permission.override` แก้สิทธิ์) | role + permission override |
+| `/w/:wsId/members/:memberId` | Member Detail / Permissions | `member.view` (+`permission.override`) | role + permission override |
 | `/w/:wsId/activity` | Activity Log | `activity.view` | ประวัติเหตุการณ์ |
+| `/w/:wsId/reports` | Reports | `report.view` | summary / export |
+| `/w/:wsId/notifications` | Notifications | `notification.view` | reminders / important dates |
 | `/w/:wsId/settings` | Settings | member ของ ws | ตั้งค่า workspace/ผู้ใช้ |
+| `/w/:wsId/settings/notifications` | Notification Settings | `notification.manage` | reminder / preference controls |
 | `*` | Not Found | public | 404 |
-
-> สิทธิ์บังคับใช้ผ่าน route guard — ดู [permission-ui.md](../security/permission-ui.md)
 
 ## Flow หลัก
 
@@ -37,27 +34,39 @@
 
 ### 2. Manage Storage Flow
 ```
-[Dashboard] → [Sites] → [Site Detail] → [Location Explorer]
-                                              → [Container Detail] → [Add Item]
+[Dashboard] → [Storage Structure] → [Container Detail] → [Add Item]
 ```
 
 ### 3. Item Action Flow (ที่ Item Detail)
 ```
 [Item Detail]
    ├─ Move Item      (item.move)
-   ├─ Take Out       (item.takeout)
+   ├─ Borrow         (item.borrow)
    ├─ Return         (item.return)
+   ├─ Withdraw       (item.withdraw)
+   ├─ Reserve        (item.reserve)
+   ├─ Repair         (item.repair)
+   ├─ Consume Stock  (stock.consume)
+   ├─ Restock Stock  (stock.restock)
+   ├─ Count Stock    (stock.count)
+   ├─ Adjust Stock   (stock.adjust)
    ├─ Mark Missing   (item.mark_missing)
    └─ Mark Found
 ```
-แต่ละ action = mutation → สำเร็จแล้ว invalidate query ที่เกี่ยว (ดู [state-management.md](../state/state-management.md#cache-rules))
 
 ### 4. Member Flow
 ```
 [Dashboard] → [Members] → [Invite Member] → [Change Role] → [Permission Override]
 ```
 
-### 5. Auth Flow
+### 5. Progressive Disclosure Flow
+```
+[Dashboard / Search / Container]
+   ├─ แสดง summary ก่อน
+   ├─ เปิด detail เมื่อจำเป็น
+   └─ เปิด workflow dialog เฉพาะ action ที่ผู้ใช้มีสิทธิ์
+```
+### 6. Auth Flow
 ```
 [เปิดแอป]
    ├─ มี token valid? ── ใช่ ──► [Workspace List / last workspace]
@@ -68,37 +77,52 @@
 
 ## รายละเอียดหน้าจอหลัก
 
-### Login
-Email, Password, Login Button, Register Link
-
-### Workspace List
-รายการ Workspace, ปุ่ม Create Workspace
-
 ### Dashboard
-Search Bar (เด่น), Total Items, Stored, Taken Out, Missing, Recent Activity
+- Search Bar
+- Total Items
+- Stored / Borrowed / Missing
+- Low Stock / Out of Stock / Reservation Waiting / Overdue Return / Repair Queue
+- Recent Activity
+- Notifications preview
+- Reports shortcut
 
-### Location Explorer
-Tree View (Site → Location → Container), Add Location, Add Container, View Container
+### Storage Structure
+- Tree View ของ container
+- เพิ่ม/แก้/ลบ node
+- แสดง visibility rule ถ้ามี
 
 ### Container Detail
-Container Photo, Code, QR Code, Item List, Add Item
+- Container name
+- Child containers
+- Item list
 
 ### Item Search
-Keyword Search, Filter by Site, Filter by Status, Result Card (รูป/สถานะ/ตำแหน่ง)
+- Keyword Search
+- Filter by type / status / container / current holder / location / expiry / warranty / maintenance / overdue return / reservation waiting / missing / repair / disposal
 
 ### Item Detail
-Photo, Name, Status, Current Location, Current Holder, Event History, Action Buttons
+- ข้อมูลหลัก
+- สถานะ
+- current container / holder
+- unit conversion / batch / lot / received date / expiry date
+- warranty / maintenance / custom schedule
+- event history
+- action buttons ตาม type
 
 ### Members
-Member List, Role, Invite, Permission Override
+- Member List
+- Role
+- Extra Permissions
+- Container Access Scope
+- Invite
+- Permission Override
 
 ## Navigation Rules
-- ใช้ `<Link>` / `useNavigate` ของ React Router เท่านั้น ห้าม `window.location` ตรงๆ
+- ใช้ `<Link>` / `useNavigate` ของ React Router เท่านั้น
 - หลัง mutation สำเร็จ → navigate + invalidate query ที่เกี่ยวข้อง
 - redirect จาก permission จัดการรวมที่ guard ที่เดียว
-- ทุกหน้าที่โหลดข้อมูลรองรับ loading / empty / error / success (ดู [ui-overview.md](ui-overview.md))
 
 ## เอกสารที่เกี่ยวข้อง
-- [permission-ui.md](../security/permission-ui.md) — guard และการซ่อน/แสดงตามสิทธิ์
-- [api-contract.md](../api/api-contract.md) — endpoint ที่แต่ละหน้าเรียก
-- [ui-overview.md](ui-overview.md) — layout และ UI states
+- [permission-ui.md](../security/permission-ui.md)
+- [api-contract.md](../api/api-contract.md)
+- [ui-overview.md](ui-overview.md)

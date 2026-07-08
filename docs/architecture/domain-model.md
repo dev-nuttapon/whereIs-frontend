@@ -6,125 +6,209 @@
 ## 1. Glossary (คำศัพท์)
 | คำ | ความหมาย |
 |----|----------|
-| **User** | บัญชีผู้ใช้ (login เดียวทั้งระบบ) เข้าร่วม workspace ในรูปของ Member |
-| **Workspace** | ขอบเขต tenant ระดับบนสุด ข้อมูลทุกอย่างสังกัด workspace เดียว และ **แยกขาดจากกัน** |
-| **Member** | การเป็นสมาชิกของ User ใน workspace หนึ่ง พร้อม **Role** + **Permissions** (User เดียวเป็น member หลาย workspace ได้ คนละ role) |
-| **Role** | ชุด permission เริ่มต้น: `owner`, `admin`, `member`, `viewer` |
-| **Permission** | ความสามารถเดี่ยว เช่น `item.create` (effective = role default ± override) |
-| **Site** | สถานที่จริงใน workspace (อาคาร/บ้าน) เป็น root ของลำดับชั้นตำแหน่ง |
-| **Location** | ส่วนย่อยของ Site เป็น **tree** (ชั้น → ห้อง → ชั้นวาง) มี location ลูก และ/หรือ container |
-| **Container** | ที่บรรจุ item อยู่ที่ location หนึ่ง มี **code** (และ QR ในอนาคต) |
-| **Item** | สิ่งของที่ติดตาม สังกัด workspace ปกติอยู่ใน container มี **status** และมี **holder** เมื่อถูกนำออก |
-| **ItemEvent** | บันทึก immutable ของสิ่งที่เกิดกับ item (created/moved/taken_out/…) = audit trail; **Activity Log** = view รวมของ ItemEvent ทั้ง workspace |
+| **User** | บัญชีผู้ใช้หนึ่งคนในระบบ |
+| **Workspace** | ขอบเขตข้อมูลหลักของระบบ ข้อมูลทุกอย่างสังกัด workspace เดียว และต้องแยกจาก workspace อื่น |
+| **Member** | บทบาทของ User ภายใน Workspace หนึ่ง พร้อม primary role, extra permissions, และ container access scope |
+| **Role** | ชุดสิทธิ์เริ่มต้นของสมาชิก: `owner`, `admin`, `member`, `viewer` |
+| **Permission** | ความสามารถเดี่ยว เช่น ดูรายการ, แก้ข้อมูล, ย้ายของ, เบิกสต็อก, จัดการสมาชิก, หรือกำหนด scope |
+| **Container** | โหนดในโครงสร้างที่เก็บของ ใช้แทนห้อง, ตู้, ชั้น, ลิ้นชัก, กล่อง หรือระดับอื่นที่ผู้ใช้กำหนดเองได้ |
+| **Item** | ของที่ต้องติดตามใน workspace แยกเป็น 2 รูปแบบ: ของมีชิ้นเดียว และของแบบสต็อก |
+| **ItemEvent** | บันทึก immutable ของรายการที่เกิดกับ item เพื่อใช้เป็นประวัติและ audit trail |
+| **Notification** | การแจ้งเตือนของ workspace เช่น reminder, overdue, expiry, warranty, maintenance |
+| **ReportSummary** | สรุปรายงานที่ frontend ใช้แสดง KPI / summary / export preview |
 
 ## 2. ความสัมพันธ์ (relationships)
 ```
 User 1 ──< Member >── 1 Workspace
-Workspace 1 ──< Site ──< Location ──< Location (tree, parentId) 
-                                  └──< Container ──< Item ──< ItemEvent
+Workspace 1 ──< Container (tree via parentId) ──< Item ──< ItemEvent
 Member 1 ──< ItemEvent           (เป็น actor ของ event)
-Item >── 0..1 Member             (currentHolder เมื่อ status = taken_out)
+Item >── 0..1 Member             (currentHolder เมื่อเป็นของมีชิ้นเดียวและถูกยืมออก)
 ```
-- Workspace มีหลาย Site/Member/Item/ItemEvent
-- Location เป็น tree (ลึกได้ไม่จำกัด) — `parentId = null` คือ location ระดับบนสุดของ site
-- Container อยู่ใน 1 location, **ไม่ซ้อนใน container อื่น**
-- Item อยู่ใน 1 container ตอน `stored`; ตอน `taken_out` ผูกกับ holder (จำ container เดิมไว้)
-- ทุก entity ที่ระดับ workspace มี `workspaceId` → ฐานของ **workspace isolation**
+- Workspace เป็นขอบเขตการใช้งานหลัก
+- Container เป็น tree ที่กำหนดได้อิสระในแต่ละ Workspace
+- Container อาจมีลูกเป็น container อื่นได้ตามโครงสร้างที่ผู้ใช้กำหนด
+- Item ผูกกับ container ปลายทางปัจจุบันเสมอ เว้นแต่สถานะบางแบบที่ยังไม่ระบุที่อยู่ได้ชั่วคราว
+- Container access scope ของ member ใช้กรองว่าเห็น container และ item ใดบ้าง
+- ทุก entity ระดับ workspace ต้องมี `workspaceId`
 
-## 3. ลำดับชั้นตำแหน่ง (Location Explorer)
+## 3. โครงสร้างที่เก็บ
+โครงสร้างที่เก็บต้องรองรับรูปแบบอิสระ เช่น:
 ```
-Site
-└── Location (tree)
-    ├── Location (ลูก)
-    │   └── Container ── Item
-    └── Container ── Item
+ห้อง 3
+└── ลิ้นชัก 4
+    └── กล่อง 2
 ```
-Breadcrumb ใน UI = `Site > Location > … > Container` เสมอ (component `LocationBreadcrumb`)
+หรือ
+```
+ลิ้นชัก 3
+└── ชั้นวาง 1
+```
+ความหมายคือผู้ใช้กำหนดชื่อระดับ, จำนวนระดับ, และลำดับความลึกได้เองในแต่ละ workspace
 
-## 4. Item Lifecycle (status)
-| Status | ความหมาย | มี holder? | อยู่ใน container? |
-|--------|----------|:----------:|:-----------------:|
-| `stored` | อยู่ในที่จัดเก็บ พร้อมใช้ | ไม่ | ใช่ |
-| `taken_out` | ถูกนำออก/ยืม | ใช่ | ไม่ (จำ home container) |
-| `missing` | หาไม่เจอ | ไม่ | ไม่ทราบ |
-| `disposed` | จำหน่าย/ทิ้ง (terminal) | ไม่ | ไม่ |
+## 4. Item Types และ Lifecycle
+| ประเภท | ความหมาย | ตัวอย่างข้อมูลหลัก |
+|--------|----------|---------------------|
+| `single` | Individual Item | ของมีเพียง 1 ชิ้น ต้องติดตามรายชิ้น |
+| `stock` | Quantity Item | ของที่ติดตามเป็นจำนวน + หน่วย + lot |
 
-Transition ที่อนุญาต (backend บังคับ, UI แสดงเฉพาะ action ที่ทำได้):
-```
-stored ──takeout──► taken_out ──return──► stored
-stored / taken_out ──mark_missing──► missing ──mark_found──► stored
-stored ──move──► stored                 (เปลี่ยน container, status เดิม)
-stored / taken_out / missing ──dispose──► disposed (terminal)
-```
-ทุก transition สร้าง **ItemEvent** 1 รายการ
+> UI label ควรใช้ **Individual Item** / **Quantity Item** แต่ wire enum ปัจจุบันยังเป็น `single` / `stock`
+
+### Individual Item (`single`)
+สถานะหลัก:
+| Status | ความหมาย |
+|--------|----------|
+| `stored` | อยู่ในที่เก็บ |
+| `taken_out` | ถูกยืมหรือถูกนำออก |
+| `missing` | หาไม่เจอ |
+| `disposed` | จำหน่ายหรือทิ้ง |
+
+ฟิลด์ที่ควรรองรับ:
+- container ปัจจุบัน
+- current holder
+- due date แบบ optional
+- reason สำหรับ missing/disposed
+- primary workflow state ที่ UI ใช้แสดง borrow / return / withdraw / reserve / repair / dispose
+- important dates เช่น warranty end, maintenance due, custom reminder
+
+> หมายเหตุ: `status` ใน field reference ยังเป็น state แบบกว้าง ส่วน workflow labels อาจแสดงจาก event/state overlay เพิ่มเติม
+
+### Quantity Item (`stock`)
+สถานะเชิงปริมาณ:
+- quantity ปัจจุบัน
+- reorder point / low stock threshold
+- restock history
+- consume history
+- who took what amount
+- item-specific unit conversion
+- batch / lot
+- received date
+- expiry date
+- stock count / variance / adjustment history
+- warranty / maintenance / custom schedule metadata
 
 ## 5. ItemEvent types
-`created` · `updated` · `moved` · `taken_out` · `returned` · `marked_missing` · `marked_found` · `disposed`
-แต่ละ event เก็บ: actor (Member), timestamp, item อ้างอิง, และ payload เฉพาะ (เช่น move → from/to container)
+ItemEvent ต้องบันทึกการเปลี่ยนแปลงสำคัญทั้งหมด เช่น:
+- `created`
+- `updated`
+- `moved`
+- `borrow_requested`
+- `borrow_approved`
+- `borrowed`
+- `returned`
+- `withdrawn`
+- `reserved`
+- `reservation_released`
+- `marked_repairing`
+- `repaired`
+- `stock_used`
+- `stock_restocked`
+- `stock_counted`
+- `stock_adjusted`
+- `received`
+- `marked_missing`
+- `marked_found`
+- `disposed`
+
+แต่ละ event เก็บ actor, timestamp, item อ้างอิง และ payload เฉพาะของเหตุการณ์นั้น
+> คีย์ event ฝั่ง backend อาจต่างจาก label ที่ UI แสดง แต่ frontend ต้องรองรับกลุ่มเหตุการณ์ข้างต้น
 
 ## 6. Roles (defaults)
 | Role | เจตนา |
 |------|-------|
-| `owner` | คุม workspace ทั้งหมด รวมลบ workspace + override permission |
-| `admin` | จัดการโครงสร้าง (site/location/container) + member |
-| `member` | งานประจำวันกับ item (create/edit/takeout/return) |
-| `viewer` | อ่านอย่างเดียว (search + view) |
+| `owner` | คุม workspace ทั้งหมด, เชิญ/ลบสมาชิก, ตั้ง role, จัดการ extra permissions, จัดการ container access scope, และจัดการข้อมูลทุกส่วน |
+| `admin` | จัดการข้อมูลส่วนใหญ่ใน workspace, container, item, stock, reports, notifications, และสมาชิกได้ตามสิทธิ์ |
+| `member` | ใช้งานงานประจำวัน เช่น เพิ่ม/แก้ข้อมูล, ยืมคืนของ, เบิก/ถอน/คืนสต็อก, ทำ count/adjustment ตามสิทธิ์ที่ได้รับ |
+| `viewer` | อ่านอย่างเดียว |
 
-mapping role → permission เต็มอยู่ที่ [permission-ui.md](../security/permission-ui.md) (ที่เดียว ห้ามนิยามซ้ำ)
+mapping role → permission เต็มอยู่ที่ [permission-ui.md](../security/permission-ui.md)
 
 ## 7. Field reference (type ฝั่ง frontend)
 > สรุป field ที่ UI ใช้ — ชนิดบน wire + endpoint ดู [api-contract.md](../api/api-contract.md)
 
 ```ts
 type Role = 'owner' | 'admin' | 'member' | 'viewer';
-type ItemStatus = 'stored' | 'taken_out' | 'missing' | 'disposed';
+type ItemType = 'single' | 'stock';
+type ItemStatus = 'stored' | 'taken_out' | 'missing' | 'disposed'; // coarse lifecycle status
 
 interface User { id: string; email: string; name: string; avatarUrl?: string; }
 
 interface Workspace {
-  id: string; name: string;
+  id: string;
+  name: string;
   myRole: Role;
-  permissions: string[];        // permission ของ user ปัจจุบันใน ws นี้
-  createdAt: string; updatedAt: string;
+  permissions: string[];
+  containerAccessScope?: {
+    containerIds: string[];
+    includeDescendants: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface Site { id: string; workspaceId: string; name: string; description?: string; createdAt: string; updatedAt: string; }
-
-interface Location {
-  id: string; workspaceId: string; siteId: string;
-  parentId: string | null; name: string;
-  createdAt: string; updatedAt: string;
+interface Member {
+  id: string;
+  workspaceId: string;
+  user: User;
+  primaryRole: Role;
+  extraPermissions: string[];
+  containerAccessScope: {
+    containerIds: string[];
+    includeDescendants: boolean;
+  };
+  permissions: string[];
+  permissionOverrides?: Record<string, boolean>;
+  createdAt: string;
 }
 
 interface Container {
-  id: string; workspaceId: string; locationId: string;
-  code: string; name?: string; photoUrl?: string; qrCode?: string; // qrCode = future
-  createdAt: string; updatedAt: string;
+  id: string;
+  workspaceId: string;
+  parentId: string | null;
+  name: string;
+  code?: string;
+  visibleTo?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Item {
-  id: string; workspaceId: string;
-  name: string; code?: string; description?: string; photoUrl?: string;
+  id: string;
+  workspaceId: string;
+  type: ItemType;
+  name: string;
+  code?: string;
+  description?: string;
   status: ItemStatus;
-  containerId: string | null;       // home container (null ได้ตอน missing/disposed)
-  currentHolderId: string | null;   // member id เมื่อ taken_out
-  tags?: string[];                  // future
-  createdAt: string; updatedAt: string;
+  containerId: string | null;
+  currentHolderId: string | null;
+  quantity?: number;
+  reorderPoint?: number;
+  dueDate?: string | null;
+  reason?: string;
+  unit?: string;
+  batchCode?: string;
+  receivedDate?: string | null;
+  expiryDate?: string | null;
+  warrantyEndDate?: string | null;
+  maintenanceNextDueDate?: string | null;
+  importantDates?: Record<string, string | null>;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface Member { id: string; workspaceId: string; user: User; role: Role; permissions: string[]; createdAt: string; }
-
 interface ItemEvent {
-  id: string; workspaceId: string; itemId: string;
-  type: 'created'|'updated'|'moved'|'taken_out'|'returned'|'marked_missing'|'marked_found'|'disposed';
-  actor: Pick<User,'id'|'name'>;
-  payload?: Record<string, unknown>;   // เช่น { fromContainerId, toContainerId }
+  id: string;
+  workspaceId: string;
+  itemId: string;
+  type: string;
+  actor: Pick<User, 'id' | 'name'>;
+  payload?: Record<string, unknown>;
   createdAt: string;
 }
 ```
 หมายเหตุ: ทุก id เป็น **UUID string**; timestamp เป็น **ISO 8601 (UTC)**; backend ใช้ soft delete → ปกติ FE จะไม่เห็น record ที่ถูกลบ
 
 ## 8. กฎการตั้งชื่อ
-- ชื่อ entity = **PascalCase เอกพจน์**: `Workspace`, `ItemEvent`
+- ชื่อ entity = **PascalCase เอกพจน์**: `Workspace`, `Container`, `ItemEvent`
 - status / permission key = **snake_case string**: `taken_out`, `item.mark_missing`
-- ห้ามใช้คำพ้อง: เป็น **Container** ไม่ใช่ "box/bin"; เป็น **ItemEvent** ไม่ใช่ "history/log" ในชื่อ identifier
+- ห้ามใช้คำพ้องใน identifier: ใช้ `Container` สำหรับโหนดในโครงสร้างที่เก็บ

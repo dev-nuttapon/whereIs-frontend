@@ -9,7 +9,7 @@
 | ไฟล์ | ตัดสินใจเรื่อง |
 |------|---------------|
 | [layout-design.md](layout-design.md) | 3 layout types (Auth, WorkspaceSelect, App) แทน single layout |
-| [search-ui.md](search-ui.md) | Global SearchBar ใน Topbar + URL params เป็น filter state |
+| [search-ui.md](search-ui.md) | Global SearchBar ใน Topbar + URL params เป็น filter state + access filtering |
 | [permission-ui.md](permission-ui.md) | `can()` helper + effective permissions จาก backend แทนการเช็ค role ตรงๆ |
 | [tech-stack.md](tech-stack.md) | เหตุผลที่เลือก React/Vite/TanStack Query/Zustand/shadcn/ui |
 

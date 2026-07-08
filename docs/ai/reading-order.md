@@ -31,8 +31,9 @@
 ## Step 5 — Module ที่จะทำ (อ่านเฉพาะ module ของ task)
 16. [modules/](../modules/) — เลือกอ่านไฟล์ของ feature ที่กำลัง implement:
     [auth](../modules/auth.md) · [workspace](../modules/workspace.md) · [dashboard](../modules/dashboard.md) ·
-    [site](../modules/site.md) · [location](../modules/location.md) · [container](../modules/container.md) ·
-    [item](../modules/item.md) · [member](../modules/member.md) · [permission](../modules/permission.md) · [search](../modules/search.md)
+    [container](../modules/container.md) ·
+    [item](../modules/item.md) · [member](../modules/member.md) · [permission](../modules/permission.md) · [search](../modules/search.md) ·
+    [activity](../modules/activity.md) · [reports](../modules/reports.md) · [notifications](../modules/notifications.md) · [settings](../modules/settings.md)
 
 ## Step 6 — ก่อนเริ่มจริง
 17. [ai-prompt.md](ai-prompt.md) — context block + prompt templates + ข้อห้าม

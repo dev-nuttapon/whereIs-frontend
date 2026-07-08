@@ -12,6 +12,7 @@
 - ในฐานะ owner ฉันต้องการ **โอน ownership** ให้สมาชิกอื่น
 - ในฐานะผู้ใช้ทุกคน ฉันต้องการ **เปลี่ยนชื่อ / รูป profile** ของตัวเอง
 - ฉันต้องการ **สลับธีม** light / dark
+- ฉันต้องการปรับ **notification preferences** สำหรับ reminder สำคัญ
 
 ## 3. Screen Description
 | หน้า | Route | คำอธิบาย |
@@ -21,6 +22,7 @@
 | Profile Settings | `/w/:wsId/settings/profile` | ชื่อ, avatar ของ user ปัจจุบัน |
 | Appearance | `/w/:wsId/settings/appearance` | theme toggle, language (future) |
 | Danger Zone | `/w/:wsId/settings/danger` | ลบ workspace, transfer ownership |
+| Notifications | `/w/:wsId/settings/notifications` | reminder preferences, important dates |
 
 ## 4. Components
 - `SettingsLayout` (sidebar tabs ด้านซ้าย + content ด้านขวา)
@@ -28,6 +30,7 @@
 - `DangerZone`, `DeleteWorkspaceDialog`, `TransferOwnershipDialog`
 - `AvatarUpload` (รูป profile — future: file upload; ตอนนี้ initials fallback)
 - `ThemeToggle` (light / dark / system)
+- `NotificationSettings`
 - UI primitives: `Tabs`, `Button`, `Input`, `Textarea`, `Select`, `Switch`, `Dialog`
 
 ## 5. Forms
@@ -61,6 +64,7 @@
 - `PUT /workspaces/:wsId` `{ name, description, timezone }` → `Workspace`
 - `DELETE /workspaces/:wsId`
 - `POST /workspaces/:wsId/transfer` `{ newOwnerId }` → `Workspace`
+- `PUT /workspaces/:wsId/settings/notifications` `{ enabled, emailDigest, inAppReminder, scheduleAlerts }` → `NotificationSettings`
 - `PUT /users/me` `{ name }` → `User` (profile — endpoint ที่ backend อาจต่างกัน)
 - (future) `PUT /users/me/avatar` (multipart/form-data)
 
@@ -70,12 +74,14 @@
 - `useDeleteWorkspace()` mutation → navigate ไป `/` (workspace list) หลัง success
 - `useTransferOwnership()` mutation → invalidate workspace + member list
 - `useUpdateProfile()` mutation → invalidate `authStore.user`
+- `useUpdateNotificationSettings()` mutation → invalidate notifications preview / dashboard reminder cards
 
 ## 8. Zustand Usage
-- `workspaceStore.workspace` — ใช้ prefill form ชื่อ workspace
+- `workspaceStore.currentWorkspace` — ใช้ prefill form ชื่อ workspace
 - `authStore.user` — ใช้ prefill form profile
 - `uiStore.theme` — ค่า theme toggle; persist ใน localStorage
-- หลัง update workspace → sync `workspaceStore.workspace.name` (ผ่าน invalidate)
+- หลัง update workspace → sync `workspaceStore.currentWorkspace.name` (ผ่าน invalidate)
+- notification preferences ต้องแสดงว่ามาจาก workspace หรือ global setting
 
 ## 9. Form Validation
 - Workspace name: Zod `string().min(2).max(80).trim()`
@@ -121,7 +127,7 @@ Transfer ownership → confirm → POST → reload workspace data
 ## 16. Future Improvements
 - Timezone-aware display สำหรับ activity timestamps
 - Avatar upload (image file)
-- Notification preferences (email digest, push)
+- Notification preferences (email digest, in-app reminder, schedule alerts)
 - Language / locale setting
 - Workspace logo upload
 - API keys / integrations

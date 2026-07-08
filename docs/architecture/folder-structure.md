@@ -11,24 +11,25 @@ src/
 │   ├── auth.api.ts
 │   ├── workspace.api.ts
 │   ├── dashboard.api.ts
-│   ├── site.api.ts
-│   ├── location.api.ts
 │   ├── container.api.ts
 │   ├── item.api.ts         # รวม search + actions + events + activity
 │   ├── member.api.ts
-│   └── permission.api.ts
+│   ├── permission.api.ts
+│   ├── report.api.ts
+│   ├── notification.api.ts
+│   └── user.api.ts
 │
 ├── features/               # business logic แยกตาม domain
 │   ├── auth/
 │   ├── workspaces/
 │   ├── dashboard/
-│   ├── sites/
-│   ├── locations/
 │   ├── containers/
 │   ├── items/
 │   ├── members/
 │   ├── permissions/
 │   ├── activity/
+│   ├── reports/
+│   ├── notifications/
 │   └── settings/
 │       # ภายในแต่ละ feature:
 │       #   pages/        หน้าจอ (route target)

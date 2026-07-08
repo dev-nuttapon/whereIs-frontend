@@ -18,9 +18,13 @@
 | `Sidebar` | เมนูหลัก (ซ่อน/แสดงตาม permission) |
 | `Topbar` | workspace ปัจจุบัน + user menu |
 | `SearchBar` | ค้นหา item (ฟีเจอร์เด่น) |
-| `ItemCard` | รูป + ชื่อ + สถานะ + ตำแหน่ง |
-| `StatusBadge` | Stored / TakenOut / Missing / Disposed |
-| `LocationBreadcrumb` | `Site > Location > Container` |
+| `ItemCard` | รูป + ชื่อ + สถานะ + container path / ผู้ถือ |
+| `StatusBadge` | Stored / Borrowed / Reserved / Missing / Repair / Disposed |
+| `ContainerBreadcrumb` | `Container > Sub-container > Item` |
+| `ProgressiveSummary` | แสดง summary ก่อน แล้วค่อยขยาย detail |
+| `NotificationButton` | เปิด notification drawer / center |
+| `NotificationPreview` | แสดง reminder สั้นบน dashboard |
+| `ReportSummaryCard` | summary ของ reports บน dashboard |
 | `ConfirmDialog` | ยืนยันก่อน delete / dispose |
 | `PermissionGuard` | ซ่อน/แสดง UI ตาม permission |
 | `EmptyState` / `LoadingState` / `ErrorState` | UI states มาตรฐาน |
@@ -32,6 +36,7 @@
 - หลีกเลี่ยง `any` และ inline type ที่ซับซ้อน
 - Component ควรสั้น — ถ้าเกิน ~150 บรรทัด พิจารณาแยก
 - แยก logic ที่ reuse ได้ออกเป็น custom hook
+- หน้าจอ item detail ควรแบ่งเป็น summary section + detail section + workflow section แทนการยัดทุก field ไว้ในบล็อกเดียว
 
 ## Props
 ```tsx
@@ -83,8 +88,8 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<
 - ❌ เก็บ server data ลง Zustand/useState
 - ❌ business logic ใน JSX (ดึงออกมาเป็นตัวแปร/ฟังก์ชัน)
 - ❌ import ข้าม feature ตรงๆ
-- ❌ แสดงปุ่ม action โดยไม่เช็ค permission (Add/Edit/Move/TakeOut/Return ต้องผ่าน `PermissionGuard`/`can()`)
-- ❌ Item Card ที่ไม่มีรูป/สถานะ/ตำแหน่ง
+- ❌ แสดงปุ่ม action โดยไม่เช็ค permission (Add/Edit/Move/Borrow/Return/Withdraw/Reserve/Repair ต้องผ่าน `PermissionGuard`/`can()`)
+- ❌ Item Card ที่ไม่มีรูป/สถานะ/container path หรือผู้ถือ
 
 ## เอกสารที่เกี่ยวข้อง
 - [state-management.md](../state/state-management.md) — แบ่ง state

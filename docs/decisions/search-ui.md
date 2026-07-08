@@ -21,8 +21,9 @@
 
 1. **Global SearchBar ใน Topbar เสมอ** — เข้าถึงได้จากทุกหน้าในแอป
 2. **Search Page แยก** (`/w/:wsId/search`) — สำหรับ full search experience + filter
-3. **URL query params เป็น source of truth** สำหรับ filter ทั้งหมด (`?q=&status=&siteId=&page=`)
-4. **ItemCard ต้องแสดง**: รูป + ชื่อ + StatusBadge + ตำแหน่ง + ผู้ถือ — เพื่อตอบคำถามหลักโดยไม่ต้องเปิด detail
+3. **URL query params เป็น source of truth** สำหรับ filter ทั้งหมด (`?q=&status=&containerId=&page=`)
+4. **Search ต้องถูกกรองด้วย permission + container access scope** ก่อน render
+5. **ItemCard ต้องแสดง**: รูป + ชื่อ + StatusBadge + ตำแหน่งใน container + ผู้ถือ — เพื่อตอบคำถามหลักโดยไม่ต้องเปิด detail
 
 ---
 
@@ -58,6 +59,7 @@
 
 - **Topbar SearchBar**: Search เป็น primary feature, ต้อง 1-click away จากทุกหน้า
 - **URL params**: Filter state ที่ใช้ URL params = shareable, bookmarkable, ทำงานกับ browser history ได้ฟรี, refresh แล้วกลับมาหน้าเดิมได้
+- **Access filtering**: ถ้าผู้ใช้ไม่มี container access scope ผลลัพธ์ต้องหายไปจาก search ไม่ใช่แค่ disable
 - **ItemCard ครบถ้วน**: ผู้ใช้ควรตอบคำถาม "ของอยู่ไหน" ได้จาก card โดยไม่ต้องเปิด detail — ลด click
 
 ---
@@ -69,6 +71,7 @@
 - URL shareable → ทีมส่ง filter link ให้กันได้
 - Browser history ทำงานถูกต้อง
 - Search state persist ผ่าน refresh
+- Search results ไม่ leak ข้อมูลนอก scope
 
 **ลบ:**
 - URL query string ยาวขึ้นเมื่อมีหลาย filter

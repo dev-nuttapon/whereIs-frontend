@@ -16,6 +16,7 @@
 - ในฐานะ admin ฉันต้องการดู **ประวัติกิจกรรมทั้งหมด** ของ Workspace เพื่อ audit
 - ฉันต้องการรู้ว่า **ใครนำของออกไป** และ **คืนมาแล้วหรือยัง**
 - ฉันต้องการเห็นว่า **มีของหายเมื่อไหร่** และใครแจ้ง
+- ฉันต้องการเห็นเหตุการณ์เกี่ยวกับ **borrow / withdraw / reserve / repair / adjustment / expiry reminder**
 - ฉันต้องการ **scroll ย้อนดูประวัติ** ได้โดยไม่ต้องออกจากหน้า
 
 ---
@@ -27,6 +28,7 @@
 | Activity Log | `/w/:wsId/activity` | feed ItemEvent ของ workspace + pagination |
 | (ส่วน Dashboard) | `/w/:wsId` | recent activity 10 รายการล่าสุด (ดู [dashboard.md](dashboard.md)) |
 | (ส่วน Item Detail) | `/w/:wsId/items/:id` | event timeline เฉพาะของชิ้นนั้น (ดู [item.md](item.md)) |
+| (ส่วน Notifications) | `/w/:wsId/notifications` | reminder feed และ important dates |
 
 ---
 
@@ -54,10 +56,17 @@ icon ตาม event type:
 | `created` | ➕ | เพิ่มของ |
 | `updated` | ✏️ | แก้ไขข้อมูล |
 | `moved` | 🔄 | ย้ายไปยัง |
-| `taken_out` | 📤 | ยืมออกไป |
+| `borrowed` | 📤 | ยืมออกไป |
 | `returned` | 📥 | คืนแล้ว |
+| `withdrawn` | 🚚 | เบิก / ถอน |
+| `reserved` | ⏳ | รอรับ / ถูกจอง |
 | `marked_missing` | ❓ | แจ้งหาย |
 | `marked_found` | ✅ | พบแล้ว |
+| `marked_repairing` | 🛠️ | ส่งซ่อม |
+| `repaired` | 🔧 | ซ่อมเสร็จ |
+| `stock_counted` | 📊 | ตรวจนับแล้ว |
+| `stock_adjusted` | ⚖️ | ปรับยอดแล้ว |
+| `received` | 📦 | รับเข้าแล้ว |
 | `disposed` | 🗑️ | จำหน่ายแล้ว |
 
 ---
@@ -71,6 +80,7 @@ Filter (future):
 - กรองตาม actor (member picker)
 - กรองตาม item (search + select)
 - กรองตาม date range (date picker)
+- กรองตาม container access scope / current workspace
 
 ---
 
@@ -81,6 +91,7 @@ Filter (future):
 | Method | Endpoint | Query Params | Response |
 |--------|----------|--------------|----------|
 | GET | `/workspaces/:wsId/activity` | `?page=1&limit=20` | `{ data: ItemEvent[], meta }` |
+| GET | `/workspaces/:wsId/notifications` | `?page=1&limit=20` | `{ data: Notification[], meta }` (future / open question) |
 
 `ItemEvent` field ดูที่ [domain-model.md](../architecture/domain-model.md):
 ```ts
@@ -88,8 +99,10 @@ interface ItemEvent {
   id: string;
   workspaceId: string;
   itemId: string;
-  type: 'created' | 'updated' | 'moved' | 'taken_out' | 'returned' |
-        'marked_missing' | 'marked_found' | 'disposed';
+  type: 'created' | 'updated' | 'moved' | 'borrowed' | 'returned' |
+        'withdrawn' | 'reserved' | 'marked_missing' | 'marked_found' |
+        'marked_repairing' | 'repaired' | 'stock_counted' | 'stock_adjusted' |
+        'received' | 'disposed';
   actor: Pick<User, 'id' | 'name'>;
   payload?: Record<string, unknown>;   // รายละเอียด เช่น fromContainer, toContainer
   createdAt: string;  // ISO 8601
@@ -112,6 +125,7 @@ queryKeys.activity(wsId) → ['ws', wsId, 'activity']
 - `staleTime`: 60s (ไม่ต้อง real-time มาก)
 - `keepPreviousData: true` ระหว่างเปลี่ยนหน้า (pagination)
 - ไม่ต้อง invalidate เอง — mutation ของ item actions จาก [item.md](item.md) จะ invalidate `queryKeys.activity(wsId)` อัตโนมัติ
+- notifications feed ควรถูก invalidate พร้อม activity เมื่อมี workflow/date changes
 
 ---
 
@@ -120,6 +134,7 @@ queryKeys.activity(wsId) → ['ws', wsId, 'activity']
 - ไม่เก็บ activity data ใน Zustand (เป็น server state ทั้งหมด)
 - อ่าน `workspaceStore.currentWorkspaceId` เพื่อ query
 - อ่าน `authStore.user` เพื่อ highlight activity ของตัวเอง (future)
+- activity ต้องถูกกรองด้วย permission + container access scope
 
 ---
 
@@ -134,7 +149,7 @@ queryKeys.activity(wsId) → ['ws', wsId, 'activity']
 ```
 [Sidebar: Activity] → [Activity Log page]
 
-[Dashboard: StatCard "Taken Out"] → [Search?status=taken_out]
+[Dashboard: StatCard "Borrowed"] → [Search?status=taken_out]
 [Dashboard: Recent Activity widget] → คลิก activity item → [Item Detail]
 
 [Item Detail: Activity tab] → แสดง event ของ item นั้นโดยตรง (ไม่ navigate)
@@ -213,7 +228,7 @@ Component: <EmptyState
 - Real-time update (WebSocket หรือ polling)
 - Activity ของ item เฉพาะ (ตอนนี้ embed ใน Item Detail แล้ว)
 - Notification เมื่อมี event ที่เกี่ยวกับตัวเอง
-- Summary view (กี่ครั้ง take out, กี่ชิ้นหาย, ฯลฯ)
+- Summary view (กี่ครั้ง borrow, กี่ชิ้นหาย, ฯลฯ)
 
 ---
 

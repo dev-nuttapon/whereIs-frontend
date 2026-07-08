@@ -12,14 +12,14 @@
 | [auth.md](auth.md) | login / register / session / logout | `/login`, `/register` |
 | [workspace.md](workspace.md) | เลือก/สร้าง/สลับ workspace | `/workspaces`, `/workspaces/new` |
 | [dashboard.md](dashboard.md) | ภาพรวม + quick search | `/w/:wsId` |
-| [site.md](site.md) | จัดการ Site | `/w/:wsId/sites`, `/w/:wsId/sites/:id` |
-| [location.md](location.md) | Location Explorer (tree) | `/w/:wsId/sites/:siteId/explorer` |
-| [container.md](container.md) | จัดการ Container + ดูของในกล่อง | `/w/:wsId/containers/:id` |
-| [item.md](item.md) | CRUD + actions (move/takeout/return/missing) + Item Detail | `/w/:wsId/items/*` |
+| [container.md](container.md) | จัดการ container tree + ดูของภายใน | `/w/:wsId/containers/:id` |
+| [item.md](item.md) | Individual Item + Quantity Item + workflows + Item Detail | `/w/:wsId/items/*` |
 | [member.md](member.md) | จัดการสมาชิก + invite + เปลี่ยน role | `/w/:wsId/members` |
 | [permission.md](permission.md) | ดู/override permission ราย member | `/w/:wsId/members/:id` (tab) |
 | [search.md](search.md) | ค้นหา item (ฟีเจอร์หลัก) | `/w/:wsId/search` |
 | [activity.md](activity.md) | Activity Log — ประวัติ ItemEvent ทั้ง workspace | `/w/:wsId/activity` |
+| [reports.md](reports.md) | Reports, summaries, exports | `/w/:wsId/reports` |
+| [notifications.md](notifications.md) | Notifications, reminders, important dates | `/w/:wsId/notifications` |
 | [settings.md](settings.md) | Workspace settings, User profile, Theme, Danger Zone | `/w/:wsId/settings` |
 
 ---

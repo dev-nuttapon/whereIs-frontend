@@ -3,23 +3,24 @@
 สัญญาการเรียก API ที่ **frontend สมมติจาก backend** (backend เป็นอีก service, stack-agnostic)
 
 > ⚠️ นี่คือ **contract ที่ frontend ยึด** — backend คือ source of truth จริง ถ้าไม่ตรงให้ **อัปเดตไฟล์นี้ก่อน** แล้วค่อยแก้โค้ด
-> Frontend ใช้ไฟล์นี้สร้าง: API client (`src/api/*.api.ts`), TypeScript types (`src/types/`), React Query hooks, และ Mock data
-> type ระดับ field ทั้งหมดดู [domain-model.md](../architecture/domain-model.md#7-field-reference-type-ฝั่ง-frontend)
+> Frontend ใช้ไฟล์นี้สร้าง: API client, TypeScript types, React Query hooks, และ Mock data
 
 ## หลักการทั่วไป
-- Protocol: **REST over HTTPS**, รูปแบบข้อมูล **JSON**
-- Base URL: ตั้งผ่าน env `VITE_API_BASE_URL`
-- Client: **Axios instance เดียว** ที่ `src/api/client.ts`
-- request ที่ต้อง auth แนบ `Authorization: Bearer <token>` ผ่าน interceptor
-- request ภายใต้ workspace แนบ workspace id (header หรือ path `/workspaces/:wsId/...`)
+- Protocol: **REST over HTTPS**
+- รูปแบบข้อมูล: **JSON**
+- Base URL: `VITE_API_BASE_URL`
+- request ที่ต้อง auth แนบ `Authorization: Bearer <token>`
+- request ภายใต้ workspace แนบ workspace id ใน path `/workspaces/:wsId/...`
+- ทุก response ต้องพร้อมถูกกรองด้วย permission + container access scope
 
 ## Convention
 - ชื่อ field: `camelCase`
-- เวลา: ISO 8601 (UTC) เช่น `2026-06-28T10:00:00Z`
+- เวลา: ISO 8601 (UTC)
 - pagination: `?page=1&limit=20`
 - id เป็น string (UUID)
+- UI label ใช้ Individual Item / Quantity Item แต่ wire enum ปัจจุบันยัง `single` / `stock`
 
-## รูปแบบ Response มาตรฐาน
+## Response มาตรฐาน
 
 ### สำเร็จ (single)
 ```json
@@ -40,17 +41,14 @@
 | Status | ความหมาย | การจัดการฝั่ง FE |
 |--------|----------|------------------|
 | 200/201 | สำเร็จ | render data |
-| 400 | validation ผิด | แสดง error ราย field |
-| 401 | ไม่ได้ auth / token หมดอายุ | logout + redirect `/login` |
-| 403 | ไม่มีสิทธิ์ | แสดง "ไม่มีสิทธิ์" (ดู [permission-ui.md](../security/permission-ui.md)) |
+| 400 | validation ผิด | error ราย field |
+| 401 | auth ไม่ผ่าน / token หมดอายุ | logout + redirect `/login` |
+| 403 | ไม่มีสิทธิ์ | แสดง "ไม่มีสิทธิ์" |
 | 404 | ไม่พบข้อมูล | empty / not found |
 | 422 | semantic error | ข้อความรวม |
-| 5xx | server error | error + ปุ่ม retry |
+| 5xx | server error | error + retry |
 
-> 401 จัดการรวมที่ axios response interceptor ไม่กระจายในแต่ละ hook
-
-## Endpoint (เริ่มต้น — sync กับ backend)
-> จัดเป็นไฟล์ตาม `src/api/*.api.ts` (ดู [folder-structure.md](../architecture/folder-structure.md))
+## Endpoint
 
 ### Auth (`auth.api.ts`)
 | Method | Endpoint | Body | Response |
@@ -63,40 +61,25 @@
 ### Workspaces (`workspace.api.ts`)
 | Method | Endpoint | Perm | Response |
 |--------|----------|------|----------|
-| GET | `/workspaces` | (auth) | `{ data: Workspace[] }` |
-| POST | `/workspaces` | (auth) | `{ data: Workspace }` |
-| GET | `/workspaces/:id` | `workspace.view` | `{ data: Workspace & { permissions } }` |
+| GET | `/workspaces` | auth | `{ data: Workspace[] }` |
+| POST | `/workspaces` | auth | `{ data: Workspace }` |
+| GET | `/workspaces/:id` | `workspace.view` | `{ data: Workspace & { permissions, containerAccessScope } }` |
 | PUT | `/workspaces/:id` | `workspace.update` | `{ data: Workspace }` |
 | DELETE | `/workspaces/:id` | `workspace.delete` | `{ data: { success } }` |
+| PUT | `/workspaces/:id/settings/notifications` | `notification.manage` | `{ data: NotificationSettings }` |
 
 ### Dashboard (`dashboard.api.ts`)
 | Method | Endpoint | Perm | Response |
 |--------|----------|------|----------|
-| GET | `/workspaces/:wsId/dashboard` | `item.view` | `{ data: { totalItems, stored, takenOut, missing } }` |
-
-### Sites (`site.api.ts`)
-| Method | Endpoint | Perm | Response |
-|--------|----------|------|----------|
-| GET | `/workspaces/:wsId/sites` | `site.view` | `{ data: Site[] }` |
-| GET | `/workspaces/:wsId/sites/:id` | `site.view` | `{ data: Site }` |
-| POST | `/workspaces/:wsId/sites` | `site.create` | `{ data: Site }` |
-| PUT | `/workspaces/:wsId/sites/:id` | `site.update` | `{ data: Site }` |
-| DELETE | `/workspaces/:wsId/sites/:id` | `site.delete` | `{ data: { success } }` |
-
-### Locations (`location.api.ts`)
-| Method | Endpoint | Perm | Response |
-|--------|----------|------|----------|
-| GET | `/workspaces/:wsId/sites/:siteId/locations` | `location.view` | `{ data: Location[] }` (flat, มี parentId) |
-| POST | `/workspaces/:wsId/locations` | `location.create` | `{ data: Location }` |
-| PUT | `/workspaces/:wsId/locations/:id` | `location.update` | `{ data: Location }` |
-| DELETE | `/workspaces/:wsId/locations/:id` | `location.delete` | `{ data: { success } }` |
+| GET | `/workspaces/:wsId/dashboard` | `item.view` | `{ data: { totalItems, stored, borrowed, reserved, missing, repair, lowStock, outOfStock, overdueReturn, reservationWaiting, reminderCount } }` |
 
 ### Containers (`container.api.ts`)
 | Method | Endpoint | Perm | Response |
 |--------|----------|------|----------|
-| GET | `/workspaces/:wsId/locations/:locId/containers` | `container.view` | `{ data: Container[] }` |
+| GET | `/workspaces/:wsId/containers/tree` | `container.view` | `{ data: Container[] }` (flat, parentId) |
 | GET | `/workspaces/:wsId/containers/:id` | `container.view` | `{ data: Container }` |
 | GET | `/workspaces/:wsId/containers/:id/items` | `item.view` | `{ data: Item[] }` |
+| GET | `/workspaces/:wsId/containers/:id/children` | `container.view` | `{ data: Container[] }` |
 | POST | `/workspaces/:wsId/containers` | `container.create` | `{ data: Container }` |
 | PUT | `/workspaces/:wsId/containers/:id` | `container.update` | `{ data: Container }` |
 | DELETE | `/workspaces/:wsId/containers/:id` | `container.delete` | `{ data: { success } }` |
@@ -104,20 +87,25 @@
 ### Items (`item.api.ts`)
 | Method | Endpoint | Body / Query | Response |
 |--------|----------|--------------|----------|
-| GET | `/workspaces/:wsId/items` | `?q&siteId&status&page&limit` | `{ data: Item[], meta }` |
+| GET | `/workspaces/:wsId/items` | `?q&type&status&containerId&page&limit&sort&holderId&location&expiry&warranty&maintenance&reservationWaiting&overdueReturn` | `{ data: Item[], meta }` |
 | GET | `/workspaces/:wsId/items/:id` | — | `{ data: Item }` |
 | POST | `/workspaces/:wsId/items` | `CreateItemInput` | `{ data: Item }` |
 | PUT | `/workspaces/:wsId/items/:id` | `UpdateItemInput` | `{ data: Item }` |
 | DELETE | `/workspaces/:wsId/items/:id` | — | `{ data: { success } }` |
 | POST | `/workspaces/:wsId/items/:id/move` | `{ toContainerId }` | `{ data: Item }` |
-| POST | `/workspaces/:wsId/items/:id/take-out` | `{ holderId, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/borrow` | `{ holderId, dueDate?, note? }` | `{ data: Item }` |
 | POST | `/workspaces/:wsId/items/:id/return` | `{ note? }` | `{ data: Item }` |
-| POST | `/workspaces/:wsId/items/:id/mark-missing` | — | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/withdraw` | `{ destinationId?, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/reserve` | `{ holderId, startDate?, endDate?, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/repair` | `{ reason, etaDate?, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/mark-missing` | `{ reason? }` | `{ data: Item }` |
 | POST | `/workspaces/:wsId/items/:id/mark-found` | `{ containerId }` | `{ data: Item }` |
-| POST | `/workspaces/:wsId/items/:id/dispose` | `{ reason? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/dispose` | `{ reason }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/consume-stock` | `{ quantity, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/restock-stock` | `{ quantity, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/count-stock` | `{ countedQuantity, note? }` | `{ data: Item }` |
+| POST | `/workspaces/:wsId/items/:id/adjust-stock` | `{ variance, reason, approvalNote? }` | `{ data: Item }` |
 | GET | `/workspaces/:wsId/items/:id/events` | — | `{ data: ItemEvent[] }` |
-
-> action endpoints ต้องการ permission ตามชื่อ action (`item.move`, `item.takeout`, `item.return`, `item.mark_missing`, `item.mark_found`, `item.dispose`) ดู [permission-ui.md](../security/permission-ui.md)
 
 ### Members (`member.api.ts`)
 | Method | Endpoint | Perm | Response |
@@ -131,60 +119,136 @@
 ### Permissions (`permission.api.ts`)
 | Method | Endpoint | Perm | Response |
 |--------|----------|------|----------|
-| GET | `/workspaces/:wsId/members/:id/permissions` | `permission.override` | `{ data: { role, effective, overrides } }` |
-| PUT | `/workspaces/:wsId/members/:id/permissions` | `permission.override` | `{ data: { effective } }` |
+| GET | `/workspaces/:wsId/members/:id/permissions` | `permission.override` | `{ data: { primaryRole, effective, overrides, containerAccessScope } }` |
+| PUT | `/workspaces/:wsId/members/:id/permissions` | `permission.override` | `{ data: { primaryRole, effective, containerAccessScope } }` |
 
-### Activity (`item.api.ts` หรือ `activity.api.ts`)
+### Activity (`activity.api.ts`)
 | Method | Endpoint | Perm | Response |
 |--------|----------|------|----------|
 | GET | `/workspaces/:wsId/activity` | `activity.view` | `{ data: ItemEvent[], meta }` |
 
-## Entity Types
-รูปร่าง entity ทั้งหมด (User, Workspace, Site, Location, Container, Item, Member, ItemEvent) อยู่ที่เดียวใน [domain-model.md](../architecture/domain-model.md#7-field-reference-type-ฝั่ง-frontend) — ห้ามนิยามซ้ำที่นี่
+### Reports (`report.api.ts`)
+| Method | Endpoint | Perm | Response |
+|--------|----------|------|----------|
+| GET | `/workspaces/:wsId/reports` | `report.view` | `{ data: ReportSummary[] }` |
+| GET | `/workspaces/:wsId/reports/export` | `report.export` | file / download |
 
-Envelope + error:
+### Notifications (`notification.api.ts`)
+| Method | Endpoint | Perm | Response |
+|--------|----------|------|----------|
+| GET | `/workspaces/:wsId/notifications` | `notification.view` | `{ data: Notification[], meta }` |
+| POST | `/workspaces/:wsId/notifications/:id/read` | `notification.view` | `{ data: Notification }` |
+| POST | `/workspaces/:wsId/notifications/read-all` | `notification.view` | `{ data: { success } }` |
+
+## Entity Types
+รูปร่าง entity หลักดูที่ [domain-model.md](../architecture/domain-model.md#7-field-reference-type-ฝั่ง-frontend)
+
 ```ts
-interface ApiResponse<T> { data: T; meta?: { page: number; limit: number; total: number }; }
-interface ApiError { error: { code: string; message: string; fields?: Record<string, string> }; }
+interface Notification {
+  id: string;
+  workspaceId: string;
+  title: string;
+  message: string;
+  readAt?: string | null;
+  createdAt: string;
+}
+
+interface ReportSummary {
+  key: string;
+  label: string;
+  value: number;
+  unit?: string;
+  trend?: string;
+}
+
+interface NotificationSettings {
+  enabled: boolean;
+  emailDigest: boolean;
+  inAppReminder: boolean;
+  scheduleAlerts: boolean;
+}
 ```
 
-## Request DTO (ตัวอย่างที่ใช้บ่อย)
+## Request DTO
 ```ts
-interface CreateItemInput { name: string; code?: string; description?: string; containerId: string; }
-interface UpdateItemInput { name?: string; code?: string; description?: string; }
-interface TakeOutInput { holderId: string; note?: string; }
+interface CreateItemInput {
+  type: 'single' | 'stock';
+  name: string;
+  code?: string;
+  description?: string;
+  containerId: string;
+  quantity?: number;
+  unit?: string;
+  baseUnit?: string;
+  batchCode?: string;
+  receivedDate?: string | null;
+  expiryDate?: string | null;
+  warrantyEndDate?: string | null;
+  maintenanceNextDueDate?: string | null;
+  reorderPoint?: number;
+}
+
+interface UpdateItemInput {
+  name?: string;
+  code?: string;
+  description?: string;
+  containerId?: string | null;
+  quantity?: number;
+  unit?: string;
+  baseUnit?: string;
+  batchCode?: string;
+  receivedDate?: string | null;
+  expiryDate?: string | null;
+  warrantyEndDate?: string | null;
+  maintenanceNextDueDate?: string | null;
+  reorderPoint?: number;
+}
+
+interface BorrowInput { holderId: string; dueDate?: string | null; note?: string; }
+interface ReturnInput { note?: string; }
+interface WithdrawInput { destinationId?: string; note?: string; }
+interface ReserveInput { holderId: string; startDate?: string | null; endDate?: string | null; note?: string; }
+interface RepairInput { reason: string; etaDate?: string | null; note?: string; }
 interface MoveItemInput { toContainerId: string; }
 interface MarkFoundInput { containerId: string; }
-interface InviteMemberInput { email: string; role: 'admin' | 'member' | 'viewer'; }
+interface ConsumeStockInput { quantity: number; note?: string; }
+interface RestockStockInput { quantity: number; note?: string; }
+interface StockCountInput { countedQuantity: number; note?: string; }
+interface StockAdjustInput { variance: number; reason: string; approvalNote?: string; }
+interface InviteMemberInput { email: string; primaryRole: 'owner' | 'admin' | 'member' | 'viewer'; }
+interface UpdateMemberRoleInput { primaryRole: 'owner' | 'admin' | 'member' | 'viewer'; }
 ```
 
-## ตัวอย่างเต็ม (1 endpoint)
-**`POST /workspaces/:wsId/items/:id/take-out`** — ยืม/นำของออก · permission: `item.takeout`
+## Example
+**`POST /workspaces/:wsId/items/:id/borrow`**
 
 Request:
 ```json
-{ "holderId": "a3f1...uuid", "note": "ยืมไปประชุม" }
+{ "holderId": "a3f1...uuid", "dueDate": "2026-07-31T00:00:00Z", "note": "ยืมไปประชุม" }
 ```
 Response `200`:
 ```json
 { "data": {
-    "id": "item-uuid", "name": "เครื่องโปรเจกเตอร์", "status": "taken_out",
-    "containerId": "cont-uuid", "currentHolderId": "a3f1...uuid",
+    "id": "item-uuid",
+    "name": "เครื่องโปรเจกเตอร์",
+    "status": "taken_out",
+    "containerId": "cont-uuid",
+    "currentHolderId": "a3f1...uuid",
     "updatedAt": "2026-06-28T10:00:00Z"
 } }
 ```
-Error `409` (status เปลี่ยนไปแล้ว):
-```json
-{ "error": { "code": "INVALID_STATE", "message": "ของชิ้นนี้ถูกนำออกไปแล้ว" } }
-```
-รูปแบบ/สถานะ error ทั้งหมดดูตาราง [HTTP Status](#http-status-ที่-frontend-ต้องจัดการ) ด้านบน
 
 ## การ map กับ TanStack Query
-- endpoint อ่าน → `useQuery`; endpoint เขียน → `useMutation` + invalidate
-- query key ผ่าน factory ที่ `src/lib/queryKeys.ts` (ดู [state-management.md](../state/state-management.md))
-- กฎ invalidate ของ action (move/takeout/return) อยู่ใน [state-management.md](../state/state-management.md#cache-rules)
+- endpoint อ่าน → `useQuery`
+- endpoint เขียน → `useMutation` + invalidate
+- query key ผ่าน factory ที่ `src/lib/queryKeys.ts`
+
+## Open Questions
+- รายละเอียด field ของ `Notification` และ `ReportSummary` ยังต้อง sync กับ backend contract
+- ชื่อ endpoint จริงสำหรับ withdraw / reserve / repair / count / adjust อาจปรับได้ตาม backend final contract
+- `ItemEvent.type` ฝั่ง backend อาจแตกต่างจาก label ที่ UI แสดง
 
 ## เอกสารที่เกี่ยวข้อง
-- [state-management.md](../state/state-management.md) — query key + caching
-- [permission-ui.md](../security/permission-ui.md) — การจัดการ 401/403
-- [screen-flow.md](../ui/screen-flow.md) — หน้าไหนเรียก endpoint อะไร
+- [state-management.md](../state/state-management.md)
+- [permission-ui.md](../security/permission-ui.md)
+- [screen-flow.md](../ui/screen-flow.md)

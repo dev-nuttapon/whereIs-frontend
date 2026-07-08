@@ -9,6 +9,8 @@
 | ไฟล์ | เนื้อหา |
 |------|---------|
 | [project-overview.md](project-overview.md) | WhereIs คืออะไร, ขอบเขต repo, core features, high-level architecture |
+| [requirement-summary.md](requirement-summary.md) | สรุป requirement ปัจจุบันแบบย่อ + open questions |
+| [../superpowers/specs/2026-07-06-phase-1-redesign-spec.md](../superpowers/specs/2026-07-06-phase-1-redesign-spec.md) | Historical Phase 1 screen/flow reference |
 | [domain-model.md](domain-model.md) | **คำศัพท์มาตรฐาน** + entity definitions + relationships + Item lifecycle + TypeScript field types |
 | [tech-stack.md](tech-stack.md) | เทคโนโลยีทั้งหมดที่ใช้ + เหตุผล + version |
 | [folder-structure.md](folder-structure.md) | โครงสร้างโฟลเดอร์ `src/` ทั้งหมด + naming convention |
@@ -20,11 +22,12 @@
 ## ลำดับการอ่าน
 
 1. `project-overview.md` — เข้าใจว่าแอปทำอะไร
-2. `domain-model.md` — จำคำศัพท์ให้แม่น (Workspace, Site, Location, Container, Item, ItemEvent)
-3. `tech-stack.md` — รู้จักเครื่องมือที่ใช้
-4. `folder-structure.md` — รู้ว่าโค้ดแต่ละชนิดอยู่ที่ไหน
-5. `coding-style.md` — รู้มาตรฐานก่อนเขียนโค้ด
-6. `development-rules.md` — รู้ว่าโค้ดใหม่ควรอยู่ที่ไหน
+2. `requirement-summary.md` — เห็นภาพ MVP phase และ scope ที่ตัดแบ่งแล้ว
+3. `domain-model.md` — จำคำศัพท์ให้แม่น (Workspace, Container, Item, ItemEvent, Member, Role, access scope)
+4. `tech-stack.md` — รู้จักเครื่องมือที่ใช้
+5. `folder-structure.md` — รู้ว่าโค้ดแต่ละชนิดอยู่ที่ไหน
+6. `coding-style.md` — รู้มาตรฐานก่อนเขียนโค้ด
+7. `development-rules.md` — รู้ว่าโค้ดใหม่ควรอยู่ที่ไหน
 
 > อ่าน `domain-model.md` ก่อนเสมอ — คำศัพท์ในเอกสารทุกไฟล์อ้างอิงจากที่นี่
 

@@ -7,7 +7,7 @@
 
 | ชนิด state | เครื่องมือ | ตัวอย่าง |
 |------------|-----------|----------|
-| Server state | **TanStack Query** | items, sites, containers, members, activity |
+| Server state | **TanStack Query** | items, containers, members, activity, reports, notifications |
 | Global client state | **Zustand** | auth token, workspace ปัจจุบัน, permissions, theme |
 | Local UI state | **useState/useReducer** | modal open, tab ที่เลือก |
 | Form state | **React Hook Form** | ค่าในฟอร์ม + validation |
@@ -15,7 +15,7 @@
 ## 1. Server State — TanStack Query
 
 ### ใช้กับ
-Workspaces, Sites, Locations, Containers, Items, Members, Activity
+Workspaces, Containers, Items, Members, Activity
 
 ### กติกา
 - ข้อมูลจาก backend = server state → `useQuery` / `useMutation` เท่านั้น
@@ -34,6 +34,8 @@ export const queryKeys = {
   },
   dashboard: (wsId: string) => ['ws', wsId, 'dashboard'] as const,
   activity: (wsId: string) => ['ws', wsId, 'activity'] as const,
+  reports: (wsId: string) => ['ws', wsId, 'reports'] as const,
+  notifications: (wsId: string) => ['ws', wsId, 'notifications'] as const,
 };
 ```
 > ใส่ `wsId` ใน key เสมอ เพราะข้อมูลแยกตาม workspace
@@ -63,13 +65,21 @@ export function useCreateItem(wsId: string) {
 - dashboard
 - activity
 
-หลัง **Move / Take Out / Return / Mark Missing / Mark Found** ให้ invalidate:
+หลัง **Move / Borrow / Return / Withdraw / Reserve / Repair / Mark Missing / Mark Found** ให้ invalidate:
 - item detail
 - item events
 - items search/list
 - dashboard
 
 > ทุก mutation ของ item อย่างน้อยต้อง invalidate `queryKeys.items.all(wsId)` + dashboard + activity
+
+หลัง **Borrow / Withdraw / Reserve / Repair / Stock Count / Adjustment / Receive** ให้ invalidate:
+- item detail
+- item events
+- items search/list
+- dashboard
+- activity
+- reports ถ้ามี summary ที่เกี่ยวข้อง
 
 ## 2. Client State — Zustand
 
@@ -93,11 +103,16 @@ interface WorkspaceState {
   currentWorkspaceId: string | null;
   currentWorkspace: Workspace | null;
   permissions: string[];          // สิทธิ์ของ ws ปัจจุบัน
+  containerAccessScope?: {
+    containerIds: string[];
+    includeDescendants: boolean;
+  };
   setWorkspace: (ws: Workspace) => void;
   clear: () => void;
 }
 ```
 > `permissions` ใช้โดย `usePermission()` / `can()` (ดู [permission-ui.md](../security/permission-ui.md))
+> `containerAccessScope` ใช้กรอง navigation, search, dashboard, reports, และ item visibility
 
 #### `ui.store.ts`
 ```ts
@@ -112,7 +127,7 @@ interface UiState {
 ### กติกา
 - ใช้ selector subscribe เฉพาะที่ใช้ (กัน re-render เกิน)
 - `accessToken` persist ผ่าน `persist` middleware ตามนโยบาย
-- ห้ามเก็บ server data (items, members ฯลฯ) ใน store — ใช้ Query
+- ห้ามเก็บ server data (items, members, containers ฯลฯ) ใน store — ใช้ Query
 
 ## 3. Local & Form State
 - UI state เฉพาะ component → `useState` / `useReducer`

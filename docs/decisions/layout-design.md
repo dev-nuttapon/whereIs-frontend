@@ -11,7 +11,7 @@
 WhereIs เป็นแอปที่มี 3 context ชัดเจน:
 1. **Unauthenticated** — ผู้ใช้ยังไม่ login (Login, Register)
 2. **Authenticated แต่ไม่มี workspace** — ผู้ใช้ login แล้วแต่ต้องเลือก workspace ก่อน
-3. **Inside workspace** — ผู้ใช้อยู่ใน workspace และทำงานกับ sites/items/members
+3. **Inside workspace** — ผู้ใช้อยู่ใน workspace และทำงานกับ containers/items/members
 
 โจทย์: จะออกแบบ layout shell อย่างไรให้ context แต่ละอันชัดเจน ไม่ปนกัน และ Topbar + Sidebar รู้สึก consistent
 
@@ -26,7 +26,7 @@ WhereIs เป็นแอปที่มี 3 context ชัดเจน:
 | `WorkspaceSelectLayout` | Workspace List, Create | ❌ | minimal |
 | `AppLayout` | ทุก route ใน `/w/:wsId/*` | ✅ | ✅ (full) |
 
-`AppLayout` ประกอบด้วย: **Topbar** (workspace switcher + global search + user menu) + **Sidebar** (เมนูหลัก, permission-filtered) + `<Outlet/>` (page content)
+`AppLayout` ประกอบด้วย: **Topbar** (workspace switcher + global search + notification center + user menu) + **Sidebar** (เมนูหลัก, permission-filtered) + `<Outlet/>` (page content)
 
 ---
 
