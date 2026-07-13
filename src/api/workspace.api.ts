@@ -45,14 +45,6 @@ function toWorkspace(dto: WorkspaceDto): Workspace {
   };
 }
 
-function slugify(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'workspace';
-}
-
 export async function listWorkspaces(): Promise<Workspace[]> {
   const response = await client.get<ApiResponse<PagedResult<WorkspaceDto>>>('/workspaces', {
     params: { page: 1, pageSize: 100 },
@@ -68,7 +60,6 @@ export async function getWorkspace(id: string): Promise<Workspace | undefined> {
 export async function createWorkspace(input: CreateWorkspaceInput): Promise<Workspace> {
   const response = await client.post<ApiResponse<WorkspaceDto>>('/workspaces', {
     name: input.name,
-    slug: slugify(input.name),
     type: 'Warehouse',
   });
   return toWorkspace(response.data.data);

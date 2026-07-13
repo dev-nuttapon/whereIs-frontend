@@ -1,57 +1,34 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert, Avatar, Button, Card, Input, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { LoadingState } from '@/components/feedback/LoadingState';
 import { UserIcon } from '@/components/ui/icons';
 import { authStore } from '@/stores/auth.store';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
-import { client } from '@/api/client';
-import { getCurrentUser } from '@/api/auth.api';
+import { getCurrentUser, updateCurrentUser } from '@/api/auth.api';
 import { createProfileSchema, type ProfileValues } from '@/features/profile/validation/profileSchema';
-import type { User } from '@/types/domain.types';
-
-interface UpdateMeRequest {
-  displayName?: string | null;
-  avatarUrl?: string | null;
-}
-
-interface MeEnvelope {
-  success: boolean;
-  data: {
-    id: string;
-    email: string;
-    displayName: string;
-    avatarUrl?: string | null;
-  };
-}
-
-async function updateMe(request: UpdateMeRequest): Promise<User> {
-  const response = await client.patch<MeEnvelope>('/users/me', request);
-  const me = response.data.data;
-  return {
-    id: me.id,
-    email: me.email,
-    name: me.displayName,
-    avatarUrl: me.avatarUrl ?? undefined,
-  };
-}
 
 export function ProfilePage() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
-  const user = authStore((state) => state.user);
+  const isAuthenticated = authStore((state) => state.isAuthenticated);
   const setUser = authStore((state) => state.updateUser);
   const profileQuery = useQuery({
     queryKey: queryKeys.auth.me,
     queryFn: getCurrentUser,
+    enabled: isAuthenticated,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
   const [saved, setSaved] = useState(false);
   const schema = createProfileSchema(t);
 
-  const currentUser = profileQuery.data ?? user;
+  const currentUser = profileQuery.data;
   const defaultValues = useMemo<ProfileValues>(
     () => ({
       name: currentUser?.name ?? '',
@@ -61,7 +38,7 @@ export function ProfilePage() {
   );
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting, isDirty },
@@ -80,11 +57,16 @@ export function ProfilePage() {
     }
   }, [isDirty]);
 
+  useEffect(() => {
+    if (profileQuery.data) {
+      setUser(profileQuery.data);
+    }
+  }, [profileQuery.data, setUser]);
+
   const updateMutation = useMutation({
     mutationFn: (values: ProfileValues) =>
-      updateMe({
+      updateCurrentUser({
         displayName: values.name.trim(),
-        avatarUrl: null,
       }),
     onSuccess: async (nextUser) => {
       setUser(nextUser);
@@ -107,6 +89,25 @@ export function ProfilePage() {
   const onSubmit = handleSubmit(async (values) => {
     await updateMutation.mutateAsync(values);
   });
+
+  if (profileQuery.isLoading) {
+    return (
+      <PageShell title={t('profile.title')} description={t('profile.description')}>
+        <LoadingState label={t('profile.loading', 'กำลังโหลดข้อมูลโปรไฟล์...')} />
+      </PageShell>
+    );
+  }
+
+  if (profileQuery.isError || !currentUser) {
+    return (
+      <PageShell title={t('profile.title')} description={t('profile.description')}>
+        <ErrorState
+          message={t('profile.error', 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ')}
+          onRetry={() => profileQuery.refetch()}
+        />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell title={t('profile.title')} description={t('profile.description')}>
@@ -132,12 +133,40 @@ export function ProfilePage() {
                 <UserIcon className="h-4 w-4" />
                 <span>{t('profile.name')}</span>
               </Typography.Text>
-              <Input id="name" autoComplete="name" {...register('name')} />
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="name"
+                    name={field.name}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChange={(event) => field.onChange(event.target.value)}
+                    autoComplete="name"
+                  />
+                )}
+              />
               {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
             </div>
             <div className="space-y-2">
               <Typography.Text className="text-sm font-medium">{t('profile.email')}</Typography.Text>
-              <Input id="email" type="email" autoComplete="email" {...register('email')} disabled />
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="email"
+                    name={field.name}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChange={(event) => field.onChange(event.target.value)}
+                    type="email"
+                    autoComplete="email"
+                    disabled
+                  />
+                )}
+              />
             </div>
             {saved ? <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.saved')} /> : null}
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">

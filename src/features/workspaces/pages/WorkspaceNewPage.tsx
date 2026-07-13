@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,13 +16,13 @@ export function WorkspaceNewPage() {
   const { t } = useI18n();
   const createWorkspaceSchema = createWorkspaceValidationSchema(t);
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CreateWorkspaceValues>({
     resolver: zodResolver(createWorkspaceSchema),
     defaultValues: {
-      name: 'Warehouse Workspace',
+      name: '',
     },
   });
 
@@ -40,7 +40,20 @@ export function WorkspaceNewPage() {
           </div>
           <form className="component-stack" onSubmit={onSubmit}>
             <FormField label={t('workspace.new.label')} htmlFor="name" error={errors.name?.message}>
-              <Input id="name" placeholder={t('workspace.new.placeholder')} {...register('name')} />
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="name"
+                    name={field.name}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChange={(event) => field.onChange(event.target.value)}
+                    placeholder={t('workspace.new.placeholder')}
+                  />
+                )}
+              />
             </FormField>
             <FormActions>
               <Button type="submit" disabled={isSubmitting || createWorkspaceMutation.isPending}>

@@ -50,3 +50,13 @@ export async function getCurrentUser(): Promise<User> {
   const response = await client.get<UserResponseEnvelope>('/users/me');
   return mapUser(response.data.data);
 }
+
+export interface UpdateCurrentUserInput {
+  displayName?: string | null;
+  avatarUrl?: string | null;
+}
+
+export async function updateCurrentUser(input: UpdateCurrentUserInput): Promise<User> {
+  const response = await client.patch<UserResponseEnvelope>('/users/me', input);
+  return mapUser(response.data.data);
+}

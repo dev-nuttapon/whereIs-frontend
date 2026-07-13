@@ -25,36 +25,33 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const accentClassName = accentClassNames[accentIndex];
 
   return (
-    <Card className="responsive-card-body group h-full overflow-hidden border-border/70 bg-card/90 transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_50px_-34px_rgba(15,23,42,0.36)]" styles={{ body: { padding: 20 } }}>
-      <div className={cn('h-1 bg-gradient-to-r', accentClassName)} />
-      <div className="flex flex-col gap-[18px]">
+    <Card className="responsive-card-body group h-full overflow-hidden border-border/70 bg-card/92 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:bg-card hover:shadow-[0_22px_55px_-38px_rgba(15,23,42,0.5)]" styles={{ body: { padding: 20 } }}>
+      <div className="flex h-full flex-col gap-[18px]">
         <div className="flex items-start gap-[18px]">
-          <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-semibold text-white shadow-sm sm:h-12 sm:w-12', accentClassName)}>
+          <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(15,23,42,0.8)]', accentClassName)}>
             {workspace.name.slice(0, 2).toUpperCase()}
           </div>
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 space-y-1">
-                <Typography.Title level={5} className="!mb-0 !mt-0 truncate text-lg">
-                  {workspace.name}
-                </Typography.Title>
-                <Typography.Paragraph className="!mb-0 max-h-[3rem] overflow-hidden leading-6 text-muted-foreground sm:min-h-[2.5rem]">
-                  {workspace.description ?? t('workspace.card.fallback')}
-                </Typography.Paragraph>
-              </div>
-              <Tag className="shrink-0 uppercase tracking-[0.16em] text-[0.62rem]" color="blue">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <Typography.Title level={5} className="!mb-0 !mt-0 min-w-0 truncate text-base font-semibold">
+                {workspace.name}
+              </Typography.Title>
+              <Tag className="m-0 shrink-0 rounded-full border-primary/10 bg-primary/8 px-2 py-0 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-primary">
                 {workspace.myRole}
               </Tag>
             </div>
+            <Typography.Paragraph className="!mb-0 line-clamp-2 text-sm leading-6 text-muted-foreground">
+              {workspace.description ?? t('workspace.card.fallback')}
+            </Typography.Paragraph>
           </div>
         </div>
-        <div className="flex flex-col gap-[18px] border-t border-border/60 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pt-5">
-          <span className="text-sm text-muted-foreground">
+        <div className="mt-auto flex flex-col gap-[18px] rounded-2xl border border-border/70 bg-background/65 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm font-medium text-muted-foreground">
             {t('workspace.card.role')}: {workspace.myRole}
           </span>
           <Button
             size="small"
-            className="w-full sm:min-w-28 sm:w-auto"
+            className="w-full border-border/70 bg-card shadow-none sm:min-w-28 sm:w-auto"
             onClick={() => {
               setWorkspace(workspace);
               navigate(ROUTES.workspaceDashboard(workspace.id));
