@@ -47,10 +47,20 @@ function getEventLabel(t: TFn, type: ItemEvent['type']) {
     created: t('dashboard.event.created'),
     updated: t('dashboard.event.updated'),
     moved: t('dashboard.event.moved'),
-    taken_out: t('dashboard.event.takenOut'),
+    borrow_requested: t('dashboard.event.borrowRequested'),
+    borrow_approved: t('dashboard.event.borrowApproved'),
+    borrowed: t('dashboard.event.takenOut'),
     returned: t('dashboard.event.returned'),
+    withdrawn: t('dashboard.event.withdrawn'),
+    reserved: t('dashboard.event.reserved'),
+    reservation_released: t('dashboard.event.reservationReleased'),
+    marked_repairing: t('dashboard.event.markedRepairing'),
+    repaired: t('dashboard.event.repaired'),
     stock_used: t('dashboard.event.stockUsed'),
     stock_restocked: t('dashboard.event.stockRestocked'),
+    stock_counted: t('dashboard.event.stockCounted'),
+    stock_adjusted: t('dashboard.event.stockAdjusted'),
+    received: t('dashboard.event.received'),
     marked_missing: t('dashboard.event.markedMissing'),
     marked_found: t('dashboard.event.markedFound'),
     disposed: t('dashboard.event.disposed'),
@@ -66,14 +76,25 @@ function getTone(type: ItemEvent['type']): { tone: ActivityTone; glyph: string }
       return { tone: 'blue', glyph: '✦' };
     case 'moved':
       return { tone: 'slate', glyph: '↔' };
-    case 'taken_out':
+    case 'borrow_requested':
+    case 'borrow_approved':
+    case 'borrowed':
+    case 'withdrawn':
+    case 'reserved':
+    case 'reservation_released':
       return { tone: 'amber', glyph: '↗' };
     case 'returned':
       return { tone: 'emerald', glyph: '↩' };
     case 'stock_used':
       return { tone: 'rose', glyph: '−' };
     case 'stock_restocked':
+    case 'stock_counted':
+    case 'stock_adjusted':
+    case 'received':
       return { tone: 'emerald', glyph: '+' };
+    case 'marked_repairing':
+    case 'repaired':
+      return { tone: 'amber', glyph: '!' };
     case 'marked_missing':
       return { tone: 'rose', glyph: '!' };
     case 'marked_found':
@@ -108,12 +129,13 @@ export function buildActivityDisplay(event: ItemEvent, context: ActivityContext)
       const targetContainer = containerMap.get(getString(payload.toContainerId));
       summary = context.t('activity.summary.moved', undefined, {
         item: itemName,
-        container: targetContainer?.code ?? targetContainer?.name ?? context.t('items.detail.noContainer'),
+        container: targetContainer?.name ?? context.t('items.detail.noContainer'),
       });
       detail = note || undefined;
       break;
     }
-    case 'taken_out': {
+    case 'borrowed':
+    case 'withdrawn': {
       const holder = memberMap.get(getString(payload.holderId));
       summary = context.t('activity.summary.takenOut', undefined, {
         item: itemName,
@@ -130,8 +152,20 @@ export function buildActivityDisplay(event: ItemEvent, context: ActivityContext)
       summary = context.t('activity.summary.returned', undefined, { item: itemName });
       detail = note || undefined;
       break;
+    case 'borrow_requested':
+    case 'borrow_approved':
+    case 'reserved':
+    case 'reservation_released':
+    case 'marked_repairing':
+    case 'repaired':
+    case 'received':
+      summary = context.t('activity.summary.basic', undefined, { event: eventLabel, item: itemName });
+      detail = note || undefined;
+      break;
     case 'stock_used':
-    case 'stock_restocked': {
+    case 'stock_restocked':
+    case 'stock_counted':
+    case 'stock_adjusted': {
       const quantity = getNumber(payload.quantity) ?? 0;
       const quantityAfter = getNumber(payload.quantityAfter);
       summary = context.t(
@@ -154,7 +188,7 @@ export function buildActivityDisplay(event: ItemEvent, context: ActivityContext)
       const targetContainer = containerMap.get(getString(payload.containerId));
       summary = context.t('activity.summary.markedFound', undefined, {
         item: itemName,
-        container: targetContainer?.code ?? targetContainer?.name ?? context.t('items.detail.noContainer'),
+        container: targetContainer?.name ?? context.t('items.detail.noContainer'),
       });
       break;
     }
@@ -180,7 +214,7 @@ export function buildActivityDisplay(event: ItemEvent, context: ActivityContext)
         : item?.status === 'stored'
           ? currentContainer
             ? context.t('activity.current.inContainer', undefined, {
-                container: currentContainer.code ?? currentContainer.name ?? context.t('items.detail.noContainer'),
+                container: currentContainer.name ?? context.t('items.detail.noContainer'),
               })
             : context.t('activity.current.locationUnknown')
           : item?.status === 'missing'

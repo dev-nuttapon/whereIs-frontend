@@ -1,7 +1,16 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Workspace } from '@/types/domain.types';
-import { MOCK_PERMISSIONS, MOCK_WORKSPACES } from '@/mocks/mock-data';
+import { MOCK_WORKSPACES } from '@/mocks/mock-data';
+import type { PermissionKey } from '@/types/permission.types';
+
+const MOCK_PERMISSIONS: PermissionKey[] = [
+  'workspace.view',
+  'item.view',
+  'container.view',
+  'activity.view',
+  'notification.view',
+];
 
 interface WorkspaceState {
   currentWorkspaceId: string | null;

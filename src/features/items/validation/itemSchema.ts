@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 type TFn = (key: string, fallback?: string, params?: Record<string, string | number>) => string;
 
-const itemKindSchema = z.enum(['single', 'bulk']);
+const itemKindSchema = z.enum(['single', 'stock']);
 const itemUsageTypeSchema = z.enum(['consumable', 'returnable']);
 
 export function createItemSchema(t: TFn) {
@@ -18,14 +18,14 @@ export function createItemSchema(t: TFn) {
       reorderPoint: z.coerce.number().int().min(1, t('items.validation.quantityMin')).optional(),
     })
     .superRefine((values, ctx) => {
-      if (values.kind === 'bulk' && !values.quantity) {
+      if (values.kind === 'stock' && !values.quantity) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['quantity'],
           message: t('items.validation.quantityMin'),
         });
       }
-      if (values.kind === 'bulk' && values.usageType === 'consumable' && !values.reorderPoint) {
+      if (values.kind === 'stock' && values.usageType === 'consumable' && !values.reorderPoint) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['reorderPoint'],

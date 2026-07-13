@@ -51,8 +51,8 @@ export function ContainersPage() {
               <Card key={container.id} className="hover:-translate-y-0.5 hover:shadow-md">
                 <CardContent className="space-y-4 p-6">
                   <div className="space-y-1">
-                    <CardTitle className="text-lg">{container.code}</CardTitle>
-                    <CardDescription>{container.name ?? t('containers.list.title')}</CardDescription>
+                    <CardTitle className="text-lg">{container.name}</CardTitle>
+                    <CardDescription>{container.typeLabel}</CardDescription>
                   </div>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     <div>

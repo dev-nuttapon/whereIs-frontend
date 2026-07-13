@@ -64,8 +64,8 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
       name: values.name,
       kind: values.kind,
       usageType: values.usageType,
-      quantity: values.kind === 'bulk' ? values.quantity : undefined,
-      reorderPoint: values.kind === 'bulk' && values.usageType === 'consumable' ? values.reorderPoint : undefined,
+      quantity: values.kind === 'stock' ? values.quantity : undefined,
+      reorderPoint: values.kind === 'stock' && values.usageType === 'consumable' ? values.reorderPoint : undefined,
       code: values.code,
       description: values.description,
       containerId: values.containerId,
@@ -85,7 +85,7 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
           <FormField label={t('items.form.kind')} htmlFor="item-kind" error={errors.kind?.message}>
             <Select id="item-kind" {...register('kind')}>
               <option value="single">{t('items.form.kindSingle')}</option>
-              <option value="bulk">{t('items.form.kindBulk')}</option>
+              <option value="stock">{t('items.form.kindBulk')}</option>
             </Select>
           </FormField>
           <FormField label={t('items.form.usageType')} htmlFor="item-usage-type" error={errors.usageType?.message}>
@@ -108,12 +108,12 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
             <Select id="item-container" {...register('containerId')}>
               {MOCK_CONTAINERS.map((container) => (
                 <option key={container.id} value={container.id}>
-                  {container.code} {container.name ? `- ${container.name}` : ''}
+                  {container.name}
                 </option>
               ))}
             </Select>
           </FormField>
-          {kind === 'bulk' ? (
+          {kind === 'stock' ? (
             <div className="grid gap-4 md:grid-cols-2">
               <FormField label={t('items.form.quantity')} htmlFor="item-quantity" error={errors.quantity?.message}>
                 <Input id="item-quantity" type="number" min={1} {...register('quantity')} />

@@ -62,13 +62,13 @@ export function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard label={t('dashboard.totalItems')} value={summaryQuery.data.totalItems} to={itemsLink()} />
           <StatCard label={t('dashboard.stored')} value={summaryQuery.data.stored} to={itemsLink({ status: 'stored' })} />
-          <StatCard label={t('dashboard.takenOut')} value={summaryQuery.data.takenOut} to={itemsLink({ status: 'taken_out' })} />
+          <StatCard label={t('dashboard.takenOut')} value={summaryQuery.data.borrowed} to={itemsLink({ status: 'taken_out' })} />
           <StatCard label={t('dashboard.missing')} value={summaryQuery.data.missing} to={itemsLink({ status: 'missing' })} />
           <StatCard label={t('dashboard.lowStock')} value={summaryQuery.data.lowStock} to={itemsLink({ stock: 'low' })} />
           <StatCard label={t('dashboard.outOfStock')} value={summaryQuery.data.outOfStock} to={itemsLink({ stock: 'out' })} />
           <StatCard
             label={t('dashboard.returnableItems')}
-            value={summaryQuery.data.returnableItems}
+            value={summaryQuery.data.borrowed + summaryQuery.data.reserved + summaryQuery.data.overdueReturn}
             to={itemsLink({ usageType: 'returnable' })}
           />
         </div>

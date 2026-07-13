@@ -194,7 +194,7 @@ export function SearchPage() {
                       options={[
                         { value: 'all', label: t('search.all') },
                         { value: 'single', label: t('items.detail.kindSingle') },
-                        { value: 'bulk', label: t('items.detail.kindBulk') },
+                        { value: 'stock', label: t('items.detail.kindBulk') },
                       ]}
                     />
                     <FilterSelect
@@ -242,8 +242,8 @@ export function SearchPage() {
               {items.map((item) => {
                 const container = item.containerId ? containerMap.get(item.containerId) : null;
                 const holder = item.currentHolderId ? holderMap.get(item.currentHolderId) : null;
-                const itemQuantity = item.kind === 'bulk' ? item.quantity ?? 1 : 1;
-                const containerText = container ? `${container.code}${container.name ? ` · ${container.name}` : ''}` : t('items.detail.noContainer');
+                const itemQuantity = item.kind === 'stock' ? item.quantity ?? 1 : 1;
+                const containerText = container?.name ?? t('items.detail.noContainer');
                 return (
                   <Card key={item.id} className="overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                     <CardContent className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">

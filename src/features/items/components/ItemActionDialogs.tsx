@@ -60,7 +60,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
   const disposeMutation = useDisposeItemMutation(wsId, item.id);
 
   const moveItemSchema = createMoveItemSchema(t);
-  const takeOutMaxQuantity = item.kind === 'bulk' ? item.quantity ?? 1 : 1;
+  const takeOutMaxQuantity = item.kind === 'stock' ? item.quantity ?? 1 : 1;
   const takeOutSchema = createTakeOutSchema(t, takeOutMaxQuantity);
   const returnSchema = createReturnSchema();
   const consumeStockSchema = createConsumeStockSchema(t, item.quantity ?? 0);
@@ -70,10 +70,10 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
 
   const currentContainerId = item.containerId ?? MOCK_CONTAINERS[0]?.id ?? '';
   const currentHolderId = MOCK_MEMBERS.find((member) => member.user.id === currentUser?.id)?.id ?? '';
-  const currentContainerLabel = MOCK_CONTAINERS.find((container) => container.id === currentContainerId)?.code ?? t('items.detail.noContainer');
+  const currentContainerLabel = MOCK_CONTAINERS.find((container) => container.id === currentContainerId)?.name ?? t('items.detail.noContainer');
   const currentHolderLabel = currentUser?.name ?? t('items.detail.noHolder');
   const canReturnItem = item.usageType === 'returnable';
-  const isConsumableStockItem = item.kind === 'bulk' && item.usageType === 'consumable';
+  const isConsumableStockItem = item.kind === 'stock' && item.usageType === 'consumable';
 
   const moveForm = useForm<MoveItemActionValues>({
     resolver: zodResolver(moveItemSchema),
@@ -154,7 +154,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               <Select id="move-target" {...moveForm.register('toContainerId')}>
                 {MOCK_CONTAINERS.map((container) => (
                   <option key={container.id} value={container.id}>
-                    {container.code}
+                    {container.name}
                   </option>
                 ))}
               </Select>
@@ -192,7 +192,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               <p className="text-xs text-muted-foreground">{t('items.action.currentHolder', undefined, { holder: currentHolderLabel })}</p>
             </div>
             <input type="hidden" {...takeOutForm.register('holderId')} />
-            {item.kind === 'bulk' ? (
+            {item.kind === 'stock' ? (
               <FormField
                 label={t('items.action.takeOutQuantity')}
                 htmlFor="takeout-quantity"
@@ -344,7 +344,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               type="button"
               disabled={markMissingMutation.isPending}
               onClick={async () => {
-                await markMissingMutation.mutateAsync();
+                await markMissingMutation.mutateAsync(undefined);
                 onOpenActionChange(null);
               }}
             >
@@ -378,7 +378,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               <Select id="found-container" {...foundForm.register('containerId')}>
                 {MOCK_CONTAINERS.map((container) => (
                   <option key={container.id} value={container.id}>
-                    {container.code}
+                    {container.name}
                   </option>
                 ))}
               </Select>

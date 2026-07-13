@@ -509,6 +509,10 @@ export function adjustItemStock(id: string, delta: number, note?: string) {
   return clone(updated);
 }
 
+export function restockItemStock(id: string, quantity: number, note?: string) {
+  return adjustItemStock(id, quantity, note);
+}
+
 export function countItemStock(id: string, countedQuantity: number, note?: string) {
   const item = items.find((entry) => entry.id === id);
   if (!item) {

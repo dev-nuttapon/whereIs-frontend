@@ -9,7 +9,9 @@ export interface StatusBadgeProps {
 const statusMap: Record<ItemStatus, { label: string; className: string }> = {
   stored: { label: 'items.status.stored', className: 'green' },
   taken_out: { label: 'items.status.taken_out', className: 'gold' },
+  reserved: { label: 'items.status.reserved', className: 'blue' },
   missing: { label: 'items.status.missing', className: 'red' },
+  repair: { label: 'items.status.repair', className: 'orange' },
   disposed: { label: 'items.status.disposed', className: 'default' },
 };
 

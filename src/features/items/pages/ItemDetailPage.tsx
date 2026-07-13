@@ -35,10 +35,10 @@ export function ItemDetailPage() {
   const item = itemQuery.data;
   const eventsQuery = useItemEvents(wsId, item?.id ?? '');
   const canMove = can('item.move') && item?.status !== 'disposed';
-  const canTakeOut = can('item.takeout') && item?.status === 'stored';
+  const canTakeOut = can('item.borrow') && item?.status === 'stored';
   const canReturn = can('item.return') && item?.status === 'taken_out' && item?.usageType === 'returnable';
-  const canConsumeStock = Boolean(item && item.kind === 'bulk' && item.usageType === 'consumable' && item.status !== 'disposed' && (item.quantity ?? 0) > 0);
-  const canRestockStock = Boolean(item && item.kind === 'bulk' && item.usageType === 'consumable');
+  const canConsumeStock = Boolean(item && item.kind === 'stock' && item.usageType === 'consumable' && item.status !== 'disposed' && (item.quantity ?? 0) > 0);
+  const canRestockStock = Boolean(item && item.kind === 'stock' && item.usageType === 'consumable');
   const canMarkMissing = can('item.mark_missing') && item?.status !== 'disposed';
   const canMarkFound = can('item.mark_found') && item?.status === 'missing';
   const canDispose = can('item.dispose') && item?.status !== 'disposed';
@@ -47,7 +47,8 @@ export function ItemDetailPage() {
     created: t('items.event.created'),
     updated: t('items.event.updated'),
     moved: t('items.event.moved'),
-    taken_out: t('items.event.takenOut'),
+    borrowed: t('items.event.takenOut'),
+    withdrawn: t('dashboard.event.withdrawn'),
     returned: t('items.event.returned'),
     stock_used: t('dashboard.event.stockUsed'),
     stock_restocked: t('dashboard.event.stockRestocked'),
@@ -58,7 +59,7 @@ export function ItemDetailPage() {
   const container = item?.containerId ? MOCK_CONTAINERS.find((entry) => entry.id === item.containerId) : null;
   const holder = item?.currentHolderId ? MOCK_MEMBERS.find((entry) => entry.id === item.currentHolderId) : null;
   const workspace = item ? MOCK_WORKSPACES.find((entry) => entry.id === item.workspaceId) : null;
-  const kindLabel = item?.kind === 'bulk' ? t('items.detail.kindBulk') : t('items.detail.kindSingle');
+  const kindLabel = item?.kind === 'stock' ? t('items.detail.kindBulk') : t('items.detail.kindSingle');
   const usageLabel = item?.usageType === 'consumable' ? t('items.detail.usageTypeConsumable') : t('items.detail.usageTypeReturnable');
   const returnPolicyLabel = item?.usageType === 'returnable' ? t('items.detail.noReturnRequired') : undefined;
   const stockState = item ? getItemStockState(item) : 'not_applicable';
@@ -91,7 +92,7 @@ export function ItemDetailPage() {
                     <Tag>{usageLabel}</Tag>
                     {returnPolicyLabel ? <Tag>{returnPolicyLabel}</Tag> : null}
                     {stockStateLabel ? <Tag color={stockState === 'out_of_stock' ? 'red' : stockState === 'low_stock' ? 'gold' : 'green'}>{stockStateLabel}</Tag> : null}
-                    {item.kind === 'bulk' ? <Tag>{t('items.detail.quantity')}: {item.quantity ?? 1}</Tag> : null}
+                    {item.kind === 'stock' ? <Tag>{t('items.detail.quantity')}: {item.quantity ?? 1}</Tag> : null}
                     <StatusBadge status={item.status} />
                   </div>
                 </div>
@@ -154,7 +155,7 @@ export function ItemDetailPage() {
                 <Descriptions.Item label={t('items.detail.containerPrefix')} span={2}>
                   <Space size={8}>
                     <ContainerIcon className="h-4 w-4" />
-                    <span>{container ? `${container.code}${container.name ? ` · ${container.name}` : ''}` : t('items.detail.noContainer')}</span>
+                    <span>{container?.name ?? t('items.detail.noContainer')}</span>
                   </Space>
                 </Descriptions.Item>
                 <Descriptions.Item label={t('items.detail.holderPrefix')}>
@@ -173,9 +174,9 @@ export function ItemDetailPage() {
                   {formatDateTime(locale, item.createdAt)}
                 </Descriptions.Item>
                 <Descriptions.Item label={t('items.detail.quantity')}>
-                  {item.kind === 'bulk' ? String(item.quantity ?? 1) : '1'}
+                  {item.kind === 'stock' ? String(item.quantity ?? 1) : '1'}
                 </Descriptions.Item>
-                {item.kind === 'bulk' && item.usageType === 'consumable' ? (
+                {item.kind === 'stock' && item.usageType === 'consumable' ? (
                   <Descriptions.Item label={t('items.detail.reorderPoint')}>
                     {String(item.reorderPoint ?? 5)}
                   </Descriptions.Item>

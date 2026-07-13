@@ -3,7 +3,7 @@ import type { Item } from '@/types/domain.types';
 export type StockState = 'not_applicable' | 'in_stock' | 'low_stock' | 'out_of_stock';
 
 export function getItemStockState(item: Item): StockState {
-  if (item.usageType !== 'consumable' || item.kind !== 'bulk') {
+  if (item.usageType !== 'consumable' || item.kind !== 'stock') {
     return 'not_applicable';
   }
 
@@ -22,5 +22,5 @@ export function getItemStockState(item: Item): StockState {
 }
 
 export function getItemStockQuantity(item: Item) {
-  return item.kind === 'bulk' && item.usageType === 'consumable' ? item.quantity ?? 0 : null;
+  return item.kind === 'stock' && item.usageType === 'consumable' ? item.quantity ?? 0 : null;
 }

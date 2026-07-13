@@ -16,7 +16,7 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
       'item.update',
       'item.delete',
       'item.move',
-      'item.takeout',
+      'item.borrow',
       'item.return',
       'item.mark_missing',
       'item.mark_found',
@@ -95,7 +95,7 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
                     <Switch
                       checked={Boolean(overrides[permission])}
                       onChange={() => toggle(permission)}
-                      disabled={permissionsQuery.data?.role === 'owner'}
+                      disabled={permissionsQuery.data?.primaryRole === 'owner'}
                     />
                   </label>
                 ))}
@@ -114,7 +114,7 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
             <Checkbox checked={overrides['item.create'] ? true : false} disabled />
             {t('permissions.implication')}
           </label>
-          {permissionsQuery.data?.role === 'owner' ? (
+          {permissionsQuery.data?.primaryRole === 'owner' ? (
             <span className="text-sm text-muted-foreground">{t('permissions.ownerLocked')}</span>
           ) : null}
         </div>

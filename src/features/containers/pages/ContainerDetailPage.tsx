@@ -20,12 +20,12 @@ export function ContainerDetailPage() {
           <CardContent className="space-y-4 p-6">
             <div className="space-y-1">
               <CardTitle className="text-base">
-                {t('container.detail.containerLabel')} {container?.code ?? containerId}
+                {t('container.detail.containerLabel')} {container?.name ?? containerId}
               </CardTitle>
-              <CardDescription>{container?.name ?? t('container.detail.itemlist')}</CardDescription>
+              <CardDescription>{container?.typeLabel ?? t('container.detail.itemlist')}</CardDescription>
             </div>
             <Descriptions bordered column={{ xs: 1, md: 3 }} size="middle">
-              <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.code ?? containerId}</Descriptions.Item>
+              <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? containerId}</Descriptions.Item>
               <Descriptions.Item label={t('items.list.count')}>{items.length}</Descriptions.Item>
               <Descriptions.Item label={t('containers.list.title')}>{container?.name ?? '—'}</Descriptions.Item>
             </Descriptions>

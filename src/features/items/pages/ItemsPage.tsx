@@ -203,7 +203,7 @@ export function ItemsPage() {
           {filteredItems.map((item) => {
             const container = item.containerId ? containerMap.get(item.containerId) : null;
             const holder = item.currentHolderId ? holderMap.get(item.currentHolderId) : null;
-            const itemQuantity = item.kind === 'bulk' ? item.quantity ?? 1 : 1;
+            const itemQuantity = item.kind === 'stock' ? item.quantity ?? 1 : 1;
             return (
               <Card key={item.id} className="border-border/70 bg-card/95 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                 <CardContent className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
@@ -224,11 +224,11 @@ export function ItemsPage() {
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="outline">
                         {kindLabel(item.kind)}
-                        {item.kind === 'bulk' && item.quantity ? ` · ${item.quantity}` : ''}
+                        {item.kind === 'stock' && item.quantity ? ` · ${item.quantity}` : ''}
                       </Badge>
                       <Badge variant="secondary">{usageLabel(item.usageType)}</Badge>
                       {item.usageType === 'returnable' ? <Badge variant="outline">{returnPolicyLabel()}</Badge> : null}
-                      {item.usageType === 'consumable' && item.kind === 'bulk' ? (
+                      {item.usageType === 'consumable' && item.kind === 'stock' ? (
                         <Badge
                           variant={getItemStockState(item) === 'out_of_stock' ? 'destructive' : getItemStockState(item) === 'low_stock' ? 'outline' : 'secondary'}
                         >
@@ -245,7 +245,7 @@ export function ItemsPage() {
                       <div className="flex items-center gap-2">
                         <ContainerIcon className="h-4 w-4 shrink-0" />
                         <span>
-                          {t('items.list.container')}: {container ? `${container.code}${container.name ? ` · ${container.name}` : ''}` : t('items.detail.noContainer')}
+                          {t('items.list.container')}: {container?.name ?? t('items.detail.noContainer')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">

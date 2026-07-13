@@ -24,8 +24,8 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
   const activeWorkspaceId = workspaceId ?? wsId ?? workspaceStore.getState().currentWorkspaceId;
   const showWorkspaceLinks = Boolean(activeWorkspaceId);
 
-  const items = useMemo<MenuProps['"'"'items'"'"']>(() => {
-    const next: NonNullable<MenuProps['"'"'items'"'"']> = [
+  const items = useMemo<MenuProps['items']>(() => {
+    const next: NonNullable<MenuProps['items']> = [
       {
         key: 'user',
         disabled: true,
@@ -107,7 +107,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
           }
         },
       }}
-      dropdownRender={(menu) => <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/95 shadow-lg backdrop-blur-xl">{menu}</div>}
+      popupRender={(menu) => <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/95 shadow-lg backdrop-blur-xl">{menu}</div>}
     >
       <Button
         variant="outline"
