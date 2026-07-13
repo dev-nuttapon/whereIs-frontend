@@ -2,7 +2,6 @@ export const ROUTES = {
   home: '/',
   login: '/login',
   register: '/register',
-  authCallback: '/auth/callback',
   workspaces: '/workspaces',
   workspaceNew: '/workspaces/new',
   workspaceDashboard: (wsId: string) => `/w/${wsId}`,

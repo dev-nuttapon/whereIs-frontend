@@ -2,7 +2,7 @@ import axios from 'axios';
 import { env } from '@/lib/env';
 import { authStore } from '@/stores/auth.store';
 import { queryClient } from '@/lib/queryClient';
-import { refreshKeycloakSession } from '@/lib/keycloak-auth';
+import { refreshTokenSession } from '@/api/token.api';
 
 let refreshSessionPromise: Promise<void> | null = null;
 
@@ -37,7 +37,7 @@ client.interceptors.response.use(
       if (refreshToken) {
         try {
           originalRequest._retry = true;
-          refreshSessionPromise ??= refreshKeycloakSession(refreshToken)
+          refreshSessionPromise ??= refreshTokenSession(refreshToken)
             .then((session) => {
               authStore.getState().updateTokens(session);
             })

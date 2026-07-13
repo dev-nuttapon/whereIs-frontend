@@ -12,7 +12,6 @@ import { useI18n } from '@/hooks/useI18n';
 
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
-const AuthCallbackPage = lazy(() => import('@/features/auth/pages/AuthCallbackPage').then((module) => ({ default: module.AuthCallbackPage })));
 const WorkspaceListPage = lazy(() => import('@/features/workspaces/pages/WorkspaceListPage').then((module) => ({ default: module.WorkspaceListPage })));
 const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/WorkspaceNewPage').then((module) => ({ default: module.WorkspaceNewPage })));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
@@ -47,14 +46,6 @@ export function AppRoutes() {
           element={
             <AuthLayout>
               <RegisterPage />
-            </AuthLayout>
-          }
-        />
-        <Route
-          path={ROUTES.authCallback}
-          element={
-            <AuthLayout>
-              <AuthCallbackPage />
             </AuthLayout>
           }
         />

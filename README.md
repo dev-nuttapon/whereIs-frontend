@@ -4,7 +4,7 @@ Frontend application for the WhereIs workspace-based asset and stock tracking sy
 
 ## Runtime Mode
 
-The app is configured to use the live API backend and Keycloak auth flow.
+The app is configured to use the live API backend. Login is submitted to the API, which exchanges credentials with Keycloak and returns the session tokens.
 
 ```bash
 cp .env.example .env
@@ -14,8 +14,7 @@ npm run dev
 
 Environment variables:
 
-- `VITE_API_BASE_URL` is the backend base URL.
-- `VITE_KEYCLOAK_BASE_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID`, and `VITE_KEYCLOAK_REDIRECT_URI` configure the real auth flow.
+- `VITE_API_BASE_URL` is the backend API base URL, including the `/api/v1` prefix.
 
 ## Verification
 

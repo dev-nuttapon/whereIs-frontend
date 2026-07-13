@@ -1,13 +1,7 @@
 import type { User } from '@/types/domain.types';
 import type { AuthSession } from '@/types/auth.types';
 import { client } from '@/api/client';
-import {
-  buildKeycloakLogoutUrl,
-  clearKeycloakPkce,
-  exchangeKeycloakAuthorizationCode,
-  refreshKeycloakSession,
-  redirectToKeycloakLogin,
-} from '@/lib/keycloak-auth';
+import { loginWithPassword, refreshTokenSession, registerWithPassword } from '@/api/token.api';
 
 interface UserResponseEnvelope {
   success: boolean;
@@ -28,23 +22,28 @@ function mapUser(apiUser: UserResponseEnvelope['data']): User {
   };
 }
 
-export async function beginKeycloakLogin() {
-  clearKeycloakPkce();
-  await redirectToKeycloakLogin();
+export async function login(username: string, password: string): Promise<Omit<AuthSession, 'user'>> {
+  return loginWithPassword(username, password);
 }
 
-export async function completeKeycloakLogin(code: string, state: string): Promise<Omit<AuthSession, 'user'>> {
-  return exchangeKeycloakAuthorizationCode(code, state);
+export async function register(
+  username: string,
+  email: string,
+  password: string,
+  displayName?: string,
+): Promise<Omit<AuthSession, 'user'>> {
+  return registerWithPassword(username, email, password, displayName);
 }
 
 export async function refreshAuthSession(refreshToken: string): Promise<Omit<AuthSession, 'user'>> {
-  return refreshKeycloakSession(refreshToken);
+  return refreshTokenSession(refreshToken);
 }
 
 export async function logout(idTokenHint?: string | null): Promise<{ success: true; redirectUrl?: string | null }> {
+  void idTokenHint;
   return {
     success: true,
-    redirectUrl: buildKeycloakLogoutUrl(idTokenHint ?? null),
+    redirectUrl: null,
   };
 }
 
