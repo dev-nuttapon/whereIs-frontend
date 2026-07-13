@@ -19,14 +19,14 @@ export function WorkspaceSelectLayout({ children }: WorkspaceSelectLayoutProps) 
   const isCreatePage = location.pathname === ROUTES.workspaceNew;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background px-3 py-4 sm:px-4 sm:py-6">
+    <div className="relative min-h-screen overflow-hidden bg-background px-4 py-6 sm:px-6 sm:py-8">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[24rem] bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.12),_transparent_40%),radial-gradient(circle_at_top_right,_hsl(var(--foreground)/0.05),_transparent_30%)]" />
       <div className="pointer-events-none absolute left-1/2 top-20 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/5 blur-3xl" />
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-4 sm:gap-6">
-        <Card className="overflow-hidden border-border/70 bg-card/90 shadow-[0_18px_50px_-32px_rgba(15,23,42,0.28)] backdrop-blur" styles={{ body: { padding: 20 } }}>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 sm:gap-8">
+        <Card className="overflow-hidden border-border/70 bg-card/90 shadow-[0_18px_50px_-32px_rgba(15,23,42,0.28)] backdrop-blur" styles={{ body: { padding: 28 } }}>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0 space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <Typography.Text className="text-sm font-semibold tracking-tight">
                   {t('app.name')}
                 </Typography.Text>
@@ -34,7 +34,7 @@ export function WorkspaceSelectLayout({ children }: WorkspaceSelectLayoutProps) 
                   {t('app.workspaceSelect')}
                 </Tag>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">{t('app.selectWorkspace')}</p>
                 <p className="max-w-2xl text-xs leading-5 text-muted-foreground">
                   {isCreatePage
@@ -43,7 +43,7 @@ export function WorkspaceSelectLayout({ children }: WorkspaceSelectLayoutProps) 
                 </p>
               </div>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               {currentWorkspace ? (
                 <Button
                   size="small"

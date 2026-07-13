@@ -11,12 +11,11 @@ export interface FormFieldProps {
 
 export function FormField({ label, htmlFor, error, description, children }: FormFieldProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {description ? <p className="text-xs leading-5 text-muted-foreground">{description}</p> : null}
+      {error ? <p className="text-sm leading-5 text-destructive">{error}</p> : null}
     </div>
   );
 }
-

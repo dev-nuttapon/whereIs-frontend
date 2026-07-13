@@ -48,10 +48,9 @@ export function LoginPage() {
   };
 
   return (
-    <Form<LoginFormValues> layout="vertical" className="space-y-4" requiredMark={false} onFinish={onFinish}>
-      {error ? <Alert className="rounded-xl" type="error" showIcon message={t('auth.login.error')} description={error} /> : null}
+    <Form<LoginFormValues> layout="vertical" requiredMark={false} onFinish={onFinish}>
+      {error ? <Alert className="mb-6" type="error" showIcon message={t('auth.login.error')} description={error} /> : null}
       <Form.Item
-        className="!mb-0"
         label={t('auth.username')}
         name="username"
         rules={[{ required: true, message: t('auth.username.required') }]}
@@ -59,7 +58,7 @@ export function LoginPage() {
         <Input autoComplete="username" placeholder={t('auth.username.placeholder')} />
       </Form.Item>
       <Form.Item
-        className="!mb-0"
+        className="!mb-3"
         label={t('auth.password')}
         name="password"
         rules={[{ required: true, message: t('auth.password.required') }]}

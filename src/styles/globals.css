@@ -89,3 +89,44 @@
     min-height: 100vh;
   }
 }
+
+@layer components {
+  .ant-form-vertical .ant-form-item {
+    margin-bottom: 8px;
+  }
+
+  .ant-form-vertical .ant-form-item-label {
+    padding-bottom: 2px;
+  }
+
+  .ant-form-item-explain,
+  .ant-form-item-extra {
+    margin-top: 3px;
+  }
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector {
+    min-height: 44px;
+  }
+
+  .ant-input-affix-wrapper > input.ant-input {
+    min-height: 0;
+  }
+
+  .ant-form .ant-btn {
+    min-height: 42px;
+  }
+
+  .ant-alert {
+    border-radius: 14px;
+  }
+
+  .ant-alert-with-description {
+    padding: 20px 24px;
+  }
+
+  .ant-alert-message + .ant-alert-description {
+    margin-top: 10px;
+  }
+}

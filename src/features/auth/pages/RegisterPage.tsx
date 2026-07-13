@@ -51,10 +51,9 @@ export function RegisterPage() {
   };
 
   return (
-    <Form<RegisterFormValues> layout="vertical" className="space-y-4" requiredMark={false} onFinish={onFinish}>
-      {error ? <Alert className="rounded-xl" type="error" showIcon message={t('auth.register.error')} description={error} /> : null}
+    <Form<RegisterFormValues> layout="vertical" requiredMark={false} onFinish={onFinish}>
+      {error ? <Alert className="mb-6" type="error" showIcon message={t('auth.register.error')} description={error} /> : null}
       <Form.Item
-        className="!mb-0"
         label={t('auth.username')}
         name="username"
         rules={[{ required: true, message: t('auth.username.required') }]}
@@ -62,7 +61,6 @@ export function RegisterPage() {
         <Input autoComplete="username" placeholder={t('auth.username.placeholder')} />
       </Form.Item>
       <Form.Item
-        className="!mb-0"
         label={t('auth.email')}
         name="email"
         rules={[
@@ -72,11 +70,10 @@ export function RegisterPage() {
       >
         <Input autoComplete="email" placeholder={t('auth.email.placeholder')} />
       </Form.Item>
-      <Form.Item className="!mb-0" label={t('auth.name')} name="displayName">
+      <Form.Item label={t('auth.name')} name="displayName">
         <Input autoComplete="name" placeholder={t('auth.name.placeholder')} />
       </Form.Item>
       <Form.Item
-        className="!mb-0"
         label={t('auth.password')}
         name="password"
         rules={[{ required: true, message: t('auth.password.required') }]}
@@ -84,7 +81,7 @@ export function RegisterPage() {
         <Input.Password autoComplete="new-password" placeholder={t('auth.password.placeholder')} />
       </Form.Item>
       <Form.Item
-        className="!mb-0"
+        className="!mb-3"
         label={t('auth.confirmPassword')}
         name="confirmPassword"
         dependencies={['password']}

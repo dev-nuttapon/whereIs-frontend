@@ -6,14 +6,14 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <AntCard
       className={cn('shadow-sm', className)}
-      styles={{ body: { padding: 24 } }}
+      styles={{ body: { padding: 28 } }}
       {...props}
     />
   );
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col gap-2', className)} {...props} />;
+  return <div className={cn('flex flex-col gap-3', className)} {...props} />;
 }
 
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {

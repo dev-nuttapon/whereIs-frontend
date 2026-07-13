@@ -25,10 +25,10 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const accentClassName = accentClassNames[accentIndex];
 
   return (
-    <Card className="group h-full overflow-hidden border-border/70 bg-card/90 transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_50px_-34px_rgba(15,23,42,0.36)]" styles={{ body: { padding: 20 } }}>
+    <Card className="group h-full overflow-hidden border-border/70 bg-card/90 transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_50px_-34px_rgba(15,23,42,0.36)]" styles={{ body: { padding: 24 } }}>
       <div className={cn('h-1 bg-gradient-to-r', accentClassName)} />
-      <div className="space-y-4">
-        <div className="flex items-start gap-4">
+      <div className="space-y-5">
+        <div className="flex items-start gap-5">
           <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-semibold text-white shadow-sm', accentClassName)}>
             {workspace.name.slice(0, 2).toUpperCase()}
           </div>
@@ -48,7 +48,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-3 border-t border-border/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 border-t border-border/60 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm text-muted-foreground">
             {t('workspace.card.role')}: {workspace.myRole}
           </span>
