@@ -7,7 +7,7 @@ import { authStore } from '@/stores/auth.store';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { LogoutIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
+import { LogoutIcon, MemberIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 
 export interface UserMenuProps {
@@ -47,6 +47,11 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
           label: t('nav.profile'),
         },
         {
+          key: 'members',
+          icon: <MemberIcon className="h-4 w-4" />,
+          label: t('members.manage', 'Manage members'),
+        },
+        {
           key: 'settings',
           icon: <SettingsIcon className="h-4 w-4" />,
           label: t('nav.settings'),
@@ -76,6 +81,11 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
         onClick: ({ key, keyPath }) => {
           if (key === 'profile' && activeWorkspaceId) {
             navigate(ROUTES.workspaceProfile(activeWorkspaceId));
+            return;
+          }
+
+          if (key === 'members' && activeWorkspaceId) {
+            navigate(ROUTES.workspaceMembers(activeWorkspaceId));
             return;
           }
 

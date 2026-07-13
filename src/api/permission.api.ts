@@ -25,6 +25,7 @@ interface MemberPermissionsDto {
   roleCode: string;
   effective: string[];
   overrides: Array<{ code: string; effect: string }>;
+  containerAccessScope: ContainerAccessScope | null;
 }
 
 async function fetchPermissionCatalog() {
@@ -46,7 +47,7 @@ export async function getMemberPermissions(wsId: string, memberId: string): Prom
     primaryRole: dto.roleCode as Role,
     effective: dto.effective as PermissionKey[],
     overrides,
-    containerAccessScope: null,
+    containerAccessScope: dto.containerAccessScope,
   };
 }
 
@@ -87,6 +88,6 @@ export async function updateMemberPermissions(
     primaryRole: dto.roleCode as Role,
     effective: dto.effective as PermissionKey[],
     overrides: nextOverrides,
-    containerAccessScope: null,
+    containerAccessScope: dto.containerAccessScope,
   };
 }

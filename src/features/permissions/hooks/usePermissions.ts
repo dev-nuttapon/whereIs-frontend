@@ -3,6 +3,7 @@ import { getMemberPermissions, updateMemberPermissions, type MemberPermissionsRe
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
+import type { ContainerAccessScope } from '@/types/domain.types';
 
 export function useMemberPermissions(wsId: string, memberId: string) {
   return useQuery({
@@ -17,7 +18,8 @@ export function useUpdatePermissions(wsId: string, memberId: string) {
   const { t } = useI18n();
 
   return useMutation({
-    mutationFn: (overrides: Record<string, boolean>) => updateMemberPermissions(wsId, memberId, overrides),
+    mutationFn: (input: { overrides: Record<string, boolean>; containerAccessScope?: ContainerAccessScope | null }) =>
+      updateMemberPermissions(wsId, memberId, input.overrides, input.containerAccessScope),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId, 'permissions'] });
       await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId] });
