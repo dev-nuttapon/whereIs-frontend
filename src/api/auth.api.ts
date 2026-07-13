@@ -46,3 +46,7 @@ export async function logout(): Promise<{ success: true }> {
 export async function getCurrentUser(): Promise<User> {
   return delay(authStore.getState().user ?? MOCK_USER);
 }
+
+export async function listDemoUsers(): Promise<User[]> {
+  return delay(MOCK_USERS);
+}

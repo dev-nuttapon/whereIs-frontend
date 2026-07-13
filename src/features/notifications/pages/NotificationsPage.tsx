@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -6,8 +5,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { PageShell } from '@/components/common/PageShell';
-import { getNotifications, markAllNotificationsRead, markNotificationRead } from '@/api/notification.api';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/features/notifications/hooks/useNotifications';
 import { useI18n } from '@/hooks/useI18n';
 import { BellIcon } from '@/components/ui/icons';
 
@@ -21,20 +19,9 @@ function formatDateTime(locale: 'en' | 'th', value: string) {
 export function NotificationsPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t, locale } = useI18n();
-  const queryClient = useQueryClient();
-  const notificationsQuery = useQuery({
-    queryKey: queryKeys.notifications(wsId),
-    queryFn: () => getNotifications(wsId),
-    enabled: Boolean(wsId),
-  });
-  const markReadMutation = useMutation({
-    mutationFn: markNotificationRead,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications(wsId) }),
-  });
-  const markAllReadMutation = useMutation({
-    mutationFn: () => markAllNotificationsRead(wsId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications(wsId) }),
-  });
+  const notificationsQuery = useNotifications(wsId);
+  const markReadMutation = useMarkNotificationRead(wsId);
+  const markAllReadMutation = useMarkAllNotificationsRead(wsId);
   const unreadCount = notificationsQuery.data?.filter((notification) => !notification.readAt).length ?? 0;
 
   return (

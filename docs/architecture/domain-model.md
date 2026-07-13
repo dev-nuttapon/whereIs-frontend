@@ -128,7 +128,7 @@ mapping role → permission เต็มอยู่ที่ [permission-ui.md]
 ```ts
 type Role = 'owner' | 'admin' | 'member' | 'viewer';
 type ItemType = 'single' | 'stock';
-type ItemStatus = 'stored' | 'taken_out' | 'missing' | 'disposed'; // coarse lifecycle status
+type ItemStatus = 'stored' | 'taken_out' | 'reserved' | 'missing' | 'repair' | 'disposed'; // coarse lifecycle status
 
 interface User { id: string; email: string; name: string; avatarUrl?: string; }
 
@@ -149,8 +149,7 @@ interface Member {
   id: string;
   workspaceId: string;
   user: User;
-  primaryRole: Role;
-  extraPermissions: string[];
+  role: Role;
   containerAccessScope: {
     containerIds: string[];
     includeDescendants: boolean;
@@ -165,8 +164,9 @@ interface Container {
   workspaceId: string;
   parentId: string | null;
   name: string;
-  code?: string;
-  visibleTo?: string[];
+  typeLabel: string;
+  note?: string;
+  photoUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -174,7 +174,9 @@ interface Container {
 interface Item {
   id: string;
   workspaceId: string;
-  type: ItemType;
+  kind: ItemType;
+  usageType: 'consumable' | 'returnable';
+  returnPolicy: 'due' | 'indefinite';
   name: string;
   code?: string;
   description?: string;
@@ -186,7 +188,7 @@ interface Item {
   dueDate?: string | null;
   reason?: string;
   unit?: string;
-  batchCode?: string;
+  lotCode?: string;
   receivedDate?: string | null;
   expiryDate?: string | null;
   warrantyEndDate?: string | null;

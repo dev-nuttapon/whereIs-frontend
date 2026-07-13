@@ -1,24 +1,18 @@
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { PageShell } from '@/components/common/PageShell';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
-import { getReports } from '@/api/report.api';
-import { queryKeys } from '@/lib/queryKeys';
+import { useReports } from '@/features/reports/hooks/useReports';
 import { useI18n } from '@/hooks/useI18n';
 import { ClipboardCheckIcon } from '@/components/ui/icons';
 
 export function ReportsPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t } = useI18n();
-  const reportsQuery = useQuery({
-    queryKey: queryKeys.reports(wsId),
-    queryFn: () => getReports(wsId),
-    enabled: Boolean(wsId),
-  });
+  const reportsQuery = useReports(wsId);
 
   return (
     <PageShell title={t('nav.reports')} description={t('reports.description', 'Workspace report summary.')}>

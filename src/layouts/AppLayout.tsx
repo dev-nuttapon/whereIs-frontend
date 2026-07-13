@@ -1,17 +1,19 @@
 import { Navigate, Outlet, useParams } from 'react-router-dom';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Layout } from 'antd';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { workspaceStore } from '@/stores/workspace.store';
-import { findWorkspace } from '@/mocks/demo-db';
+import { LoadingState } from '@/components/feedback/LoadingState';
+import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { ROUTES } from '@/constants/routes';
 
 export function AppLayout() {
   const { wsId } = useParams();
   const setWorkspace = workspaceStore((state) => state.setWorkspace);
-  const workspace = useMemo(() => (wsId ? findWorkspace(wsId) : undefined), [wsId]);
+  const workspaceQuery = useWorkspace(wsId ?? '');
+  const workspace = workspaceQuery.data;
 
   useEffect(() => {
     if (!workspace) {
@@ -20,7 +22,15 @@ export function AppLayout() {
     setWorkspace(workspace);
   }, [setWorkspace, workspace]);
 
-  if (!wsId || !workspace) {
+  if (!wsId) {
+    return <Navigate to={ROUTES.workspaces} replace />;
+  }
+
+  if (workspaceQuery.isLoading) {
+    return <LoadingState />;
+  }
+
+  if (!workspace) {
     return <Navigate to={ROUTES.workspaces} replace />;
   }
 

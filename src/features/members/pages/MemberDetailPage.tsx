@@ -5,18 +5,19 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMember } from '@/features/members/hooks/useMembers';
+import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { PermissionMatrix } from '@/features/permissions/components/PermissionMatrix';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_WORKSPACES } from '@/mocks/mock-data';
 import { StatCard } from '@/components/common/StatCard';
 import { useMemberPermissions } from '@/features/permissions/hooks/usePermissions';
 
 export function MemberDetailPage() {
   const { wsId = 'ws-warehouse', memberId = '' } = useParams();
   const memberQuery = useMember(wsId, memberId);
+  const workspaceQuery = useWorkspace(wsId);
   const permissionsQuery = useMemberPermissions(wsId, memberId);
   const { t } = useI18n();
-  const workspace = MOCK_WORKSPACES.find((entry) => entry.id === wsId);
+  const workspace = workspaceQuery.data;
   const effectiveCount = permissionsQuery.data?.effective.length ?? 0;
   const overrideCount = Object.values(permissionsQuery.data?.overrides ?? {}).filter(Boolean).length;
   const highlightedPermissions = permissionsQuery.data?.effective.slice(0, 4) ?? [];

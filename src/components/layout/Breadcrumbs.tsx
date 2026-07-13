@@ -2,7 +2,9 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { useMemo } from 'react';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
-import { MOCK_CONTAINERS, MOCK_ITEMS, MOCK_MEMBERS } from '@/mocks/mock-data';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useSearchItems } from '@/features/items/hooks/useItems';
+import { useMembers } from '@/features/members/hooks/useMembers';
 import { ChevronRightIcon } from '@/components/ui/icons';
 
 interface Crumb {
@@ -14,6 +16,12 @@ export function Breadcrumbs() {
   const { wsId } = useParams();
   const location = useLocation();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
+  const containersQuery = useContainers(wsId ?? '');
+  const itemsQuery = useSearchItems(wsId ?? '', { page: 1, limit: 200 });
+  const membersQuery = useMembers(wsId ?? '');
+  const containers = containersQuery.data ?? [];
+  const items = itemsQuery.data?.data ?? [];
+  const members = membersQuery.data ?? [];
 
   const crumbs = useMemo<Crumb[]>(() => {
     if (!wsId) {
@@ -22,13 +30,13 @@ export function Breadcrumbs() {
 
     const containerPath = (containerId: string | null) => {
       const chain: Crumb[] = [];
-      let current = containerId ? MOCK_CONTAINERS.find((entry) => entry.id === containerId) ?? null : null;
+      let current = containerId ? containers.find((entry) => entry.id === containerId) ?? null : null;
       while (current) {
         chain.unshift({
           label: current.name,
           to: ROUTES.workspaceContainerDetail(wsId, current.id),
         });
-        current = current.parentId ? MOCK_CONTAINERS.find((entry) => entry.id === current?.parentId) ?? null : null;
+        current = current.parentId ? containers.find((entry) => entry.id === current?.parentId) ?? null : null;
       }
       return chain;
     };
@@ -43,7 +51,7 @@ export function Breadcrumbs() {
 
     if (location.pathname.includes('/containers/')) {
       const containerId = location.pathname.split('/containers/')[1];
-      const container = MOCK_CONTAINERS.find((entry) => entry.id === containerId);
+      const container = containers.find((entry) => entry.id === containerId);
       return [
         { label: 'Containers', to: ROUTES.workspaceContainers(wsId) },
         ...containerPath(container?.id ?? null),
@@ -56,8 +64,8 @@ export function Breadcrumbs() {
 
     if (location.pathname.includes('/items/')) {
       const itemId = location.pathname.split('/items/')[1]?.split('/')[0];
-      const item = MOCK_ITEMS.find((entry) => entry.id === itemId || entry.code === itemId);
-      const container = item?.containerId ? MOCK_CONTAINERS.find((entry) => entry.id === item.containerId) : null;
+      const item = items.find((entry) => entry.id === itemId || entry.code === itemId);
+      const container = item?.containerId ? containers.find((entry) => entry.id === item.containerId) : null;
       return [
         { label: 'Items', to: ROUTES.workspaceItems(wsId) },
         ...containerPath(container?.id ?? null),
@@ -71,7 +79,7 @@ export function Breadcrumbs() {
 
     if (location.pathname.includes('/members/')) {
       const memberId = location.pathname.split('/members/')[1];
-      const member = MOCK_MEMBERS.find((entry) => entry.id === memberId);
+      const member = members.find((entry) => entry.id === memberId);
       return [
         { label: 'Members', to: ROUTES.workspaceMembers(wsId) },
         { label: member?.user.name ?? 'Member' },
@@ -95,7 +103,7 @@ export function Breadcrumbs() {
     }
 
     return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
-  }, [currentWorkspace?.name, location.pathname, wsId]);
+  }, [containers, currentWorkspace?.name, items, location.pathname, members, wsId]);
 
   if (crumbs.length === 0) {
     return null;

@@ -1,21 +1,26 @@
 import { useParams } from 'react-router-dom';
-import { Descriptions, List, Space, Typography } from 'antd';
+import { Descriptions, Space, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS } from '@/mocks/mock-data';
-import { useSearchItems } from '@/features/items/hooks/useItems';
+import { useContainer, useContainerItems } from '@/features/containers/hooks/useContainers';
 
 export function ContainerDetailPage() {
   const { wsId = 'ws-warehouse', containerId } = useParams();
   const { t } = useI18n();
-  const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
-  const container = MOCK_CONTAINERS.find((entry) => entry.id === containerId) ?? null;
-  const items = (itemsQuery.data?.data ?? []).filter((item) => item.containerId === containerId);
+  const resolvedContainerId = containerId ?? '';
+  const containerQuery = useContainer(wsId, resolvedContainerId);
+  const itemsQuery = useContainerItems(wsId, resolvedContainerId);
+  const container = containerQuery.data ?? null;
+  const items = itemsQuery.data ?? [];
 
   return (
     <PageShell title={t('container.detail.title')} description={t('container.detail.description')}>
       <div className="space-y-4">
+        {containerQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+        {containerQuery.isError ? <ErrorState message={t('container.detail.error', 'Unable to load container.')} onRetry={() => containerQuery.refetch()} /> : null}
         <Card>
           <CardContent className="space-y-4 p-6">
             <div className="space-y-1">
@@ -34,19 +39,19 @@ export function ContainerDetailPage() {
         <Card>
           <CardContent className="space-y-3 p-6">
             <CardTitle className="text-base">Items in this container</CardTitle>
+            {itemsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+            {itemsQuery.isError ? <ErrorState message={t('items.detail.loadError')} onRetry={() => itemsQuery.refetch()} /> : null}
             {items.length > 0 ? (
-              <List
-                bordered
-                dataSource={items}
-                renderItem={(item) => (
-                  <List.Item>
+              <div className="divide-y divide-border rounded-lg border border-border">
+                {items.map((item) => (
+                  <div key={item.id} className="px-4 py-3">
                     <Space direction="vertical" size={0}>
                       <Typography.Text strong>{item.name}</Typography.Text>
                       <Typography.Text type="secondary">{item.code ?? t('items.detail.noCode')}</Typography.Text>
                     </Space>
-                  </List.Item>
-                )}
-              />
+                  </div>
+                ))}
+              </div>
             ) : (
               <CardDescription>{t('container.detail.itemlist')}</CardDescription>
             )}

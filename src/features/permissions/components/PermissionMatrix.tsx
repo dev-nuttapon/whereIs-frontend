@@ -18,8 +18,11 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
       'item.move',
       'item.borrow',
       'item.return',
+      'item.withdraw',
+      'item.reserve',
       'item.mark_missing',
       'item.mark_found',
+      'item.repair',
       'item.dispose',
     ],
   },
@@ -33,7 +36,19 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
   },
   {
     title: 'permissions.group.structure',
-    permissions: ['container.view', 'container.create', 'container.update', 'container.delete'],
+    permissions: ['container.view', 'container.create', 'container.update', 'container.delete', 'container.visibility.manage', 'container.access.manage'],
+  },
+  {
+    title: 'permissions.group.stock',
+    permissions: ['stock.view', 'stock.consume', 'stock.restock', 'stock.count', 'stock.adjust'],
+  },
+  {
+    title: 'permissions.group.reports',
+    permissions: ['report.view', 'report.export'],
+  },
+  {
+    title: 'permissions.group.notifications',
+    permissions: ['notification.view', 'notification.manage'],
   },
   {
     title: 'permissions.group.activity',

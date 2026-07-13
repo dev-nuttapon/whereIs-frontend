@@ -1,10 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Workspace } from '@/types/domain.types';
-import { MOCK_WORKSPACES } from '@/mocks/mock-data';
 import type { PermissionKey } from '@/types/permission.types';
 
-const MOCK_PERMISSIONS: PermissionKey[] = [
+const FALLBACK_PERMISSIONS: PermissionKey[] = [
   'workspace.view',
   'item.view',
   'container.view',
@@ -20,19 +19,17 @@ interface WorkspaceState {
   clear: () => void;
 }
 
-const initialWorkspace = MOCK_WORKSPACES[0];
-
 export const workspaceStore = create<WorkspaceState>()(
   persist(
     (set) => ({
-      currentWorkspaceId: initialWorkspace.id,
-      currentWorkspace: initialWorkspace,
-      permissions: initialWorkspace.permissions.length > 0 ? initialWorkspace.permissions : MOCK_PERMISSIONS,
+      currentWorkspaceId: null,
+      currentWorkspace: null,
+      permissions: FALLBACK_PERMISSIONS,
       setWorkspace: (workspace) =>
         set({
           currentWorkspaceId: workspace.id,
           currentWorkspace: workspace,
-          permissions: workspace.permissions.length > 0 ? workspace.permissions : MOCK_PERMISSIONS,
+          permissions: workspace.permissions.length > 0 ? workspace.permissions : FALLBACK_PERMISSIONS,
         }),
       clear: () =>
         set({

@@ -15,7 +15,7 @@ export function Dialog({ open = false, onOpenChange, children }: DialogProps) {
       onCancel={() => onOpenChange?.(false)}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
       styles={{
         body: { padding: 0 },
         mask: { backdropFilter: 'blur(4px)' },

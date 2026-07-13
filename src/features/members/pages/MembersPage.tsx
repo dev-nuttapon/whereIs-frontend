@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState } from 'react';
-import { Avatar, List, Space, Tag, Typography } from 'antd';
+import { Avatar, Space, Tag, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,27 +39,25 @@ export function MembersPage() {
           icon={<MemberIcon className="h-5 w-5" />}
         />
       ) : null}
-      <List
-        className="rounded-2xl border border-border/70 bg-card/70"
-        itemLayout="horizontal"
-        dataSource={membersQuery.data ?? []}
-        renderItem={(member) => (
-          <List.Item actions={currentUser?.id === member.user.id ? [<Tag key="self" color="blue">{t('members.you')}</Tag>] : undefined}>
-            <List.Item.Meta
-              avatar={<Avatar>{member.user.name.slice(0, 1).toUpperCase()}</Avatar>}
-              title={
+      <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card/70">
+        {(membersQuery.data ?? []).map((member) => (
+          <div key={member.id} className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar>{member.user.name.slice(0, 1).toUpperCase()}</Avatar>
+              <div className="min-w-0">
                 <Space size={8} wrap>
                   <Typography.Text strong>
                     <MemberIcon className="mr-2 inline-block h-4 w-4" />
                     {member.user.name}
                   </Typography.Text>
                 </Space>
-              }
-              description={member.user.email}
-            />
-          </List.Item>
-        )}
-      />
+                <p className="truncate text-sm text-muted-foreground">{member.user.email}</p>
+              </div>
+            </div>
+            {currentUser?.id === member.user.id ? <Tag color="blue">{t('members.you')}</Tag> : null}
+          </div>
+        ))}
+      </div>
       <InviteMemberDialog wsId={wsId} open={inviteOpen} onOpenChange={setInviteOpen} />
     </PageShell>
   );

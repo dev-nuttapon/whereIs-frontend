@@ -3,9 +3,10 @@ import { Tag, Timeline, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { useActivity } from '@/features/items/hooks/useItems';
+import { useActivity, useSearchItems } from '@/features/items/hooks/useItems';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useMembers } from '@/features/members/hooks/useMembers';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS, MOCK_ITEMS, MOCK_MEMBERS } from '@/mocks/mock-data';
 import { buildActivityDisplay } from '@/features/activity/lib/activityDisplay';
 
 const activityToneClasses: Record<'blue' | 'emerald' | 'amber' | 'rose' | 'slate', string> = {
@@ -19,6 +20,9 @@ const activityToneClasses: Record<'blue' | 'emerald' | 'amber' | 'rose' | 'slate
 export function ActivityPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const query = useActivity(wsId);
+  const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
+  const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
   const { t, locale } = useI18n();
 
   return (
@@ -30,9 +34,9 @@ export function ActivityPage() {
           items={query.data.map((event) => {
             const display = buildActivityDisplay(event, {
               events: query.data ?? [],
-              items: MOCK_ITEMS,
-              containers: MOCK_CONTAINERS,
-              members: MOCK_MEMBERS,
+              items: itemsQuery.data?.data ?? [],
+              containers: containersQuery.data ?? [],
+              members: membersQuery.data ?? [],
               locale,
               t,
             });

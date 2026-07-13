@@ -16,7 +16,7 @@ export function StatCard({ label, value, description, to }: StatCardProps) {
         <Typography.Text type="secondary" className="text-sm">
           {label}
         </Typography.Text>
-        <Statistic value={value} valueStyle={{ fontSize: '2rem', lineHeight: 1.1 }} />
+        <Statistic value={value} styles={{ content: { fontSize: '2rem', lineHeight: 1.1 } }} />
         {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       </CardContent>
     </Card>

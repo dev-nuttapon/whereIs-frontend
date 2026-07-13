@@ -5,13 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { LoadingState } from '@/components/feedback/LoadingState';
 import { ItemFormDialog } from '@/features/items/components/ItemFormDialog';
 import { ItemActionDialogs, type ItemActionDialogsProps } from '@/features/items/components/ItemActionDialogs';
 import { ItemEditDialog } from '@/features/items/components/ItemEditDialog';
+import { useSearchItems } from '@/features/items/hooks/useItems';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useMembers } from '@/features/members/hooks/useMembers';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS, MOCK_ITEMS, MOCK_MEMBERS } from '@/mocks/mock-data';
 import { ContainerIcon, EditIcon, FilterIcon, ItemIcon, MemberIcon, OpenIcon, PlusIcon, ReturnIcon, SearchIcon, TakeOutIcon } from '@/components/ui/icons';
 import type { Item } from '@/types/domain.types';
 import { getItemStockState } from '@/lib/item-stock';
@@ -30,6 +34,15 @@ export function ItemsPage() {
   const filterStock = searchParams.get('stock');
   const filterUsageType = searchParams.get('usageType');
   const [draftQuery, setDraftQuery] = useState(queryText);
+  const itemsQuery = useSearchItems(wsId, {
+    q: queryText,
+    status: filterStatus ?? undefined,
+    usageType: filterUsageType ?? undefined,
+    page: 1,
+    limit: 200,
+  });
+  const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
 
   useEffect(() => {
     setDraftQuery(queryText);
@@ -71,20 +84,7 @@ export function ItemsPage() {
   }
 
   const filteredItems = useMemo(() => {
-    const workspaceItems = MOCK_ITEMS.filter((item) => item.workspaceId === wsId);
-    return workspaceItems.filter((item) => {
-      const searchableText = [item.name, item.code, item.description, item.containerId, item.currentHolderId]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      if (queryText && !searchableText.includes(queryText.toLowerCase())) {
-        return false;
-      }
-
-      if (filterStatus === 'stored' || filterStatus === 'taken_out' || filterStatus === 'missing') {
-        return item.status === filterStatus;
-      }
-
+    return (itemsQuery.data?.data ?? []).filter((item) => {
       if (filterStock === 'low') {
         return getItemStockState(item) === 'low_stock';
       }
@@ -93,17 +93,11 @@ export function ItemsPage() {
         return getItemStockState(item) === 'out_of_stock';
       }
 
-      if (filterUsageType === 'returnable' || filterUsageType === 'consumable') {
-        if (item.usageType !== filterUsageType) {
-          return false;
-        }
-      }
-
       return true;
     });
-  }, [filterStatus, filterStock, filterUsageType, queryText, wsId]);
-  const containerMap = useMemo(() => new Map(MOCK_CONTAINERS.map((container) => [container.id, container])), []);
-  const holderMap = useMemo(() => new Map(MOCK_MEMBERS.map((member) => [member.id, member])), []);
+  }, [filterStock, itemsQuery.data?.data]);
+  const containerMap = useMemo(() => new Map((containersQuery.data ?? []).map((container) => [container.id, container])), [containersQuery.data]);
+  const holderMap = useMemo(() => new Map((membersQuery.data ?? []).map((member) => [member.id, member])), [membersQuery.data]);
   const kindLabel = (kind: Item['kind']) => (kind === 'single' ? t('items.detail.kindSingle') : t('items.detail.kindBulk'));
   const usageLabel = (usageType: Item['usageType']) =>
     usageType === 'consumable' ? t('items.detail.usageTypeConsumable') : t('items.detail.usageTypeReturnable');
@@ -190,7 +184,10 @@ export function ItemsPage() {
         </CardContent>
       </Card>
 
-      {filteredItems.length === 0 ? (
+      {itemsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+      {itemsQuery.isError ? <ErrorState message={t('items.detail.loadError')} onRetry={() => itemsQuery.refetch()} /> : null}
+
+      {!itemsQuery.isLoading && filteredItems.length === 0 ? (
         <EmptyState
           title={t('items.list.emptyTitle')}
           description={t('items.list.emptyDescription')}

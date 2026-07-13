@@ -10,7 +10,7 @@ import { FormField } from '@/components/forms/FormField';
 import { FormActions } from '@/components/forms/FormActions';
 import { createItemSchema, type ItemValues } from '@/features/items/validation/itemSchema';
 import { useCreateItem } from '@/features/items/hooks/useItems';
-import { MOCK_CONTAINERS } from '@/mocks/mock-data';
+import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useI18n } from '@/hooks/useI18n';
 
 export interface ItemFormDialogProps {
@@ -21,8 +21,11 @@ export interface ItemFormDialogProps {
 
 export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps) {
   const createMutation = useCreateItem(wsId);
+  const containersQuery = useContainers(wsId);
   const { t } = useI18n();
   const itemSchema = createItemSchema(t);
+  const containers = containersQuery.data ?? [];
+  const defaultContainerId = containers[0]?.id ?? '';
   const {
     register,
     handleSubmit,
@@ -38,7 +41,7 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
       name: 'Sample Item',
       code: 'ITEM-001',
       description: 'Sample item used to show item create and search flow',
-      containerId: MOCK_CONTAINERS[0]?.id ?? '',
+      containerId: defaultContainerId,
       quantity: 1,
       reorderPoint: 5,
     },
@@ -53,11 +56,11 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
       name: 'Sample Item',
       code: 'ITEM-001',
       description: 'Sample item used to show item create and search flow',
-      containerId: MOCK_CONTAINERS[0]?.id ?? '',
+      containerId: defaultContainerId,
       quantity: 1,
       reorderPoint: 5,
     });
-  }, [open, reset]);
+  }, [defaultContainerId, open, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     await createMutation.mutateAsync({
@@ -106,7 +109,7 @@ export function ItemFormDialog({ wsId, open, onOpenChange }: ItemFormDialogProps
           </FormField>
           <FormField label={t('items.form.container')} htmlFor="item-container" error={errors.containerId?.message}>
             <Select id="item-container" {...register('containerId')}>
-              {MOCK_CONTAINERS.map((container) => (
+              {containers.map((container) => (
                 <option key={container.id} value={container.id}>
                   {container.name}
                 </option>

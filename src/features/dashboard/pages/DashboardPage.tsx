@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Avatar, List, Space, Tag, Typography } from 'antd';
+import { Avatar, Space, Tag, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,11 +11,12 @@ import { getDashboardSummary } from '@/api/dashboard.api';
 import { ROUTES } from '@/constants/routes';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { useActivity } from '@/features/items/hooks/useItems';
+import { useActivity, useSearchItems } from '@/features/items/hooks/useItems';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useMembers } from '@/features/members/hooks/useMembers';
 import { useI18n } from '@/hooks/useI18n';
 import { SearchIcon } from '@/components/ui/icons';
 import { buildActivityDisplay } from '@/features/activity/lib/activityDisplay';
-import { MOCK_CONTAINERS, MOCK_ITEMS, MOCK_MEMBERS } from '@/mocks/mock-data';
 
 const activityToneClasses: Record<'blue' | 'emerald' | 'amber' | 'rose' | 'slate', string> = {
   blue: 'border-blue-500/20 bg-blue-500/10 text-blue-700',
@@ -33,6 +34,9 @@ export function DashboardPage() {
     queryFn: () => getDashboardSummary(wsId),
   });
   const activityQuery = useActivity(wsId);
+  const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
+  const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
   const recentActivity = useMemo(() => activityQuery.data?.slice(0, 5) ?? [], [activityQuery.data]);
   const itemsLink = (params?: Record<string, string>) =>
     params ? `${ROUTES.workspaceItems(wsId)}?${new URLSearchParams(params).toString()}` : ROUTES.workspaceItems(wsId);
@@ -88,23 +92,22 @@ export function DashboardPage() {
           {activityQuery.isLoading ? <LoadingState label={t('dashboard.loadingActivity')} /> : null}
           {activityQuery.isError ? <ErrorState message={t('dashboard.activityError')} onRetry={() => activityQuery.refetch()} /> : null}
           {recentActivity.length > 0 ? (
-            <List
-              dataSource={recentActivity}
-              renderItem={(event) => {
+            <div className="divide-y divide-border">
+              {recentActivity.map((event) => {
                 const display = buildActivityDisplay(event, {
                   events: activityQuery.data ?? [],
-                  items: MOCK_ITEMS,
-                  containers: MOCK_CONTAINERS,
-                  members: MOCK_MEMBERS,
+                  items: itemsQuery.data?.data ?? [],
+                  containers: containersQuery.data ?? [],
+                  members: membersQuery.data ?? [],
                   locale,
                   t,
                 });
 
                 return (
-                  <List.Item className="!px-0">
-                    <List.Item.Meta
-                      avatar={<Avatar className={`${activityToneClasses[display.tone]}`}>{display.glyph}</Avatar>}
-                      title={
+                  <div key={event.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 gap-3">
+                      <Avatar className={`${activityToneClasses[display.tone]}`}>{display.glyph}</Avatar>
+                      <div className="min-w-0 space-y-2">
                         <Space size={8} wrap>
                           <Typography.Text strong>{event.actor.name}</Typography.Text>
                           <Tag className={`uppercase tracking-[0.18em] ${activityToneClasses[display.tone]}`}>{display.eventLabel}</Tag>
@@ -112,8 +115,6 @@ export function DashboardPage() {
                             {display.itemName}
                           </Typography.Text>
                         </Space>
-                      }
-                      description={
                         <div className="space-y-2">
                           <Typography.Paragraph className="!mb-0 text-sm text-muted-foreground">
                             {display.summary}
@@ -125,15 +126,15 @@ export function DashboardPage() {
                           </div>
                           {display.detail ? <Typography.Text type="secondary" className="text-xs">{display.detail}</Typography.Text> : null}
                         </div>
-                      }
-                    />
+                      </div>
+                    </div>
                     <Typography.Text type="secondary" className="shrink-0 text-xs">
                       {eventTime(event.createdAt)}
                     </Typography.Text>
-                  </List.Item>
+                  </div>
                 );
-              }}
-            />
+              })}
+            </div>
           ) : (
             <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
               {t('dashboard.recentEmpty')}

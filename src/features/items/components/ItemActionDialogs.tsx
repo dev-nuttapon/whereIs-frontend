@@ -37,7 +37,8 @@ import {
   useTakeOutItemMutation,
 } from '@/features/items/hooks/useItems';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS, MOCK_MEMBERS } from '@/mocks/mock-data';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useMembers } from '@/features/members/hooks/useMembers';
 import { authStore } from '@/stores/auth.store';
 
 export interface ItemActionDialogsProps {
@@ -50,6 +51,10 @@ export interface ItemActionDialogsProps {
 export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }: ItemActionDialogsProps) {
   const { t } = useI18n();
   const currentUser = authStore((state) => state.user);
+  const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
+  const containers = containersQuery.data ?? [];
+  const members = membersQuery.data ?? [];
   const moveMutation = useMoveItem(wsId, item.id);
   const takeOutMutation = useTakeOutItemMutation(wsId, item.id);
   const returnMutation = useReturnItemMutation(wsId, item.id);
@@ -68,9 +73,9 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
   const markFoundSchema = createMarkFoundSchema(t);
   const disposeSchema = createDisposeSchema(t);
 
-  const currentContainerId = item.containerId ?? MOCK_CONTAINERS[0]?.id ?? '';
-  const currentHolderId = MOCK_MEMBERS.find((member) => member.user.id === currentUser?.id)?.id ?? '';
-  const currentContainerLabel = MOCK_CONTAINERS.find((container) => container.id === currentContainerId)?.name ?? t('items.detail.noContainer');
+  const currentContainerId = item.containerId ?? containers[0]?.id ?? '';
+  const currentHolderId = members.find((member) => member.user.id === currentUser?.id)?.id ?? '';
+  const currentContainerLabel = containers.find((container) => container.id === currentContainerId)?.name ?? t('items.detail.noContainer');
   const currentHolderLabel = currentUser?.name ?? t('items.detail.noHolder');
   const canReturnItem = item.usageType === 'returnable';
   const isConsumableStockItem = item.kind === 'stock' && item.usageType === 'consumable';
@@ -152,7 +157,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               error={moveForm.formState.errors.toContainerId?.message}
             >
               <Select id="move-target" {...moveForm.register('toContainerId')}>
-                {MOCK_CONTAINERS.map((container) => (
+                {containers.map((container) => (
                   <option key={container.id} value={container.id}>
                     {container.name}
                   </option>
@@ -376,7 +381,7 @@ export function ItemActionDialogs({ wsId, item, openAction, onOpenActionChange }
               error={foundForm.formState.errors.containerId?.message}
             >
               <Select id="found-container" {...foundForm.register('containerId')}>
-                {MOCK_CONTAINERS.map((container) => (
+                {containers.map((container) => (
                   <option key={container.id} value={container.id}>
                     {container.name}
                   </option>

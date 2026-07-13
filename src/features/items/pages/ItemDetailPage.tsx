@@ -8,12 +8,14 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useItem, useItemEvents } from '@/features/items/hooks/useItems';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useMembers } from '@/features/members/hooks/useMembers';
+import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ItemEditDialog } from '@/features/items/components/ItemEditDialog';
 import { ItemActionDialogs } from '@/features/items/components/ItemActionDialogs';
 import { usePermission } from '@/hooks/usePermission';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS, MOCK_MEMBERS, MOCK_WORKSPACES } from '@/mocks/mock-data';
 import { getItemStockState } from '@/lib/item-stock';
 import { ContainerIcon, EditIcon, MemberIcon } from '@/components/ui/icons';
 
@@ -34,6 +36,9 @@ export function ItemDetailPage() {
 
   const item = itemQuery.data;
   const eventsQuery = useItemEvents(wsId, item?.id ?? '');
+  const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
+  const workspaceQuery = useWorkspace(wsId);
   const canMove = can('item.move') && item?.status !== 'disposed';
   const canTakeOut = can('item.borrow') && item?.status === 'stored';
   const canReturn = can('item.return') && item?.status === 'taken_out' && item?.usageType === 'returnable';
@@ -56,9 +61,9 @@ export function ItemDetailPage() {
     marked_found: t('items.event.markedFound'),
     disposed: t('items.event.disposed'),
   };
-  const container = item?.containerId ? MOCK_CONTAINERS.find((entry) => entry.id === item.containerId) : null;
-  const holder = item?.currentHolderId ? MOCK_MEMBERS.find((entry) => entry.id === item.currentHolderId) : null;
-  const workspace = item ? MOCK_WORKSPACES.find((entry) => entry.id === item.workspaceId) : null;
+  const container = item?.containerId ? containersQuery.data?.find((entry) => entry.id === item.containerId) : null;
+  const holder = item?.currentHolderId ? membersQuery.data?.find((entry) => entry.id === item.currentHolderId) : null;
+  const workspace = workspaceQuery.data ?? null;
   const kindLabel = item?.kind === 'stock' ? t('items.detail.kindBulk') : t('items.detail.kindSingle');
   const usageLabel = item?.usageType === 'consumable' ? t('items.detail.usageTypeConsumable') : t('items.detail.usageTypeReturnable');
   const returnPolicyLabel = item?.usageType === 'returnable' ? t('items.detail.noReturnRequired') : undefined;

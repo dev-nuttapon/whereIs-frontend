@@ -11,9 +11,10 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ROUTES } from '@/constants/routes';
 import { useSearchItems } from '@/features/items/hooks/useItems';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useMembers } from '@/features/members/hooks/useMembers';
 import { useI18n } from '@/hooks/useI18n';
 import { ContainerIcon, FilterIcon, MemberIcon, OpenIcon, SearchIcon } from '@/components/ui/icons';
-import { MOCK_CONTAINERS, MOCK_MEMBERS } from '@/mocks/mock-data';
 
 interface FilterOption {
   value: string;
@@ -127,10 +128,12 @@ export function SearchPage() {
     page: Number(searchParams.get('page') ?? 1),
     limit: 20,
   });
+  const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
 
   const items = useMemo(() => query.data?.data ?? [], [query.data]);
-  const containerMap = useMemo(() => new Map(MOCK_CONTAINERS.map((container) => [container.id, container])), []);
-  const holderMap = useMemo(() => new Map(MOCK_MEMBERS.map((member) => [member.id, member])), []);
+  const containerMap = useMemo(() => new Map((containersQuery.data ?? []).map((container) => [container.id, container])), [containersQuery.data]);
+  const holderMap = useMemo(() => new Map((membersQuery.data ?? []).map((member) => [member.id, member])), [membersQuery.data]);
   const totalResults = query.data?.meta.total ?? items.length;
   const hasActiveSearch = Boolean(q.trim() || isAdvancedOpen || Number(searchParams.get('page') ?? 1) > 1);
 

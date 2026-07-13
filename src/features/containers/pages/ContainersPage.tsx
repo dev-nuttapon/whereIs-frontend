@@ -1,22 +1,25 @@
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSearchItems } from '@/features/items/hooks/useItems';
+import { useContainers } from '@/features/containers/hooks/useContainers';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { MOCK_CONTAINERS } from '@/mocks/mock-data';
 import { ContainerIcon, OpenIcon } from '@/components/ui/icons';
 
 export function ContainersPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t } = useI18n();
   const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
+  const containersQuery = useContainers(wsId);
 
-  const containers = useMemo(() => MOCK_CONTAINERS.filter((container) => container.workspaceId === wsId), [wsId]);
+  const containers = useMemo(() => containersQuery.data ?? [], [containersQuery.data]);
   const itemCounts = useMemo(() => {
     const counts = new Map<string, number>();
     (itemsQuery.data?.data ?? []).forEach((item) => {
@@ -30,6 +33,8 @@ export function ContainersPage() {
 
   return (
     <PageShell title={t('containers.list.title')} description={t('containers.list.description')}>
+      {containersQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+      {containersQuery.isError ? <ErrorState message={t('containers.list.error', 'Unable to load containers.')} onRetry={() => containersQuery.refetch()} /> : null}
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard label={t('containers.list.itemCount')} value={Array.from(itemCounts.values()).reduce((sum, count) => sum + count, 0)} />
         <StatCard label={t('containers.list.total')} value={containers.length} />

@@ -87,7 +87,7 @@
 ### Items (`item.api.ts`)
 | Method | Endpoint | Body / Query | Response |
 |--------|----------|--------------|----------|
-| GET | `/workspaces/:wsId/items` | `?q&type&status&containerId&page&limit&sort&holderId&location&expiry&warranty&maintenance&reservationWaiting&overdueReturn` | `{ data: Item[], meta }` |
+| GET | `/workspaces/:wsId/items` | `?q&kind&usageType&status&containerId&page&limit&sort&holderId&location&expiry&warranty&maintenance&reservationWaiting&overdueReturn` | `{ data: Item[], meta }` |
 | GET | `/workspaces/:wsId/items/:id` | — | `{ data: Item }` |
 | POST | `/workspaces/:wsId/items` | `CreateItemInput` | `{ data: Item }` |
 | PUT | `/workspaces/:wsId/items/:id` | `UpdateItemInput` | `{ data: Item }` |
@@ -172,7 +172,8 @@ interface NotificationSettings {
 ## Request DTO
 ```ts
 interface CreateItemInput {
-  type: 'single' | 'stock';
+  kind: 'single' | 'stock';
+  usageType: 'consumable' | 'returnable';
   name: string;
   code?: string;
   description?: string;
@@ -180,7 +181,7 @@ interface CreateItemInput {
   quantity?: number;
   unit?: string;
   baseUnit?: string;
-  batchCode?: string;
+  lotCode?: string;
   receivedDate?: string | null;
   expiryDate?: string | null;
   warrantyEndDate?: string | null;
@@ -196,7 +197,7 @@ interface UpdateItemInput {
   quantity?: number;
   unit?: string;
   baseUnit?: string;
-  batchCode?: string;
+  lotCode?: string;
   receivedDate?: string | null;
   expiryDate?: string | null;
   warrantyEndDate?: string | null;
@@ -215,8 +216,8 @@ interface ConsumeStockInput { quantity: number; note?: string; }
 interface RestockStockInput { quantity: number; note?: string; }
 interface StockCountInput { countedQuantity: number; note?: string; }
 interface StockAdjustInput { variance: number; reason: string; approvalNote?: string; }
-interface InviteMemberInput { email: string; primaryRole: 'owner' | 'admin' | 'member' | 'viewer'; }
-interface UpdateMemberRoleInput { primaryRole: 'owner' | 'admin' | 'member' | 'viewer'; }
+interface InviteMemberInput { email: string; role: 'owner' | 'admin' | 'member' | 'viewer'; }
+interface UpdateMemberRoleInput { role: 'owner' | 'admin' | 'member' | 'viewer'; }
 ```
 
 ## Example
@@ -243,10 +244,15 @@ Response `200`:
 - endpoint เขียน → `useMutation` + invalidate
 - query key ผ่าน factory ที่ `src/lib/queryKeys.ts`
 
+## Frontend Mock Adapter Status
+- โค้ด production-facing ควรเรียกผ่าน `src/api/*.api.ts` และ React Query hooks เท่านั้น
+- `src/mocks/demo-db.ts` เป็น mock adapter ชั่วคราวจนกว่า backend จริงจะพร้อม
+- เมื่อ backend พร้อม ให้คง signatures ในไฟล์ API เดิม แล้วเปลี่ยน implementation ให้ใช้ `client` จาก `src/api/client.ts`
+
 ## Open Questions
-- รายละเอียด field ของ `Notification` และ `ReportSummary` ยังต้อง sync กับ backend contract
+- รายละเอียด field ของ `Notification` และ `ReportSummary` ต้อง sync กับ backend contract ก่อนทำ export/filter ขั้นสูง
 - ชื่อ endpoint จริงสำหรับ withdraw / reserve / repair / count / adjust อาจปรับได้ตาม backend final contract
-- `ItemEvent.type` ฝั่ง backend อาจแตกต่างจาก label ที่ UI แสดง
+- `ItemEvent.type` ฝั่ง backend ต้องรองรับ set ใน domain model หรือมี mapping layer ที่ API adapter
 
 ## เอกสารที่เกี่ยวข้อง
 - [state-management.md](../state/state-management.md)

@@ -8,7 +8,7 @@ import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { LogoutIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
-import { MOCK_USERS } from '@/mocks/mock-data';
+import { useDemoUsers } from '@/features/auth/hooks/useDemoUsers';
 
 export interface UserMenuProps {
   workspaceId?: string | null;
@@ -21,6 +21,8 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
   const setAuth = authStore((state) => state.setAuth);
   const logout = authStore((state) => state.logout);
   const { t } = useI18n();
+  const demoUsersQuery = useDemoUsers();
+  const demoUsers = demoUsersQuery.data ?? [];
   const activeWorkspaceId = workspaceId ?? wsId ?? workspaceStore.getState().currentWorkspaceId;
   const showWorkspaceLinks = Boolean(activeWorkspaceId);
 
@@ -40,7 +42,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       {
         key: 'persona',
         label: 'Switch demo persona',
-        children: MOCK_USERS.map((candidate) => ({
+        children: demoUsers.map((candidate) => ({
           key: candidate.id,
           label: candidate.name,
         })),
@@ -74,7 +76,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
     );
 
     return next;
-  }, [showWorkspaceLinks, t, user?.email, user?.name]);
+  }, [demoUsers, showWorkspaceLinks, t, user?.email, user?.name]);
 
   return (
     <Dropdown
@@ -84,7 +86,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
         items,
         onClick: ({ key, keyPath }) => {
           if (keyPath.includes('persona')) {
-            const nextUser = MOCK_USERS.find((candidate) => candidate.id === key);
+            const nextUser = demoUsers.find((candidate) => candidate.id === key);
             if (nextUser) {
               setAuth('demo-token', nextUser);
             }

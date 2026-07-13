@@ -4,7 +4,6 @@ import { Select as AntSelect } from 'antd';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useWorkspaces } from '@/features/workspaces/hooks/useWorkspaces';
-import { MOCK_WORKSPACES } from '@/mocks/mock-data';
 import { WorkspaceIcon } from '@/components/ui/icons';
 
 export function WorkspaceSwitcher() {
@@ -12,13 +11,14 @@ export function WorkspaceSwitcher() {
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const setWorkspace = workspaceStore((state) => state.setWorkspace);
   const workspacesQuery = useWorkspaces();
-  const workspaces = useMemo(() => workspacesQuery.data ?? MOCK_WORKSPACES, [workspacesQuery.data]);
+  const workspaces = useMemo(() => workspacesQuery.data ?? [], [workspacesQuery.data]);
 
   return (
     <AntSelect
       className="w-full"
       size="large"
-      value={currentWorkspace?.id ?? workspaces[0]?.id ?? MOCK_WORKSPACES[0].id}
+      loading={workspacesQuery.isLoading}
+      value={currentWorkspace?.id ?? workspaces[0]?.id}
       onChange={(value) => {
         const workspace = workspaces.find((item) => item.id === value);
         if (!workspace) {
