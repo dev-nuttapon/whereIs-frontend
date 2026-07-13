@@ -16,22 +16,24 @@ export function ContainerDetailPage() {
 
   return (
     <PageShell title={t('container.detail.title')} description={t('container.detail.description')}>
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-5">
         {containerQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
         {containerQuery.isError ? <ErrorState message={t('container.detail.error', 'Unable to load container.')} onRetry={() => containerQuery.refetch()} /> : null}
         <Card>
-          <CardContent className="space-y-4 p-6">
+          <CardContent className="space-y-4 p-5 sm:p-6">
             <div className="space-y-1">
               <CardTitle className="text-base">
                 {t('container.detail.containerLabel')} {container?.name ?? containerId}
               </CardTitle>
               <CardDescription>{container?.typeLabel ?? t('container.detail.itemlist')}</CardDescription>
             </div>
-            <Descriptions bordered column={{ xs: 1, md: 3 }} size="middle">
-              <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? containerId}</Descriptions.Item>
-              <Descriptions.Item label={t('items.list.count')}>{container?.itemCount ?? 0}</Descriptions.Item>
-              <Descriptions.Item label={t('containers.list.title')}>{container?.parentId ?? '—'}</Descriptions.Item>
-            </Descriptions>
+            <div className="responsive-descriptions">
+              <Descriptions bordered column={{ xs: 1, md: 3 }} size="middle">
+                <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? containerId}</Descriptions.Item>
+                <Descriptions.Item label={t('items.list.count')}>{container?.itemCount ?? 0}</Descriptions.Item>
+                <Descriptions.Item label={t('containers.list.title')}>{container?.parentId ?? '—'}</Descriptions.Item>
+              </Descriptions>
+            </div>
           </CardContent>
         </Card>
       </div>

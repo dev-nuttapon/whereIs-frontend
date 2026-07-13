@@ -1,10 +1,9 @@
 import { NavLink, useLocation, useParams } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Menu } from 'antd';
 import { useMemo } from 'react';
 import { WORKSPACE_NAV_ITEMS, type NavItem } from '@/constants/navigation';
 import { useI18n } from '@/hooks/useI18n';
 import { workspaceStore } from '@/stores/workspace.store';
-import { uiStore } from '@/stores/ui.store';
 import {
   DashboardIcon,
   ContainerIcon,
@@ -19,18 +18,20 @@ const ICONS = {
   settings: SettingsIcon,
 } as const;
 
+export interface SidebarProps {
+  onNavigate?: () => void;
+}
+
 const SECTIONS: Array<{ titleKey: string; items: Array<NavItem['labelKey']> }> = [
   { titleKey: 'nav.group.main', items: ['nav.dashboard'] },
   { titleKey: 'nav.group.inventory', items: ['nav.containers'] },
   { titleKey: 'nav.group.management', items: ['nav.members', 'nav.settings'] },
 ] as const;
 
-export function Sidebar() {
+export function Sidebar({ onNavigate }: SidebarProps) {
   const { wsId = workspaceStore.getState().currentWorkspaceId ?? 'ws-hq' } = useParams();
   const location = useLocation();
   const { t } = useI18n();
-  const sidebarOpen = uiStore((state) => state.sidebarOpen);
-  const toggleSidebar = uiStore((state) => state.toggleSidebar);
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const items = WORKSPACE_NAV_ITEMS.filter((item) => {
     const role = currentWorkspace?.myRole ?? 'viewer';
@@ -53,11 +54,7 @@ export function Sidebar() {
                 <NavLink
                   to={to}
                   end={item.labelKey === 'nav.dashboard'}
-                  onClick={() => {
-                    if (sidebarOpen) {
-                      toggleSidebar();
-                    }
-                  }}
+                  onClick={onNavigate}
                   className="flex items-center gap-2"
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-foreground">
@@ -70,7 +67,7 @@ export function Sidebar() {
           }),
         };
       }).filter((section) => section.children.length > 0),
-    [items, sidebarOpen, t, toggleSidebar, wsId],
+    [items, onNavigate, t, wsId],
   );
 
   const selectedKey = useMemo(() => {
@@ -85,32 +82,13 @@ export function Sidebar() {
   }, [items, location.pathname, wsId]);
 
   return (
-    <Layout.Sider
-      width={280}
-      collapsedWidth={0}
-      breakpoint="lg"
-      collapsed={!sidebarOpen}
-      onCollapse={(collapsed) => {
-        if (collapsed !== sidebarOpen) {
-          toggleSidebar();
-        }
-      }}
-      style={{
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-        overflow: 'auto',
-        borderRight: '1px solid rgba(5, 5, 5, 0.06)',
-        background: 'var(--ant-color-bg-container)',
-      }}
-      className="z-50"
-    >
+    <aside className="flex h-full min-h-0 flex-col overflow-auto bg-card">
       <div className="border-b border-border/60 px-4 py-4">
         <p className="text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">WhereIs</p>
         <p className="mt-1 truncate text-sm font-semibold leading-tight">{currentWorkspace?.name ?? 'Workspace'}</p>
         <p className="mt-1 text-xs text-muted-foreground">{currentWorkspace?.myRole ?? 'viewer'}</p>
       </div>
       <Menu mode="inline" selectable inlineIndent={16} selectedKeys={[selectedKey]} items={menuItems} />
-    </Layout.Sider>
+    </aside>
   );
 }

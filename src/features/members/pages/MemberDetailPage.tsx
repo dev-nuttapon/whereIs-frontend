@@ -27,26 +27,28 @@ export function MemberDetailPage() {
       {memberQuery.isLoading ? <LoadingState label={t('members.detail.loading')} /> : null}
       {memberQuery.isError ? <ErrorState message={t('members.detail.error')} onRetry={() => memberQuery.refetch()} /> : null}
       {memberQuery.data ? (
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-5">
           <Card>
-            <CardContent className="space-y-4 p-6">
-              <div className="flex items-center gap-4">
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <Avatar size={48}>{memberQuery.data.user.name.slice(0, 1).toUpperCase()}</Avatar>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <CardTitle className="text-base">{memberQuery.data.user.name}</CardTitle>
-                  <CardDescription>{memberQuery.data.user.email}</CardDescription>
+                  <CardDescription className="truncate">{memberQuery.data.user.email}</CardDescription>
                 </div>
               </div>
-              <Descriptions bordered column={{ xs: 1, md: 2 }} size="middle">
-                <Descriptions.Item label={t('members.detail.role')}>
-                  <Tag color="blue">{t(`members.role.${memberQuery.data.role}`)}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label={t('members.detail.workspace')}>{workspace?.name ?? wsId}</Descriptions.Item>
-              </Descriptions>
+              <div className="responsive-descriptions">
+                <Descriptions bordered column={{ xs: 1, md: 2 }} size="middle">
+                  <Descriptions.Item label={t('members.detail.role')}>
+                    <Tag color="blue">{t(`members.role.${memberQuery.data.role}`)}</Tag>
+                  </Descriptions.Item>
+                  <Descriptions.Item label={t('members.detail.workspace')}>{workspace?.name ?? wsId}</Descriptions.Item>
+                </Descriptions>
+              </div>
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
             <StatCard label={t('members.detail.permissions')} value={effectiveCount} />
             <StatCard label={t('members.detail.overrides')} value={overrideCount} description={t('permissions.title')} />
             <StatCard label={t('members.detail.samplePermissions')} value={effectiveCount} description={t('permissions.enabled')} />
@@ -54,7 +56,7 @@ export function MemberDetailPage() {
 
           {highlightedPermissions.length > 0 ? (
             <Card>
-              <CardContent className="space-y-3 p-6">
+              <CardContent className="space-y-3 p-5 sm:p-6">
                 <CardTitle className="text-base">{t('members.detail.samplePermissions')}</CardTitle>
                 <Space wrap>
                   {highlightedPermissions.map((permission) => (

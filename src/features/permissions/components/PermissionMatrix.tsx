@@ -89,19 +89,19 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
 
   return (
     <Card>
-      <CardContent className="space-y-6 p-6">
-        <div className="space-y-1">
+      <CardContent className="space-y-5 p-5 sm:space-y-6 sm:p-6">
+        <div className="space-y-1.5">
           <CardTitle className="text-lg">{t('permissions.title')}</CardTitle>
           <CardDescription>{t('permissions.description')}</CardDescription>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {PERMISSION_GROUPS.map((group) => (
             <div key={group.title} className="space-y-3">
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t(group.title)}</h3>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {group.permissions.map((permission) => (
-                  <label key={permission} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                    <div className="space-y-0.5">
+                  <label key={permission} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
+                    <div className="min-w-0 space-y-0.5">
                       <div className="text-sm font-medium">{t(permissionLabelKey(permission), permission)}</div>
                       <div className="text-xs text-muted-foreground">
                         {effective.includes(permission) ? t('permissions.enabled') : t('permissions.disabled')}
@@ -118,11 +118,11 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={() => updateMutation.mutate(overrides)} disabled={updateMutation.isPending}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+          <Button className="w-full sm:w-auto" onClick={() => updateMutation.mutate(overrides)} disabled={updateMutation.isPending}>
             {updateMutation.isPending ? t('permissions.saving') : t('permissions.saveChanges')}
           </Button>
-          <Button variant="outline" onClick={() => setOverrides({})} disabled={updateMutation.isPending}>
+          <Button className="w-full sm:w-auto" variant="outline" onClick={() => setOverrides({})} disabled={updateMutation.isPending}>
             {t('permissions.resetDefault')}
           </Button>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">

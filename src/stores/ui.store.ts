@@ -49,6 +49,7 @@ interface UiState {
   theme: Theme;
   locale: Locale;
   toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
   setTheme: (theme: Theme) => void;
   setLocale: (locale: Locale) => void;
   toggleLocale: () => void;
@@ -61,6 +62,7 @@ export const uiStore = create<UiState>()(
       theme: resolveInitialTheme(),
       locale: resolveInitialLocale(),
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setTheme: (theme) => set({ theme }),
       setLocale: (locale) => set({ locale }),
       toggleLocale: () => set((state) => ({ locale: state.locale === 'en' ? 'th' : 'en' })),

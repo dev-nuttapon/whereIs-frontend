@@ -118,6 +118,11 @@
     min-height: 42px;
   }
 
+  header .ant-select-selector {
+    border-radius: 999px;
+    box-shadow: none !important;
+  }
+
   .auth-action-stack {
     display: flex;
     flex-direction: column;
@@ -133,6 +138,31 @@
     width: 100%;
   }
 
+  .page-actions > .ant-btn,
+  .page-actions > a,
+  .page-actions > a > .ant-btn,
+  .form-actions > .ant-btn,
+  .form-actions > a,
+  .form-actions > a > .ant-btn {
+    width: 100%;
+  }
+
+  .app-card > .ant-card-body {
+    padding: 20px !important;
+  }
+
+  .responsive-card-body {
+    padding: 20px !important;
+  }
+
+  .responsive-descriptions {
+    overflow-x: auto;
+  }
+
+  .responsive-descriptions .ant-descriptions-view {
+    min-width: 520px;
+  }
+
   .ant-alert {
     border-radius: 14px;
   }
@@ -143,5 +173,37 @@
 
   .ant-alert-message + .ant-alert-description {
     margin-top: 10px;
+  }
+
+  @media (min-width: 640px) {
+    .page-actions > .ant-btn,
+    .page-actions > a,
+    .page-actions > a > .ant-btn,
+    .form-actions > .ant-btn,
+    .form-actions > a,
+    .form-actions > a > .ant-btn {
+      width: auto;
+    }
+
+    .app-card > .ant-card-body,
+    .responsive-card-body {
+      padding: 24px !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .app-card > .ant-card-body {
+      padding: 28px !important;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .ant-modal {
+      max-width: calc(100vw - 24px);
+    }
+
+    .ant-alert-with-description {
+      padding: 16px 18px;
+    }
   }
 }

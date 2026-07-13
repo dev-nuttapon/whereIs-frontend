@@ -49,7 +49,7 @@ export function LoginPage() {
 
   return (
     <Form<LoginFormValues> layout="vertical" requiredMark={false} onFinish={onFinish}>
-      {error ? <Alert className="mb-6" type="error" showIcon message={t('auth.login.error')} description={error} /> : null}
+      {error ? <Alert className="mb-4" type="error" showIcon message={t('auth.login.error')} description={error} /> : null}
       <Form.Item
         label={t('auth.email')}
         name="email"

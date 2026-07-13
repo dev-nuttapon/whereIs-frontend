@@ -15,7 +15,7 @@ export function WorkspaceSwitcher() {
 
   return (
     <AntSelect
-      className="w-full"
+      className="w-full min-w-0"
       size="large"
       loading={workspacesQuery.isLoading}
       value={currentWorkspace?.id ?? workspaces[0]?.id}
@@ -31,7 +31,7 @@ export function WorkspaceSwitcher() {
         value: workspace.id,
         label: (
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:flex">
               <WorkspaceIcon className="h-4 w-4" />
             </span>
             <div className="min-w-0">

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 
 export function FormActions({ children }: { children: ReactNode }) {
-  return <div className="flex items-center justify-end gap-3 pt-2">{children}</div>;
+  return <div className="form-actions flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">{children}</div>;
 }
-

@@ -5,8 +5,7 @@ import { cn } from '@/lib/cn';
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <AntCard
-      className={cn('shadow-sm', className)}
-      styles={{ body: { padding: 28 } }}
+      className={cn('app-card shadow-sm', className)}
       {...props}
     />
   );

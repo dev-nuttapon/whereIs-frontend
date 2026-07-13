@@ -112,11 +112,11 @@ export function ProfilePage() {
     <PageShell title={t('profile.title')} description={t('profile.description')}>
       <Card className="overflow-hidden">
         <div className="space-y-5 p-5 sm:p-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Avatar size={48} className="bg-primary text-primary-foreground">
               {initials}
             </Avatar>
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <Typography.Title level={5} className="!mb-0 !mt-0 text-base">
                 {t('profile.cardTitle')}
               </Typography.Title>
@@ -140,8 +140,8 @@ export function ProfilePage() {
               <Input id="email" type="email" autoComplete="email" {...register('email')} disabled />
             </div>
             {saved ? <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.saved')} /> : null}
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="primary" htmlType="submit" disabled={isSubmitting || !isDirty || updateMutation.isPending}>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+              <Button className="w-full sm:w-auto" type="primary" htmlType="submit" disabled={isSubmitting || !isDirty || updateMutation.isPending}>
                 {isSubmitting || updateMutation.isPending ? t('profile.saving') : t('profile.save')}
               </Button>
             </div>

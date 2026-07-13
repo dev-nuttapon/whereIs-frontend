@@ -21,7 +21,7 @@ export function WorkspaceListPage() {
   const workspaceCount = workspaces.length;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
       <PageShell
         title={t('workspace.list.title')}
         description={`${t('workspace.list.description')} ${t('workspace.list.heroHint')}`}
@@ -91,7 +91,7 @@ export function WorkspaceListPage() {
       ) : null}
 
       {workspaces.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((workspace) => (
             <WorkspaceCard key={workspace.id} workspace={workspace} />
           ))}

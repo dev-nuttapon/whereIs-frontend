@@ -51,7 +51,7 @@ export function RegisterPage() {
 
   return (
     <Form<RegisterFormValues> layout="vertical" requiredMark={false} onFinish={onFinish}>
-      {error ? <Alert className="mb-6" type="error" showIcon message={t('auth.register.error')} description={error} /> : null}
+      {error ? <Alert className="mb-4" type="error" showIcon message={t('auth.register.error')} description={error} /> : null}
       <Form.Item
         label={t('auth.email')}
         name="email"

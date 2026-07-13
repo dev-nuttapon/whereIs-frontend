@@ -94,7 +94,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       <Button
         variant="outline"
         size="sm"
-        className="h-10 w-10 rounded-full border-border/70 bg-card/80 shadow-none backdrop-blur transition-colors hover:bg-card"
+        className="h-10 w-10 rounded-full border-border/70 bg-background shadow-none backdrop-blur transition-colors hover:bg-card"
         aria-label={t('common.menu')}
         title={t('common.menu')}
       >
