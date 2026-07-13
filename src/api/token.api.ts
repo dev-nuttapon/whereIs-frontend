@@ -1,10 +1,16 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { env } from '@/lib/env';
 import type { AuthSession } from '@/types/auth.types';
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
+}
+
+interface ApiErrorResponse {
+  success: false;
+  message?: string;
+  errors?: string[];
 }
 
 type TokenSession = Omit<AuthSession, 'user'>;
@@ -18,8 +24,12 @@ const tokenClient = axios.create({
 });
 
 export async function loginWithPassword(username: string, password: string): Promise<TokenSession> {
-  const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/login', { username, password });
-  return response.data.data;
+  try {
+    const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/login', { username, password });
+    return response.data.data;
+  } catch (cause) {
+    throw toAuthError(cause, 'Unable to sign in.');
+  }
 }
 
 export async function registerWithPassword(
@@ -28,16 +38,37 @@ export async function registerWithPassword(
   password: string,
   displayName?: string,
 ): Promise<TokenSession> {
-  const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/register', {
-    username,
-    email,
-    password,
-    displayName,
-  });
-  return response.data.data;
+  try {
+    const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/register', {
+      username,
+      email,
+      password,
+      displayName,
+    });
+    return response.data.data;
+  } catch (cause) {
+    throw toAuthError(cause, 'Unable to create account.');
+  }
 }
 
 export async function refreshTokenSession(refreshToken: string): Promise<TokenSession> {
-  const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/refresh', { refreshToken });
-  return response.data.data;
+  try {
+    const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/refresh', { refreshToken });
+    return response.data.data;
+  } catch (cause) {
+    throw toAuthError(cause, 'Unable to refresh session.');
+  }
+}
+
+function toAuthError(cause: unknown, fallback: string) {
+  if (cause instanceof AxiosError) {
+    const data = cause.response?.data as ApiErrorResponse | undefined;
+    const message = data?.message || data?.errors?.[0];
+
+    if (message) {
+      return new Error(message);
+    }
+  }
+
+  return cause instanceof Error ? cause : new Error(fallback);
 }
