@@ -6,6 +6,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { workspaceStore } from '@/stores/workspace.store';
 import {
   DashboardIcon,
+  ItemIcon,
   ContainerIcon,
   MemberIcon,
   SettingsIcon,
@@ -13,6 +14,7 @@ import {
 
 const ICONS = {
   dashboard: DashboardIcon,
+  items: ItemIcon,
   containers: ContainerIcon,
   members: MemberIcon,
   settings: SettingsIcon,
@@ -24,7 +26,7 @@ export interface SidebarProps {
 
 const SECTIONS: Array<{ titleKey: string; items: Array<NavItem['labelKey']> }> = [
   { titleKey: 'nav.group.main', items: ['nav.dashboard'] },
-  { titleKey: 'nav.group.inventory', items: ['nav.containers'] },
+  { titleKey: 'nav.group.inventory', items: ['nav.items', 'nav.containers'] },
   { titleKey: 'nav.group.management', items: ['nav.members', 'nav.settings'] },
 ] as const;
 

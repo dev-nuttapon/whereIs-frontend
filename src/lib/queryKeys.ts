@@ -5,9 +5,12 @@ export const queryKeys = {
   workspaces: ['workspaces'] as const,
   workspace: (wsId: string) => ['workspace', wsId] as const,
   sites: (wsId: string) => ['ws', wsId, 'sites'] as const,
+  products: (wsId: string) => ['ws', wsId, 'products'] as const,
   locations: {
     all: (wsId: string) => ['ws', wsId, 'locations'] as const,
     bySite: (wsId: string, siteId: string) => ['ws', wsId, 'locations', siteId] as const,
+    detail: (wsId: string, id: string) => ['ws', wsId, 'locations', 'detail', id] as const,
+    tree: (wsId: string, siteId: string) => ['ws', wsId, 'locations', 'tree', siteId] as const,
   },
   dashboard: (wsId: string) => ['ws', wsId, 'dashboard'] as const,
   activity: (wsId: string) => ['ws', wsId, 'activity'] as const,
@@ -28,6 +31,14 @@ export const queryKeys = {
     ) => ['ws', wsId, 'items', 'list', params] as const,
     detail: (wsId: string, id: string) => ['ws', wsId, 'items', 'detail', id] as const,
     events: (wsId: string, id: string) => ['ws', wsId, 'items', 'detail', id, 'events'] as const,
+  },
+  assets: {
+    all: (wsId: string) => ['ws', wsId, 'assets'] as const,
+    list: (
+      wsId: string,
+      params: Record<string, string | number | undefined>,
+    ) => ['ws', wsId, 'assets', 'list', params] as const,
+    detail: (wsId: string, id: string) => ['ws', wsId, 'assets', 'detail', id] as const,
   },
   members: {
     all: (wsId: string) => ['ws', wsId, 'members'] as const,

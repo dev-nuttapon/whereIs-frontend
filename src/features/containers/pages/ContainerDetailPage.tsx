@@ -11,6 +11,8 @@ import { EditIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { useContainer, useDeleteContainer, useUpdateContainer } from '@/features/containers/hooks/useContainers';
 import { ContainerFormDialog } from '@/features/containers/components/ContainerFormDialog';
+import { CreateItemDialog } from '@/features/items/components/CreateItemDialog';
+import { PlusIcon } from '@/components/ui/icons';
 
 export function ContainerDetailPage() {
   const { wsId = 'ws-warehouse', containerId } = useParams();
@@ -20,6 +22,7 @@ export function ContainerDetailPage() {
   const containerQuery = useContainer(wsId, resolvedContainerId);
   const container = containerQuery.data ?? null;
   const [editOpen, setEditOpen] = useState(false);
+  const [createItemOpen, setCreateItemOpen] = useState(false);
   const updateContainer = useUpdateContainer(wsId, resolvedContainerId);
   const deleteContainer = useDeleteContainer(wsId, resolvedContainerId);
 
@@ -39,6 +42,10 @@ export function ContainerDetailPage() {
                   <CardDescription>{container?.typeLabel ?? t('container.detail.itemlist')}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setCreateItemOpen(true)} disabled={!container}>
+                    <PlusIcon className="h-4 w-4" />
+                    {t('items.list.create', 'เพิ่มของ')}
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} disabled={!container}>
                     <EditIcon className="h-4 w-4" />
                     {t('common.edit', 'แก้ไข')}
@@ -96,6 +103,16 @@ export function ContainerDetailPage() {
           setEditOpen(false);
         }}
         isSubmitting={updateContainer.isPending}
+      />
+
+      <CreateItemDialog
+        wsId={wsId}
+        open={createItemOpen}
+        onOpenChange={setCreateItemOpen}
+        initialValues={{
+          containerId: container?.id ?? undefined,
+          locationId: container?.locationId ?? undefined,
+        }}
       />
     </PageShell>
   );

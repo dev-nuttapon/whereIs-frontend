@@ -69,6 +69,25 @@ export interface Site {
   createdAt: string;
 }
 
+export interface Product {
+  id: string;
+  workspaceId: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  unitCode?: string | null;
+  name: string;
+  description?: string | null;
+  code?: string | null;
+  sku?: string | null;
+  trackingType: string;
+  minStockAlert?: number | null;
+  imageUrl?: string | null;
+  isActive: boolean;
+  assetCount: number;
+  totalStock: number;
+  createdAt: string;
+}
+
 export interface Location {
   id: string;
   workspaceId: string;
@@ -127,6 +146,26 @@ export interface Item {
   tags?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Asset {
+  id: string;
+  workspaceId: string;
+  productId: string;
+  productName: string;
+  locationId?: string | null;
+  locationName?: string | null;
+  containerId?: string | null;
+  containerName?: string | null;
+  serialNumber?: string | null;
+  barcode?: string | null;
+  status: string;
+  condition: string;
+  notes?: string | null;
+  acquiredDate?: string | null;
+  currentHolderUserId?: string | null;
+  photoUrls?: string[];
+  createdAt: string;
 }
 
 export interface Member {
