@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Form, Input } from 'antd';
 import { ROUTES } from '@/constants/routes';
@@ -100,9 +100,16 @@ export function RegisterPage() {
       >
         <Input.Password autoComplete="new-password" placeholder={t('auth.confirmPassword.placeholder')} />
       </Form.Item>
-      <Button className="w-full" type="primary" htmlType="submit" loading={submitting}>
-        {t('auth.register.action')}
-      </Button>
+      <div className="auth-action-stack">
+        <Button type="primary" htmlType="submit" loading={submitting}>
+          {t('auth.register.action')}
+        </Button>
+        <Link to={ROUTES.login}>
+          <Button type="default">
+            {t('auth.register.link')}
+          </Button>
+        </Link>
+      </div>
     </Form>
   );
 }
