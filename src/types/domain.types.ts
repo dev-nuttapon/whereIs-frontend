@@ -88,6 +88,17 @@ export interface Product {
   createdAt: string;
 }
 
+export interface Category {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description?: string | null;
+  color?: string | null;
+  isActive: boolean;
+  productCount: number;
+  createdAt: string;
+}
+
 export interface Location {
   id: string;
   workspaceId: string;

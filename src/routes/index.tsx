@@ -16,7 +16,9 @@ const WorkspaceListPage = lazy(() => import('@/features/workspaces/pages/Workspa
 const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/WorkspaceNewPage').then((module) => ({ default: module.WorkspaceNewPage })));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
+const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
+const MasterDataPage = lazy(() => import('@/features/master-data/pages/MasterDataPage').then((module) => ({ default: module.MasterDataPage })));
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
 const MemberDetailPage = lazy(() => import('@/features/members/pages/MemberDetailPage').then((module) => ({ default: module.MemberDetailPage })));
 const InvitationAcceptPage = lazy(() => import('@/features/members/pages/InvitationAcceptPage').then((module) => ({ default: module.InvitationAcceptPage })));
@@ -97,7 +99,9 @@ export function AppRoutes() {
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="items" element={<ItemsPage />} />
+              <Route path="items/:assetId" element={<ItemDetailPage />} />
               <Route path="containers" element={<ContainersPage />} />
+              <Route path="master-data" element={<MasterDataPage />} />
               <Route path="containers/:containerId" element={<ContainerDetailPage />} />
               <Route path="members" element={<MembersPage />} />
               <Route path="members/:memberId" element={<MemberDetailPage />} />

@@ -6,6 +6,7 @@ export const queryKeys = {
   workspace: (wsId: string) => ['workspace', wsId] as const,
   sites: (wsId: string) => ['ws', wsId, 'sites'] as const,
   products: (wsId: string) => ['ws', wsId, 'products'] as const,
+  categories: (wsId: string) => ['ws', wsId, 'categories'] as const,
   locations: {
     all: (wsId: string) => ['ws', wsId, 'locations'] as const,
     bySite: (wsId: string, siteId: string) => ['ws', wsId, 'locations', siteId] as const,

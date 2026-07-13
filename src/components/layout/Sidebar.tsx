@@ -8,6 +8,7 @@ import {
   DashboardIcon,
   ItemIcon,
   ContainerIcon,
+  DatabaseIcon,
   MemberIcon,
   SettingsIcon,
 } from '@/components/ui/icons';
@@ -16,6 +17,7 @@ const ICONS = {
   dashboard: DashboardIcon,
   items: ItemIcon,
   containers: ContainerIcon,
+  master: DatabaseIcon,
   members: MemberIcon,
   settings: SettingsIcon,
 } as const;
@@ -24,10 +26,11 @@ export interface SidebarProps {
   onNavigate?: () => void;
 }
 
-const SECTIONS: Array<{ titleKey: string; items: Array<NavItem['labelKey']> }> = [
-  { titleKey: 'nav.group.main', items: ['nav.dashboard'] },
-  { titleKey: 'nav.group.inventory', items: ['nav.items', 'nav.containers'] },
-  { titleKey: 'nav.group.management', items: ['nav.members', 'nav.settings'] },
+const SECTIONS: Array<{ titleKey: string; titleFallback: string; items: Array<NavItem['labelKey']> }> = [
+  { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard'] },
+  { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.items', 'nav.containers'] },
+  { titleKey: 'nav.group.masterData', titleFallback: 'Master data', items: ['nav.masterData'] },
+  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.members', 'nav.settings'] },
 ] as const;
 
 export function Sidebar({ onNavigate }: SidebarProps) {
@@ -45,14 +48,14 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         const sectionItems = items.filter((item) => section.items.includes(item.labelKey));
         return {
           type: 'group' as const,
-          label: t(section.titleKey),
-          key: section.titleKey,
-          children: sectionItems.map((item) => {
-            const to = item.to(wsId);
-            const Icon = ICONS[item.iconKey];
-            return {
-              key: to,
-              label: (
+        label: t(section.titleKey, section.titleFallback),
+        key: section.titleKey,
+        children: sectionItems.map((item) => {
+          const to = item.to(wsId);
+          const Icon = ICONS[item.iconKey];
+          return {
+            key: to,
+            label: (
                 <NavLink
                   to={to}
                   end={item.labelKey === 'nav.dashboard'}
@@ -62,7 +65,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-foreground">
                     <Icon className="h-3.5 w-3.5" />
                   </span>
-                  <span className="truncate">{t(item.labelKey)}</span>
+                  <span className="truncate">{t(item.labelKey, item.labelFallback ?? item.labelKey)}</span>
                 </NavLink>
               ),
             };

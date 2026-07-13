@@ -193,6 +193,16 @@ export function SettingsIcon(props: IconProps) {
   );
 }
 
+export function DatabaseIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <ellipse cx="12" cy="6.5" rx="7.5" ry="3.5" />
+      <path d="M4.5 6.5V12c0 1.9 3.4 3.5 7.5 3.5s7.5-1.6 7.5-3.5V6.5" />
+      <path d="M4.5 12v5.5c0 1.9 3.4 3.5 7.5 3.5s7.5-1.6 7.5-3.5V12" />
+    </Icon>
+  );
+}
+
 export function PlusIcon(props: IconProps) {
   return (
     <Icon {...props}>

@@ -12,6 +12,7 @@ export const ROUTES = {
   workspaceSearch: (wsId: string) => `/w/${wsId}/search`,
   workspaceItems: (wsId: string) => `/w/${wsId}/items`,
   workspaceContainers: (wsId: string) => `/w/${wsId}/containers`,
+  workspaceMasterData: (wsId: string) => `/w/${wsId}/master-data`,
   workspaceMemberDetail: (wsId: string, memberId: string) => `/w/${wsId}/members/${memberId}`,
   workspaceContainerDetail: (wsId: string, containerId: string) => `/w/${wsId}/containers/${containerId}`,
   workspaceMembers: (wsId: string) => `/w/${wsId}/members`,
