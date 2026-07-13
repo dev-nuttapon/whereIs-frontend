@@ -7,7 +7,7 @@ import { authStore } from '@/stores/auth.store';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { LogoutIcon, MemberIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
+import { DashboardIcon, LogoutIcon, MemberIcon, MenuIcon, PlusIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 
 export interface UserMenuProps {
@@ -21,7 +21,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
   const logoutMutation = useLogout();
   const { t } = useI18n();
   const activeWorkspaceId = workspaceId ?? wsId ?? workspaceStore.getState().currentWorkspaceId;
-  const showWorkspaceLinks = Boolean(activeWorkspaceId);
+  const hasWorkspaceContext = Boolean(activeWorkspaceId);
 
   const items = useMemo<MenuProps['items']>(() => {
     const next: NonNullable<MenuProps['items']> = [
@@ -38,26 +38,37 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       { type: 'divider' },
     ];
 
-    if (showWorkspaceLinks) {
-      next.push(
-        { type: 'divider' },
-        {
-          key: 'profile',
-          icon: <UserIcon className="h-4 w-4" />,
-          label: t('nav.profile'),
-        },
-        {
-          key: 'members',
-          icon: <MemberIcon className="h-4 w-4" />,
-          label: t('members.manage', 'Manage members'),
-        },
-        {
-          key: 'settings',
-          icon: <SettingsIcon className="h-4 w-4" />,
-          label: t('nav.settings'),
-        },
-      );
-    }
+    next.push(
+      {
+        key: 'workspaces',
+        icon: <DashboardIcon className="h-4 w-4" />,
+        label: t('common.workspaces'),
+      },
+      {
+        key: 'create-workspace',
+        icon: <PlusIcon className="h-4 w-4" />,
+        label: t('workspace.list.create'),
+      },
+      { type: 'divider' },
+      {
+        key: 'profile',
+        disabled: !hasWorkspaceContext,
+        icon: <UserIcon className="h-4 w-4" />,
+        label: hasWorkspaceContext ? t('nav.profile') : t('userMenu.profileDisabled', 'Profile: select a workspace first'),
+      },
+      {
+        key: 'members',
+        disabled: !hasWorkspaceContext,
+        icon: <MemberIcon className="h-4 w-4" />,
+        label: hasWorkspaceContext ? t('members.manage', 'Manage members') : t('userMenu.membersDisabled', 'Manage members: select a workspace first'),
+      },
+      {
+        key: 'settings',
+        disabled: !hasWorkspaceContext,
+        icon: <SettingsIcon className="h-4 w-4" />,
+        label: hasWorkspaceContext ? t('nav.settings') : t('userMenu.settingsDisabled', 'Settings: select a workspace first'),
+      },
+    );
 
     next.push(
       { type: 'divider' },
@@ -70,7 +81,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
     );
 
     return next;
-  }, [showWorkspaceLinks, t, user?.email, user?.name]);
+  }, [hasWorkspaceContext, t, user?.email, user?.name]);
 
   return (
     <Dropdown
@@ -79,6 +90,16 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       menu={{
         items,
         onClick: ({ key, keyPath }) => {
+          if (key === 'workspaces') {
+            navigate(ROUTES.workspaces);
+            return;
+          }
+
+          if (key === 'create-workspace') {
+            navigate(ROUTES.workspaceNew);
+            return;
+          }
+
           if (key === 'profile' && activeWorkspaceId) {
             navigate(ROUTES.workspaceProfile(activeWorkspaceId));
             return;
