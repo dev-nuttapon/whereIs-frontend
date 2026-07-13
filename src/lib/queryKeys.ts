@@ -29,4 +29,8 @@ export const queryKeys = {
     detail: (wsId: string, id: string) => ['ws', wsId, 'members', id] as const,
     permissions: (wsId: string, id: string) => ['ws', wsId, 'members', id, 'permissions'] as const,
   },
+  invitations: {
+    all: (wsId: string) => ['ws', wsId, 'invitations'] as const,
+    detail: (token: string) => ['invitations', token] as const,
+  },
 } as const;

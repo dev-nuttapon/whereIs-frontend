@@ -158,6 +158,15 @@ export function MemberIcon(props: IconProps) {
   );
 }
 
+export function MailIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="4" y="6" width="16" height="12" rx="2" />
+      <path d="m5 8 7 5 7-5" />
+    </Icon>
+  );
+}
+
 export function UserIcon(props: IconProps) {
   return (
     <Icon {...props}>

@@ -1,5 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMember, inviteMember, listMembers, removeMember, updateMemberRole, type InviteMemberInput } from '@/api/member.api';
+import {
+  acceptInvitation,
+  getInvitationByToken,
+  getMember,
+  inviteMember,
+  listInvitations,
+  listMembers,
+  lookupUserByEmail,
+  removeMember,
+  revokeInvitation,
+  updateMemberRole,
+  type InviteMemberInput,
+} from '@/api/member.api';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
@@ -27,10 +39,65 @@ export function useInviteMember(wsId: string) {
     mutationFn: (input: InviteMemberInput) => inviteMember(wsId, input),
     onSuccess: async (invitation) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all(wsId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.memberInvited'),
         description: invitation.email,
+      });
+    },
+  });
+}
+
+export function useInvitations(wsId: string) {
+  return useQuery({
+    queryKey: queryKeys.invitations.all(wsId),
+    queryFn: () => listInvitations(wsId),
+    enabled: Boolean(wsId),
+  });
+}
+
+export function useInvitation(token: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.invitations.detail(token ?? ''),
+    queryFn: () => getInvitationByToken(token!),
+    enabled: Boolean(token),
+  });
+}
+
+export function useLookupUserByEmail() {
+  return useMutation({
+    mutationFn: (email: string) => lookupUserByEmail(email),
+  });
+}
+
+export function useAcceptInvitation() {
+  const queryClient = useQueryClient();
+  const { t } = useI18n();
+  return useMutation({
+    mutationFn: (token: string) => acceptInvitation(token),
+    onSuccess: async (invitation) => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.detail(invitation.token ?? '') });
+      pushNotification({
+        variant: 'success',
+        title: t('notifications.invitationAccepted', 'ตอบรับคำเชิญแล้ว'),
+        description: invitation.email,
+      });
+    },
+  });
+}
+
+export function useRevokeInvitation(wsId: string) {
+  const queryClient = useQueryClient();
+  const { t } = useI18n();
+  return useMutation({
+    mutationFn: (invitationId: string) => revokeInvitation(wsId, invitationId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all(wsId) });
+      pushNotification({
+        variant: 'success',
+        title: t('notifications.invitationRevoked', 'ยกเลิกคำเชิญแล้ว'),
       });
     },
   });

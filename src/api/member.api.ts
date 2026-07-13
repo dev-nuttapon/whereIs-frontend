@@ -29,6 +29,13 @@ interface MemberPermissionsDto {
   overrides: Array<{ code: string; effect: string }>;
 }
 
+export interface UserLookupDto {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string | null;
+}
+
 export interface InvitationDto {
   id: string;
   workspaceId: string;
@@ -99,6 +106,35 @@ export async function inviteMember(wsId: string, input: InviteMemberInput): Prom
     roleId,
   });
   return response.data.data;
+}
+
+export async function lookupUserByEmail(email: string): Promise<UserLookupDto> {
+  const response = await client.get<ApiResponse<UserLookupDto>>('/users/lookup', {
+    params: { email },
+  });
+  return response.data.data;
+}
+
+export async function listInvitations(wsId: string): Promise<InvitationDto[]> {
+  const response = await client.get<ApiResponse<PagedResult<InvitationDto>>>(`/workspaces/${encodeURIComponent(wsId)}/invitations`, {
+    params: { page: 1, pageSize: 100 },
+  });
+  return response.data.data.items;
+}
+
+export async function getInvitationByToken(token: string): Promise<InvitationDto> {
+  const response = await client.get<ApiResponse<InvitationDto>>(`/invitations/${encodeURIComponent(token)}`);
+  return response.data.data;
+}
+
+export async function acceptInvitation(token: string): Promise<InvitationDto> {
+  const response = await client.post<ApiResponse<InvitationDto>>('/invitations/accept', { token });
+  return response.data.data;
+}
+
+export async function revokeInvitation(wsId: string, invitationId: string): Promise<{ success: true }> {
+  await client.post(`/workspaces/${encodeURIComponent(wsId)}/invitations/${encodeURIComponent(invitationId)}/revoke`);
+  return { success: true };
 }
 
 export async function updateMemberRole(wsId: string, id: string, role: InviteMemberInput['role']): Promise<Member> {

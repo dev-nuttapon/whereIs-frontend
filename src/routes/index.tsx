@@ -18,6 +18,7 @@ const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPag
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
 const MemberDetailPage = lazy(() => import('@/features/members/pages/MemberDetailPage').then((module) => ({ default: module.MemberDetailPage })));
+const InvitationAcceptPage = lazy(() => import('@/features/members/pages/InvitationAcceptPage').then((module) => ({ default: module.InvitationAcceptPage })));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const ContainerDetailPage = lazy(() => import('@/features/containers/pages/ContainerDetailPage').then((module) => ({ default: module.ContainerDetailPage })));
@@ -63,6 +64,14 @@ export function AppRoutes() {
             element={
               <WorkspaceSelectLayout>
                 <WorkspaceNewPage />
+              </WorkspaceSelectLayout>
+            }
+          />
+          <Route
+            path="/invitations/:token"
+            element={
+              <WorkspaceSelectLayout>
+                <InvitationAcceptPage />
               </WorkspaceSelectLayout>
             }
           />

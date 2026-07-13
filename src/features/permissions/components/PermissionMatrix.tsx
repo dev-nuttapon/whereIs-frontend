@@ -157,7 +157,9 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
         <div className="space-y-3 rounded-2xl border border-border/70 bg-background/60 p-4">
           <div className="space-y-1">
             <CardTitle className="text-base">{t('permissions.scope.title', 'Workspace / container access')}</CardTitle>
-            <CardDescription>{t('permissions.scope.description', 'Limit which containers this member can access inside this workspace.')}</CardDescription>
+            <CardDescription>
+              {t('permissions.scope.description', 'เลือกว่าจะให้สมาชิกเห็นและแก้ไขได้เฉพาะ container ไหนใน workspace นี้')}
+            </CardDescription>
           </div>
           <label className="flex items-start gap-3 text-sm">
             <Checkbox
@@ -165,9 +167,9 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
               onChange={(event) => setScopeEnabled(event.target.checked)}
             />
             <span>
-              <span className="block font-medium">{t('permissions.scope.restrict', 'Restrict to selected containers')}</span>
+              <span className="block font-medium">{t('permissions.scope.restrict', 'จำกัดให้เห็นเฉพาะ container ที่เลือก')}</span>
               <span className="block text-xs leading-5 text-muted-foreground">
-                {t('permissions.scope.unrestricted', 'If disabled, access is controlled by workspace membership and permissions only.')}
+                {t('permissions.scope.unrestricted', 'ถ้าปิดไว้ สมาชิกจะเห็น container ตามสิทธิ์ workspace ปกติ')}
               </span>
             </span>
           </label>
@@ -178,8 +180,11 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
                   checked={includeDescendants}
                   onChange={(event) => setIncludeDescendants(event.target.checked)}
                 />
-                {t('permissions.scope.includeDescendants', 'Include child containers')}
+                {t('permissions.scope.includeDescendants', 'รวม container ลูกทั้งหมด')}
               </label>
+              <p className="rounded-xl border border-border/70 bg-card px-3 py-2 text-sm text-muted-foreground">
+                {t('permissions.scope.selectedCount', 'เลือกแล้ว {count} container', { count: selectedContainerIds.length })}
+              </p>
               {containers.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
                   {t('permissions.scope.emptyContainers', 'No containers available in this workspace.')}
