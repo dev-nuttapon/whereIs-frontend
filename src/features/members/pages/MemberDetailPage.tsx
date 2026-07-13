@@ -32,7 +32,7 @@ export function MemberDetailPage() {
       {memberQuery.isLoading ? <LoadingState label={t('members.detail.loading')} /> : null}
       {memberQuery.isError ? <ErrorState message={t('members.detail.error')} onRetry={() => memberQuery.refetch()} /> : null}
       {memberQuery.data ? (
-        <div className="space-y-4 sm:space-y-5">
+        <div className="component-stack">
           <Card>
             <CardContent className="space-y-4 p-5 sm:p-6">
               <div className="flex items-center gap-3 sm:gap-4">
@@ -67,7 +67,7 @@ export function MemberDetailPage() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+          <div className="grid gap-[18px] md:grid-cols-3">
             <StatCard label={t('members.detail.permissions')} value={effectiveCount} />
             <StatCard label={t('members.detail.overrides')} value={overrideCount} description={t('permissions.title')} />
             <StatCard label={t('members.detail.samplePermissions')} value={effectiveCount} description={t('permissions.enabled')} />

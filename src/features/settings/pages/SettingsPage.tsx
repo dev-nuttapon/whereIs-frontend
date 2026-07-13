@@ -19,7 +19,7 @@ export function SettingsPage() {
           <Typography.Paragraph className="!mb-0 text-muted-foreground">
             {t('settings.foundationDescription')}
           </Typography.Paragraph>
-          <div className="grid gap-3 pt-2 md:grid-cols-2">
+          <div className="grid gap-[18px] pt-2 md:grid-cols-2">
             <div className="space-y-2 rounded-lg border border-border p-3.5 sm:p-4">
               <p className="flex items-center gap-2 text-sm font-medium">
                 <SunIcon className="h-4 w-4" />

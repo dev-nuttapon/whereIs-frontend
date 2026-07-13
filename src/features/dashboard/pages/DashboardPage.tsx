@@ -49,7 +49,7 @@ export function DashboardPage() {
       ) : null}
 
       {workspace ? (
-        <div className="space-y-4 sm:space-y-5">
+        <div className="component-stack">
           <Card>
             <CardContent className="space-y-2 p-5 sm:p-6">
               <CardTitle className="text-lg">{workspace.name}</CardTitle>
@@ -65,7 +65,7 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-4">
             {summaryCards.map((card) => (
               <StatCard key={card.label} label={card.label} value={card.value} />
             ))}

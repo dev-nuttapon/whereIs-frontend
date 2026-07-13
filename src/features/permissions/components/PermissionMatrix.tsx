@@ -125,16 +125,16 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
 
   return (
     <Card>
-      <CardContent className="space-y-5 p-5 sm:space-y-6 sm:p-6">
+      <CardContent className="component-stack p-5 sm:p-6">
         <div className="space-y-1.5">
           <CardTitle className="text-lg">{t('permissions.title')}</CardTitle>
           <CardDescription>{t('permissions.description')}</CardDescription>
         </div>
-        <div className="space-y-5 sm:space-y-6">
+        <div className="component-stack">
           {PERMISSION_GROUPS.map((group) => (
             <div key={group.title} className="space-y-3">
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t(group.title)}</h3>
-              <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
                 {group.permissions.map((permission) => (
                   <label key={permission} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
                     <div className="min-w-0 space-y-0.5">
@@ -185,7 +185,7 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
                   {t('permissions.scope.emptyContainers', 'No containers available in this workspace.')}
                 </p>
               ) : (
-                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-[18px] sm:grid-cols-2 xl:grid-cols-3">
                   {containers.map((container) => (
                     <label key={container.id} className="flex items-start gap-3 rounded-xl border border-border bg-card px-3 py-2 text-sm">
                       <Checkbox

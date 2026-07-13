@@ -38,8 +38,8 @@ export function AppLayout() {
   }
 
   return (
-    <Layout className="min-h-screen bg-background">
-      <div className="flex min-h-screen w-full bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--muted)/0.45)_100%)]">
+    <Layout className="app-background min-h-screen">
+      <div className="flex min-h-screen w-full">
         <div className="sticky top-0 hidden h-screen w-[280px] shrink-0 border-r border-border/70 bg-card/95 shadow-[18px_0_50px_-42px_rgba(15,23,42,0.55)] lg:block">
           <Sidebar />
         </div>
@@ -59,7 +59,7 @@ export function AppLayout() {
         <Layout className="min-w-0 flex-1 bg-transparent">
           <Topbar />
           <Layout.Content className="flex-1 px-3 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-8">
-            <div className="mx-auto w-full max-w-screen-xl space-y-4 sm:space-y-5 lg:space-y-6">
+            <div className="component-stack mx-auto w-full max-w-screen-xl">
               <Breadcrumbs />
               <Outlet />
             </div>

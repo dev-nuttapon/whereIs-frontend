@@ -111,7 +111,7 @@ export function ProfilePage() {
   return (
     <PageShell title={t('profile.title')} description={t('profile.description')}>
       <Card className="overflow-hidden">
-        <div className="space-y-5 p-5 sm:p-6">
+        <div className="component-stack p-5 sm:p-6">
           <div className="flex items-center gap-3 sm:gap-4">
             <Avatar size={48} className="bg-primary text-primary-foreground">
               {initials}
@@ -126,7 +126,7 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <form className="space-y-4" onSubmit={onSubmit}>
+          <form className="component-stack" onSubmit={onSubmit}>
             <div className="space-y-2">
               <Typography.Text className="flex items-center gap-2 font-medium">
                 <UserIcon className="h-4 w-4" />

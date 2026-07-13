@@ -21,7 +21,7 @@ export function ContainersPage() {
     <PageShell title={t('containers.list.title')} description={t('containers.list.description')}>
       {containersQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {containersQuery.isError ? <ErrorState message={t('containers.list.error', 'Unable to load containers.')} onRetry={() => containersQuery.refetch()} /> : null}
-      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+      <div className="grid gap-[18px] md:grid-cols-3">
         <StatCard label={t('containers.list.itemCount')} value={containers.reduce((sum, container) => sum + (container.itemCount ?? 0), 0)} />
         <StatCard label={t('containers.list.total')} value={containers.length} />
         <StatCard label={t('containers.list.childCount')} value={containers.reduce((sum, container) => sum + (container.childContainerCount ?? 0), 0)} />
@@ -34,7 +34,7 @@ export function ContainersPage() {
           icon={<ContainerIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
           {containers.map((container) => {
             return (
               <Card key={container.id} className="hover:-translate-y-0.5 hover:shadow-md">

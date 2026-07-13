@@ -33,12 +33,12 @@ export function WorkspaceNewPage() {
   return (
     <PageShell title={t('workspace.new.title')} description={t('workspace.new.description')}>
       <Card>
-        <CardContent className="space-y-5 p-5 sm:space-y-6 sm:p-6">
+        <CardContent className="component-stack p-5 sm:p-6">
           <div className="space-y-2">
             <CardTitle className="text-base">{t('workspace.new.cardTitle')}</CardTitle>
             <CardDescription>{t('workspace.new.cardDescription')}</CardDescription>
           </div>
-          <form className="space-y-4" onSubmit={onSubmit}>
+          <form className="component-stack" onSubmit={onSubmit}>
             <FormField label={t('workspace.new.label')} htmlFor="name" error={errors.name?.message}>
               <Input id="name" placeholder={t('workspace.new.placeholder')} {...register('name')} />
             </FormField>

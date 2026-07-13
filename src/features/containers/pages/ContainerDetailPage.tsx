@@ -16,7 +16,7 @@ export function ContainerDetailPage() {
 
   return (
     <PageShell title={t('container.detail.title')} description={t('container.detail.description')}>
-      <div className="space-y-4 sm:space-y-5">
+      <div className="component-stack">
         {containerQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
         {containerQuery.isError ? <ErrorState message={t('container.detail.error', 'Unable to load container.')} onRetry={() => containerQuery.refetch()} /> : null}
         <Card>

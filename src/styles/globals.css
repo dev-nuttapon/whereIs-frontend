@@ -82,7 +82,11 @@
     @apply bg-background text-foreground antialiased;
     margin: 0;
     min-height: 100vh;
-    background-image: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+    background:
+      radial-gradient(circle at 16% -8%, hsl(var(--primary) / 0.08), transparent 34rem),
+      radial-gradient(circle at 92% 8%, hsl(var(--foreground) / 0.045), transparent 30rem),
+      linear-gradient(180deg, hsl(218 38% 97%) 0%, hsl(220 33% 98%) 44%, hsl(216 28% 96%) 100%);
+    background-attachment: fixed;
   }
 
   #root {
@@ -91,6 +95,14 @@
 }
 
 @layer components {
+  .app-background {
+    background:
+      radial-gradient(circle at 16% -8%, hsl(var(--primary) / 0.08), transparent 34rem),
+      radial-gradient(circle at 92% 8%, hsl(var(--foreground) / 0.045), transparent 30rem),
+      linear-gradient(180deg, hsl(218 38% 97%) 0%, hsl(220 33% 98%) 44%, hsl(216 28% 96%) 100%);
+    background-attachment: fixed;
+  }
+
   .ant-form-vertical .ant-form-item {
     margin-bottom: 8px;
   }
@@ -138,6 +150,24 @@
     width: 100%;
   }
 
+  .component-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .component-stack-lg {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .component-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
   .page-actions > .ant-btn,
   .page-actions > a,
   .page-actions > a > .ant-btn,
@@ -176,6 +206,14 @@
   }
 
   @media (min-width: 640px) {
+    .component-stack {
+      gap: 18px;
+    }
+
+    .component-stack-lg {
+      gap: 18px;
+    }
+
     .page-actions > .ant-btn,
     .page-actions > a,
     .page-actions > a > .ant-btn,
@@ -192,6 +230,14 @@
   }
 
   @media (min-width: 1024px) {
+    .component-stack {
+      gap: 18px;
+    }
+
+    .component-stack-lg {
+      gap: 18px;
+    }
+
     .app-card > .ant-card-body {
       padding: 28px !important;
     }
