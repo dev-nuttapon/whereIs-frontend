@@ -22,17 +22,16 @@ function mapUser(apiUser: UserResponseEnvelope['data']): User {
   };
 }
 
-export async function login(username: string, password: string): Promise<Omit<AuthSession, 'user'>> {
-  return loginWithPassword(username, password);
+export async function login(email: string, password: string): Promise<Omit<AuthSession, 'user'>> {
+  return loginWithPassword(email, password);
 }
 
 export async function register(
-  username: string,
   email: string,
   password: string,
   displayName?: string,
 ): Promise<Omit<AuthSession, 'user'>> {
-  return registerWithPassword(username, email, password, displayName);
+  return registerWithPassword(email, password, displayName);
 }
 
 export async function refreshAuthSession(refreshToken: string): Promise<Omit<AuthSession, 'user'>> {

@@ -7,7 +7,6 @@ import { useI18n } from '@/hooks/useI18n';
 import { getCurrentUser, register } from '@/api/auth.api';
 
 interface RegisterFormValues {
-  username: string;
   email: string;
   displayName?: string;
   password: string;
@@ -34,7 +33,7 @@ export function RegisterPage() {
     setSubmitting(true);
 
     try {
-      const session = await register(values.username, values.email, values.password, values.displayName);
+      const session = await register(values.email, values.password, values.displayName);
       updateTokens(session);
       const user = await getCurrentUser();
 
@@ -53,13 +52,6 @@ export function RegisterPage() {
   return (
     <Form<RegisterFormValues> layout="vertical" requiredMark={false} onFinish={onFinish}>
       {error ? <Alert className="mb-6" type="error" showIcon message={t('auth.register.error')} description={error} /> : null}
-      <Form.Item
-        label={t('auth.username')}
-        name="username"
-        rules={[{ required: true, message: t('auth.username.required') }]}
-      >
-        <Input autoComplete="username" placeholder={t('auth.username.placeholder')} />
-      </Form.Item>
       <Form.Item
         label={t('auth.email')}
         name="email"

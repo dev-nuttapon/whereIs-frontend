@@ -23,9 +23,9 @@ const tokenClient = axios.create({
   },
 });
 
-export async function loginWithPassword(username: string, password: string): Promise<TokenSession> {
+export async function loginWithPassword(email: string, password: string): Promise<TokenSession> {
   try {
-    const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/login', { username, password });
+    const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/login', { email, password });
     return response.data.data;
   } catch (cause) {
     throw toAuthError(cause, 'Unable to sign in.');
@@ -33,14 +33,12 @@ export async function loginWithPassword(username: string, password: string): Pro
 }
 
 export async function registerWithPassword(
-  username: string,
   email: string,
   password: string,
   displayName?: string,
 ): Promise<TokenSession> {
   try {
     const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/register', {
-      username,
       email,
       password,
       displayName,

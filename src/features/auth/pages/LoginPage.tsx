@@ -7,7 +7,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { getCurrentUser, login } from '@/api/auth.api';
 
 interface LoginFormValues {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -31,7 +31,7 @@ export function LoginPage() {
     setSubmitting(true);
 
     try {
-      const session = await login(values.username, values.password);
+      const session = await login(values.email, values.password);
       updateTokens(session);
       const user = await getCurrentUser();
 
@@ -51,11 +51,14 @@ export function LoginPage() {
     <Form<LoginFormValues> layout="vertical" requiredMark={false} onFinish={onFinish}>
       {error ? <Alert className="mb-6" type="error" showIcon message={t('auth.login.error')} description={error} /> : null}
       <Form.Item
-        label={t('auth.username')}
-        name="username"
-        rules={[{ required: true, message: t('auth.username.required') }]}
+        label={t('auth.email')}
+        name="email"
+        rules={[
+          { required: true, message: t('auth.email.required') },
+          { type: 'email', message: t('auth.email.invalid') },
+        ]}
       >
-        <Input autoComplete="username" placeholder={t('auth.username.placeholder')} />
+        <Input autoComplete="email" placeholder={t('auth.email.placeholder')} />
       </Form.Item>
       <Form.Item
         className="!mb-3"
