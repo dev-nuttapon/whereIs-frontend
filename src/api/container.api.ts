@@ -81,3 +81,22 @@ export async function createContainer(wsId: string, input: CreateContainerInput)
   });
   return toContainer(response.data.data);
 }
+
+export async function updateContainer(
+  wsId: string,
+  id: string,
+  input: Pick<CreateContainerInput, 'name' | 'type' | 'code' | 'qrCode'>,
+): Promise<Container> {
+  const response = await client.put<ApiResponse<ContainerDto>>(`/workspaces/${encodeURIComponent(wsId)}/containers/${encodeURIComponent(id)}`, {
+    name: input.name,
+    type: input.type ?? null,
+    code: input.code ?? null,
+    qrCode: input.qrCode ?? null,
+  });
+  return toContainer(response.data.data);
+}
+
+export async function deleteContainer(wsId: string, id: string): Promise<{ success: true }> {
+  await client.delete(`/workspaces/${encodeURIComponent(wsId)}/containers/${encodeURIComponent(id)}`);
+  return { success: true };
+}
