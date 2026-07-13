@@ -1,13 +1,11 @@
+import { uiStore } from '@/stores/ui.store';
 import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { Button } from '@/components/ui/button';
-import { uiStore } from '@/stores/ui.store';
 import { MenuIcon } from '@/components/ui/icons';
-import { useI18n } from '@/hooks/useI18n';
 
 export function Topbar() {
   const setSidebarOpen = uiStore((state) => state.setSidebarOpen);
-  const { t } = useI18n();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/92 px-3 py-2.5 backdrop-blur-xl sm:px-5 lg:px-8">
@@ -16,7 +14,7 @@ export function Topbar() {
           size="sm"
           className="h-10 w-10 shrink-0 rounded-full border-border/70 bg-background shadow-none lg:hidden"
           onClick={() => setSidebarOpen(true)}
-          aria-label={t('common.menu')}
+          aria-label="Open menu"
         >
           <MenuIcon className="h-4 w-4" />
         </Button>
