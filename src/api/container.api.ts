@@ -28,6 +28,15 @@ interface ContainerDto {
   createdAt: string;
 }
 
+export interface CreateContainerInput {
+  locationId?: string | null;
+  parentContainerId?: string | null;
+  name: string;
+  type?: string | null;
+  code?: string | null;
+  qrCode?: string | null;
+}
+
 function toContainer(dto: ContainerDto): Container {
   return {
     id: dto.id,
@@ -58,5 +67,17 @@ export async function getContainer(wsId: string, id: string): Promise<Container>
   const response = await client.get<ApiResponse<ContainerDto>>(
     `/workspaces/${encodeURIComponent(wsId)}/containers/${encodeURIComponent(id)}`,
   );
+  return toContainer(response.data.data);
+}
+
+export async function createContainer(wsId: string, input: CreateContainerInput): Promise<Container> {
+  const response = await client.post<ApiResponse<ContainerDto>>(`/workspaces/${encodeURIComponent(wsId)}/containers`, {
+    locationId: input.locationId ?? null,
+    parentContainerId: input.parentContainerId ?? null,
+    name: input.name,
+    type: input.type ?? null,
+    code: input.code ?? null,
+    qrCode: input.qrCode ?? null,
+  });
   return toContainer(response.data.data);
 }

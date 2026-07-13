@@ -57,6 +57,32 @@ export interface Workspace {
   updatedAt: string;
 }
 
+export interface Site {
+  id: string;
+  workspaceId: string;
+  name: string;
+  type?: string;
+  address?: string;
+  description?: string;
+  isActive: boolean;
+  locationCount: number;
+  createdAt: string;
+}
+
+export interface Location {
+  id: string;
+  workspaceId: string;
+  siteId: string;
+  parentLocationId?: string | null;
+  name: string;
+  type?: string;
+  code?: string | null;
+  sortOrder: number;
+  description?: string | null;
+  childCount: number;
+  createdAt: string;
+}
+
 export interface Container {
   id: string;
   workspaceId: string;

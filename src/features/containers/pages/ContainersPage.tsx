@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { useState } from 'react';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -9,16 +10,27 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { ContainerIcon, OpenIcon } from '@/components/ui/icons';
+import { ContainerIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
+import { CreateContainerDialog } from '@/features/containers/components/CreateContainerDialog';
 
 export function ContainersPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t } = useI18n();
   const containersQuery = useContainers(wsId);
   const containers = containersQuery.data ?? [];
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
-    <PageShell title={t('containers.list.title')} description={t('containers.list.description')}>
+    <PageShell
+      title={t('containers.list.title')}
+      description={t('containers.list.description')}
+      actions={(
+        <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
+          <PlusIcon className="h-4 w-4" />
+          {t('containers.list.create', 'สร้าง container')}
+        </Button>
+      )}
+    >
       {containersQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {containersQuery.isError ? <ErrorState message={t('containers.list.error', 'Unable to load containers.')} onRetry={() => containersQuery.refetch()} /> : null}
       <div className="grid gap-[18px] md:grid-cols-3">
@@ -60,6 +72,8 @@ export function ContainersPage() {
           })}
         </div>
       )}
+
+      <CreateContainerDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />
     </PageShell>
   );
 }

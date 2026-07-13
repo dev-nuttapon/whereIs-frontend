@@ -4,6 +4,11 @@ export const queryKeys = {
   },
   workspaces: ['workspaces'] as const,
   workspace: (wsId: string) => ['workspace', wsId] as const,
+  sites: (wsId: string) => ['ws', wsId, 'sites'] as const,
+  locations: {
+    all: (wsId: string) => ['ws', wsId, 'locations'] as const,
+    bySite: (wsId: string, siteId: string) => ['ws', wsId, 'locations', siteId] as const,
+  },
   dashboard: (wsId: string) => ['ws', wsId, 'dashboard'] as const,
   activity: (wsId: string) => ['ws', wsId, 'activity'] as const,
   reports: (wsId: string) => ['ws', wsId, 'reports'] as const,
