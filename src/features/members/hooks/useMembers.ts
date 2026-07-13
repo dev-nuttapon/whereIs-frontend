@@ -36,10 +36,10 @@ export function useInviteMember(wsId: string) {
   const queryClient = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: (input: InviteMemberInput) => inviteMember(wsId, input),
+    mutationFn: (input: InviteMemberInput) => inviteMember(input.workspaceId ?? wsId, input),
     onSuccess: async (invitation) => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(invitation.workspaceId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all(invitation.workspaceId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.memberInvited'),

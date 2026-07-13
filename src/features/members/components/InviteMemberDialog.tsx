@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
 import { Alert, Avatar, Typography } from 'antd';
 import { Controller, useForm } from 'react-hook-form';
+import { useQueries } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormField } from '@/components/forms/FormField';
 import { createInviteMemberSchema, type InviteMemberValues } from '@/features/members/validation/inviteMemberSchema';
 import { useInviteMember, useLookupUserByEmail } from '@/features/members/hooks/useMembers';
+import { useWorkspaces } from '@/features/workspaces/hooks/useWorkspaces';
 import { useI18n } from '@/hooks/useI18n';
 import { MailIcon, SearchIcon, UserIcon } from '@/components/ui/icons';
+import { listContainers } from '@/api/container.api';
 import type { UserLookupDto } from '@/api/member.api';
+import { queryKeys } from '@/lib/queryKeys';
+
+interface InviteScopeState {
+  restricted: boolean;
+  selectedContainerIds: string[];
+  includeDescendants: boolean;
+}
 
 export interface InviteMemberDialogProps {
   wsId: string;
@@ -22,10 +33,13 @@ export interface InviteMemberDialogProps {
 export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDialogProps) {
   const inviteMutation = useInviteMember(wsId);
   const lookupMutation = useLookupUserByEmail();
+  const workspacesQuery = useWorkspaces();
   const { t } = useI18n();
   const inviteMemberSchema = createInviteMemberSchema(t);
   const [foundUser, setFoundUser] = useState<UserLookupDto | null>(null);
   const [lookupEmail, setLookupEmail] = useState('');
+  const [selectedWorkspaceIds, setSelectedWorkspaceIds] = useState<string[]>([wsId]);
+  const [scopeByWorkspace, setScopeByWorkspace] = useState<Record<string, InviteScopeState>>({});
   const {
     control,
     handleSubmit,
@@ -42,6 +56,30 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
   const email = watch('email').trim().toLowerCase();
   const lookupMatchesInput = Boolean(foundUser && lookupEmail === email);
   const foundUserInitial = foundUser?.displayName?.slice(0, 1).toUpperCase() ?? foundUser?.email.slice(0, 1).toUpperCase() ?? 'U';
+  const availableWorkspaces = workspacesQuery.data ?? [];
+  const selectedWorkspaces = availableWorkspaces.filter((workspace) => selectedWorkspaceIds.includes(workspace.id));
+  const containerQueries = useQueries({
+    queries: selectedWorkspaceIds.map((workspaceId) => ({
+      queryKey: queryKeys.containers.all(workspaceId),
+      queryFn: () => listContainers(workspaceId),
+      enabled: open && Boolean(workspaceId),
+    })),
+  });
+  const containersByWorkspace = selectedWorkspaceIds.reduce<Record<string, Awaited<ReturnType<typeof listContainers>>>>((map, workspaceId, index) => {
+    map[workspaceId] = containerQueries[index]?.data ?? [];
+    return map;
+  }, {});
+  const hasInvalidScope = selectedWorkspaceIds.some((workspaceId) => {
+    const scope = scopeByWorkspace[workspaceId];
+    return Boolean(scope?.restricted && scope.selectedContainerIds.length === 0);
+  });
+
+  useEffect(() => {
+    if (open) {
+      setSelectedWorkspaceIds([wsId]);
+      setScopeByWorkspace({});
+    }
+  }, [open, wsId]);
 
   useEffect(() => {
     if (lookupEmail && lookupEmail !== email) {
@@ -61,6 +99,8 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
     reset();
     setFoundUser(null);
     setLookupEmail('');
+    setSelectedWorkspaceIds([wsId]);
+    setScopeByWorkspace({});
     lookupMutation.reset();
   };
 
@@ -75,14 +115,55 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
     if (!lookupMatchesInput) {
       return;
     }
-    await inviteMutation.mutateAsync(values);
+    for (const workspaceId of selectedWorkspaceIds) {
+      const scope = scopeByWorkspace[workspaceId];
+      await inviteMutation.mutateAsync({
+        ...values,
+        workspaceId,
+        containerAccessScope: scope?.restricted && scope.selectedContainerIds.length > 0
+          ? {
+            containerIds: scope.selectedContainerIds,
+            includeDescendants: scope.includeDescendants,
+          }
+          : null,
+      });
+    }
     resetDialog();
     onOpenChange(false);
   });
 
+  const toggleWorkspace = (workspaceId: string) => {
+    setSelectedWorkspaceIds((current) => {
+      if (current.includes(workspaceId)) {
+        return current.length === 1 ? current : current.filter((id) => id !== workspaceId);
+      }
+      return [...current, workspaceId];
+    });
+  };
+
+  const updateScope = (workspaceId: string, updater: (current: InviteScopeState) => InviteScopeState) => {
+    setScopeByWorkspace((current) => ({
+      ...current,
+      [workspaceId]: updater(current[workspaceId] ?? {
+        restricted: false,
+        selectedContainerIds: [],
+        includeDescendants: true,
+      }),
+    }));
+  };
+
+  const toggleContainer = (workspaceId: string, containerId: string) => {
+    updateScope(workspaceId, (current) => ({
+      ...current,
+      selectedContainerIds: current.selectedContainerIds.includes(containerId)
+        ? current.selectedContainerIds.filter((id) => id !== containerId)
+        : [...current.selectedContainerIds, containerId],
+    }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[34rem] p-0">
+      <DialogContent className="max-w-[46rem] p-0">
         <DialogHeader className="mb-0 border-b border-border/70 px-5 py-5 sm:px-6">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -173,6 +254,119 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
             <section className="rounded-2xl border border-border/70 bg-background/70 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">3</span>
+                <Typography.Text strong>{t('members.visibilitySetupTitle', 'กำหนด workspace และ container ที่มองเห็น')}</Typography.Text>
+              </div>
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {availableWorkspaces.map((workspace) => (
+                    <label key={workspace.id} className="flex items-start gap-3 rounded-xl border border-border bg-card px-3 py-2.5 text-sm">
+                      <Checkbox
+                        checked={selectedWorkspaceIds.includes(workspace.id)}
+                        onChange={() => toggleWorkspace(workspace.id)}
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{workspace.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {workspace.id === wsId
+                            ? t('members.visibilityCurrentWorkspace', 'workspace ปัจจุบัน')
+                            : `${t('workspace.card.role')}: ${workspace.myRole}`}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {workspacesQuery.isLoading ? (
+                  <p className="rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+                    {t('common.loadingWorkspaces')}
+                  </p>
+                ) : null}
+                <div className="component-stack">
+                  {selectedWorkspaces.map((workspace) => {
+                    const scope = scopeByWorkspace[workspace.id] ?? {
+                      restricted: false,
+                      selectedContainerIds: [],
+                      includeDescendants: true,
+                    };
+                    const containers = containersByWorkspace[workspace.id] ?? [];
+                    return (
+                      <div key={workspace.id} className="rounded-2xl border border-border/70 bg-card p-3">
+                        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <Typography.Text strong className="block truncate">
+                              {workspace.name}
+                            </Typography.Text>
+                            <Typography.Text className="text-sm text-muted-foreground">
+                              {scope.restricted
+                                ? t('members.visibilityRestrictedSummary', 'เห็นเฉพาะ container ที่เลือก')
+                                : t('members.visibilityAllContainers', 'เห็นทุก container ใน workspace นี้')}
+                            </Typography.Text>
+                          </div>
+                          <Select
+                            className="w-full sm:w-52"
+                            value={scope.restricted ? 'restricted' : 'all'}
+                            onChange={(event) => updateScope(workspace.id, (current) => ({
+                              ...current,
+                              restricted: event.target.value === 'restricted',
+                            }))}
+                          >
+                            <option value="all">{t('members.visibilityAllContainers', 'เห็นทุก container')}</option>
+                            <option value="restricted">{t('members.visibilitySelectedContainers', 'เลือกเฉพาะ container')}</option>
+                          </Select>
+                        </div>
+                        {scope.restricted ? (
+                          <div className="space-y-3">
+                            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Checkbox
+                                checked={scope.includeDescendants}
+                                onChange={(event) => updateScope(workspace.id, (current) => ({
+                                  ...current,
+                                  includeDescendants: event.target.checked,
+                                }))}
+                              />
+                              {t('permissions.scope.includeDescendants', 'รวม container ลูกทั้งหมด')}
+                            </label>
+                            <p className="rounded-xl border border-border/70 bg-background/60 px-3 py-2 text-sm text-muted-foreground">
+                              {t('permissions.scope.selectedCount', 'เลือกแล้ว {count} container', { count: scope.selectedContainerIds.length })}
+                            </p>
+                            {containers.length === 0 ? (
+                              <p className="rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+                                {t('permissions.scope.emptyContainers', 'No containers available in this workspace.')}
+                              </p>
+                            ) : (
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                {containers.map((container) => (
+                                  <label key={container.id} className="flex items-start gap-3 rounded-xl border border-border bg-background/70 px-3 py-2 text-sm">
+                                    <Checkbox
+                                      checked={scope.selectedContainerIds.includes(container.id)}
+                                      onChange={() => toggleContainer(workspace.id, container.id)}
+                                    />
+                                    <span className="min-w-0">
+                                      <span className="block truncate font-medium">{container.name}</span>
+                                      <span className="block truncate text-xs text-muted-foreground">{container.typeLabel}</span>
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+                {hasInvalidScope ? (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    message={t('members.visibilityInvalidScope', 'เลือก container อย่างน้อย 1 รายการใน workspace ที่จำกัดการมองเห็น')}
+                  />
+                ) : null}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">4</span>
                 <Typography.Text strong>{t('members.roleSetupTitle', 'กำหนดบทบาทเริ่มต้น')}</Typography.Text>
               </div>
               <FormField label={t('members.inviteRole')} htmlFor="member-role" error={errors.role?.message}>
@@ -204,7 +398,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
             <Button
               type="submit"
               className="w-full sm:w-auto"
-              disabled={isSubmitting || inviteMutation.isPending || !lookupMatchesInput}
+              disabled={isSubmitting || inviteMutation.isPending || !lookupMatchesInput || selectedWorkspaceIds.length === 0 || hasInvalidScope}
             >
               {isSubmitting || inviteMutation.isPending ? t('members.inviteSaving') : t('members.inviteAction')}
             </Button>

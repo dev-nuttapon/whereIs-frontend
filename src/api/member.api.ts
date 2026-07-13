@@ -1,5 +1,5 @@
 import { client } from '@/api/client';
-import type { Member } from '@/types/domain.types';
+import type { ContainerAccessScope, Member } from '@/types/domain.types';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -39,6 +39,7 @@ export interface UserLookupDto {
 export interface InvitationDto {
   id: string;
   workspaceId: string;
+  workspaceName?: string | null;
   email: string;
   roleCode: string;
   status: string;
@@ -47,6 +48,7 @@ export interface InvitationDto {
   acceptedByUserId: string | null;
   createdAt: string;
   token: string;
+  containerAccessScope?: ContainerAccessScope | null;
 }
 
 interface RoleDto {
@@ -58,6 +60,8 @@ interface RoleDto {
 export interface InviteMemberInput {
   email: string;
   role: 'owner' | 'admin' | 'member' | 'viewer';
+  workspaceId?: string;
+  containerAccessScope?: ContainerAccessScope | null;
 }
 
 function toMember(wsId: string, dto: MemberDto): Member {
@@ -104,6 +108,7 @@ export async function inviteMember(wsId: string, input: InviteMemberInput): Prom
   const response = await client.post<ApiResponse<InvitationDto>>(`/workspaces/${encodeURIComponent(wsId)}/invitations`, {
     email: input.email,
     roleId,
+    containerAccessScope: input.containerAccessScope,
   });
   return response.data.data;
 }

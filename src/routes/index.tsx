@@ -75,6 +75,14 @@ export function AppRoutes() {
               </WorkspaceSelectLayout>
             }
           />
+          <Route
+            path={ROUTES.settings}
+            element={
+              <WorkspaceSelectLayout>
+                <SettingsPage />
+              </WorkspaceSelectLayout>
+            }
+          />
           <Route path="/w/:wsId" element={<WorkspaceRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />

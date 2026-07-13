@@ -8,6 +8,8 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useInvitations, useMembers, useRevokeInvitation, useUpdateMemberRole } from '@/features/members/hooks/useMembers';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { authStore } from '@/stores/auth.store';
 import { InviteMemberDialog } from '@/features/members/components/InviteMemberDialog';
 import { useI18n } from '@/hooks/useI18n';
@@ -71,12 +73,15 @@ export function MembersPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const membersQuery = useMembers(wsId);
   const invitationsQuery = useInvitations(wsId);
+  const workspaceQuery = useWorkspace(wsId);
+  const containersQuery = useContainers(wsId);
   const currentUser = authStore((state) => state.user);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [revokingInvitationId, setRevokingInvitationId] = useState<string | null>(null);
   const revokeInvitation = useRevokeInvitation(wsId);
   const { t } = useI18n();
   const pendingInvitations = (invitationsQuery.data ?? []).filter((invitation) => invitation.status.toLowerCase() === 'pending');
+  const containerNameById = new Map((containersQuery.data ?? []).map((container) => [container.id, container.name]));
 
   return (
     <PageShell title={t('members.title')} description={t('members.description')}>
@@ -123,6 +128,28 @@ export function MembersPage() {
                   <p className="mt-1 text-sm text-muted-foreground">
                     {t('members.invitationRole', 'บทบาท')}: {t(`members.role.${invitation.roleCode}`)}
                   </p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="rounded-full border border-border/70 bg-card px-2 py-1">
+                      {t('members.visibilityWorkspaceLabel', 'Workspace')}: {invitation.workspaceName ?? workspaceQuery.data?.name ?? invitation.workspaceId}
+                    </span>
+                    <span className="rounded-full border border-border/70 bg-card px-2 py-1">
+                      {invitation.containerAccessScope
+                        ? t('members.visibilitySelectedCount', 'เห็น {count} container', { count: invitation.containerAccessScope.containerIds.length })
+                        : t('members.visibilityAllContainers', 'เห็นทุก container')}
+                    </span>
+                    {invitation.containerAccessScope?.includeDescendants ? (
+                      <span className="rounded-full border border-border/70 bg-card px-2 py-1">
+                        {t('permissions.scope.includeDescendants', 'รวม container ลูกทั้งหมด')}
+                      </span>
+                    ) : null}
+                  </div>
+                  {invitation.containerAccessScope ? (
+                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                      {invitation.containerAccessScope.containerIds
+                        .map((containerId) => containerNameById.get(containerId) ?? containerId)
+                        .join(', ')}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   {invitation.token ? (

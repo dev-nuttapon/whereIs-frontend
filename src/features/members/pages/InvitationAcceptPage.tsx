@@ -62,7 +62,20 @@ export function InvitationAcceptPage() {
 
           <Descriptions bordered column={1} className="responsive-descriptions">
             <Descriptions.Item label={t('members.inviteEmail')}>{invitation.email}</Descriptions.Item>
+            <Descriptions.Item label={t('members.visibilityWorkspaceLabel', 'Workspace')}>
+              {invitation.workspaceName ?? invitation.workspaceId}
+            </Descriptions.Item>
             <Descriptions.Item label={t('members.inviteRole')}>{t(`members.role.${invitation.roleCode}`)}</Descriptions.Item>
+            <Descriptions.Item label={t('members.visibilityContainerScope', 'Container access')}>
+              {invitation.containerAccessScope
+                ? (
+                  <span>
+                    {t('members.visibilitySelectedCount', 'เห็น {count} container', { count: invitation.containerAccessScope.containerIds.length })}
+                    {invitation.containerAccessScope.includeDescendants ? `, ${t('permissions.scope.includeDescendants', 'รวม container ลูกทั้งหมด')}` : ''}
+                  </span>
+                )
+                : t('members.visibilityAllContainers', 'เห็นทุก container')}
+            </Descriptions.Item>
             <Descriptions.Item label={t('members.invitationStatus', 'สถานะ')}>{invitation.status}</Descriptions.Item>
           </Descriptions>
 

@@ -3,6 +3,7 @@ export const ROUTES = {
   login: '/login',
   register: '/register',
   invitationAccept: (token: string) => `/invitations/${encodeURIComponent(token)}`,
+  settings: '/settings',
   workspaces: '/workspaces',
   workspaceNew: '/workspaces/new',
   workspaceDashboard: (wsId: string) => `/w/${wsId}`,

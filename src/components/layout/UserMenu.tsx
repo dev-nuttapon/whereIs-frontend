@@ -64,9 +64,8 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       },
       {
         key: 'settings',
-        disabled: !hasWorkspaceContext,
         icon: <SettingsIcon className="h-4 w-4" />,
-        label: hasWorkspaceContext ? t('nav.settings') : t('userMenu.settingsDisabled', 'Settings: select a workspace first'),
+        label: t('nav.settings'),
       },
     );
 
@@ -110,8 +109,8 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
             return;
           }
 
-          if (key === 'settings' && activeWorkspaceId) {
-            navigate(ROUTES.workspaceSettings(activeWorkspaceId));
+          if (key === 'settings') {
+            navigate(ROUTES.settings);
             return;
           }
 
