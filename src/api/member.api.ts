@@ -1,34 +1,142 @@
+import { client } from '@/api/client';
 import type { Member } from '@/types/domain.types';
-import {
-  getMember as getMemberRecord,
-  inviteMember as inviteMemberRecord,
-  listMembers as listMembersRecord,
-  removeMember as removeMemberRecord,
-  updateMemberRole as updateMemberRoleRecord,
-} from '@/mocks/demo-db';
-import { delay } from '@/utils/mock-api';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+interface PagedResult<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}
+
+interface MemberDto {
+  id: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  roleCode: string;
+  status: string;
+  joinedAt: string;
+}
+
+interface MemberPermissionsDto {
+  roleCode: string;
+  effective: string[];
+  overrides: Array<{ code: string; effect: string }>;
+}
+
+export interface InvitationDto {
+  id: string;
+  workspaceId: string;
+  email: string;
+  roleCode: string;
+  status: string;
+  expiresAt: string;
+  invitedByUserId: string;
+  acceptedByUserId: string | null;
+  createdAt: string;
+  token: string;
+}
+
+interface RoleDto {
+  id: string;
+  code: string;
+  name: string;
+}
 
 export interface InviteMemberInput {
   email: string;
   role: 'owner' | 'admin' | 'member' | 'viewer';
 }
 
+function toMember(wsId: string, dto: MemberDto): Member {
+  return {
+    id: dto.id,
+    workspaceId: wsId,
+    user: {
+      id: dto.userId,
+      email: dto.email,
+      name: dto.displayName,
+    },
+    role: dto.roleCode as Member['role'],
+    permissions: [],
+    invitationStatus: dto.status as Member['invitationStatus'],
+    createdAt: dto.joinedAt,
+  };
+}
+
+async function resolveRoleId(wsId: string, roleCode: InviteMemberInput['role']) {
+  const response = await client.get<ApiResponse<PagedResult<RoleDto>>>(`/workspaces/${encodeURIComponent(wsId)}/roles`, {
+    params: { page: 1, pageSize: 100 },
+  });
+  const role = response.data.data.items.find((entry) => entry.code === roleCode);
+  if (!role) {
+    throw new Error(`Role '${roleCode}' not found.`);
+  }
+  return role.id;
+}
+
 export async function listMembers(wsId: string): Promise<Member[]> {
-  return delay(listMembersRecord(wsId));
+  const response = await client.get<ApiResponse<PagedResult<MemberDto>>>(`/workspaces/${encodeURIComponent(wsId)}/members`, {
+    params: { page: 1, pageSize: 100 },
+  });
+  return response.data.data.items.map((item) => toMember(wsId, item));
 }
 
-export async function getMember(id: string): Promise<Member> {
-  return delay(getMemberRecord(id));
+export async function getMember(wsId: string, id: string): Promise<Member> {
+  const response = await client.get<ApiResponse<MemberDto>>(`/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(id)}`);
+  return toMember(wsId, response.data.data);
 }
 
-export async function inviteMember(wsId: string, input: InviteMemberInput): Promise<Member> {
-  return delay(inviteMemberRecord(wsId, input.email, input.role));
+export async function inviteMember(wsId: string, input: InviteMemberInput): Promise<InvitationDto> {
+  const roleId = await resolveRoleId(wsId, input.role);
+  const response = await client.post<ApiResponse<InvitationDto>>(`/workspaces/${encodeURIComponent(wsId)}/invitations`, {
+    email: input.email,
+    roleId,
+  });
+  return response.data.data;
 }
 
-export async function updateMemberRole(id: string, role: 'owner' | 'admin' | 'member' | 'viewer'): Promise<Member> {
-  return delay(updateMemberRoleRecord(id, role));
+export async function updateMemberRole(wsId: string, id: string, role: InviteMemberInput['role']): Promise<Member> {
+  const roleId = await resolveRoleId(wsId, role);
+  const response = await client.put<ApiResponse<MemberDto>>(`/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(id)}/role`, {
+    roleId,
+  });
+  return toMember(wsId, response.data.data);
 }
 
-export async function removeMember(id: string): Promise<{ success: true }> {
-  return delay(removeMemberRecord(id));
+export async function removeMember(wsId: string, id: string): Promise<{ success: true }> {
+  await client.delete(`/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(id)}`);
+  return { success: true };
+}
+
+export async function getMemberPermissions(wsId: string, memberId: string): Promise<MemberPermissionsDto> {
+  const response = await client.get<ApiResponse<MemberPermissionsDto>>(
+    `/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(memberId)}/permissions`,
+  );
+  return response.data.data;
+}
+
+export async function updateMemberPermissions(
+  wsId: string,
+  memberId: string,
+  overrides: Record<string, boolean>,
+  containerAccessScope?: { containerIds: string[]; includeDescendants: boolean } | null,
+): Promise<MemberPermissionsDto> {
+  const payload = {
+    overrides: Object.entries(overrides).map(([permissionId, enabled]) => ({
+      permissionId,
+      effect: enabled ? 'Allow' : 'Deny',
+    })),
+    containerAccessScope,
+  };
+  const response = await client.put<ApiResponse<MemberPermissionsDto>>(
+    `/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(memberId)}/permissions`,
+    payload,
+  );
+  return response.data.data;
 }

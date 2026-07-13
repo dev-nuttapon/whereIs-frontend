@@ -15,7 +15,7 @@ export function useMembers(wsId: string) {
 export function useMember(wsId: string, memberId: string) {
   return useQuery({
     queryKey: queryKeys.members.detail(wsId, memberId),
-    queryFn: () => getMember(memberId),
+    queryFn: () => getMember(wsId, memberId),
     enabled: Boolean(wsId && memberId),
   });
 }
@@ -25,12 +25,12 @@ export function useInviteMember(wsId: string) {
   const { t } = useI18n();
   return useMutation({
     mutationFn: (input: InviteMemberInput) => inviteMember(wsId, input),
-    onSuccess: async (member) => {
+    onSuccess: async (invitation) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.memberInvited'),
-        description: member.user.email,
+        description: invitation.email,
       });
     },
   });
@@ -40,7 +40,7 @@ export function useUpdateMemberRole(wsId: string, memberId: string) {
   const queryClient = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: (role: 'admin' | 'member' | 'viewer') => updateMemberRole(memberId, role),
+    mutationFn: (role: 'admin' | 'member' | 'viewer') => updateMemberRole(wsId, memberId, role),
     onSuccess: async (member) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.detail(wsId, memberId) });
@@ -58,7 +58,7 @@ export function useRemoveMember(wsId: string, memberId: string) {
   const queryClient = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: () => removeMember(memberId),
+    mutationFn: () => removeMember(wsId, memberId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.detail(wsId, memberId) });

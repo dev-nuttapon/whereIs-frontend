@@ -89,7 +89,7 @@ Build a workspace-based system for tracking items, stock, and item lifecycle wor
 ## Open Questions
 - What is the final backend action naming for borrow, withdraw, reserve, repair, and adjustment workflows?
 - What is the exact data shape of Container Access Scope?
-- Which report types are in the first frontend mockup set?
+- Which report types are in scope for the first implementation?
 - Which notification delivery surfaces are in scope for the first implementation?
 
 ## Design Rules
@@ -98,4 +98,4 @@ Build a workspace-based system for tracking items, stock, and item lifecycle wor
 - Container structure is user-defined and not fixed by the system.
 - Search and UI state should be shareable through URL when practical.
 - Server state stays in TanStack Query; UI state stays in Zustand or local state.
-- Prefer flow clarity over feature completeness when designing the first usable mockup set.
+- Prefer flow clarity over feature completeness when designing the first usable implementation set.

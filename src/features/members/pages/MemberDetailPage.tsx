@@ -49,7 +49,7 @@ export function MemberDetailPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <StatCard label={t('members.detail.permissions')} value={effectiveCount} />
             <StatCard label={t('members.detail.overrides')} value={overrideCount} description={t('permissions.title')} />
-            <StatCard label={t('members.detail.samplePermissions')} value={memberQuery.data.permissions.length} description={t('permissions.enabled')} />
+            <StatCard label={t('members.detail.samplePermissions')} value={effectiveCount} description={t('permissions.enabled')} />
           </div>
 
           {highlightedPermissions.length > 0 ? (

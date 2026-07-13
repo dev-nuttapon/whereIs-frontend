@@ -7,7 +7,7 @@ import { pushNotification } from '@/stores/notification.store';
 export function useMemberPermissions(wsId: string, memberId: string) {
   return useQuery({
     queryKey: ['ws', wsId, 'member', memberId, 'permissions'] as const,
-    queryFn: () => getMemberPermissions(memberId),
+    queryFn: () => getMemberPermissions(wsId, memberId),
     enabled: Boolean(wsId && memberId),
   });
 }
@@ -17,7 +17,7 @@ export function useUpdatePermissions(wsId: string, memberId: string) {
   const { t } = useI18n();
 
   return useMutation({
-    mutationFn: (overrides: Record<string, boolean>) => updateMemberPermissions(memberId, overrides),
+    mutationFn: (overrides: Record<string, boolean>) => updateMemberPermissions(wsId, memberId, overrides),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId, 'permissions'] });
       await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId] });

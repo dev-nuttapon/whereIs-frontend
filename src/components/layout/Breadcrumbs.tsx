@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useContainers } from '@/features/containers/hooks/useContainers';
-import { useSearchItems } from '@/features/items/hooks/useItems';
 import { useMembers } from '@/features/members/hooks/useMembers';
 import { ChevronRightIcon } from '@/components/ui/icons';
 
@@ -17,10 +16,8 @@ export function Breadcrumbs() {
   const location = useLocation();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const containersQuery = useContainers(wsId ?? '');
-  const itemsQuery = useSearchItems(wsId ?? '', { page: 1, limit: 200 });
   const membersQuery = useMembers(wsId ?? '');
   const containers = containersQuery.data ?? [];
-  const items = itemsQuery.data?.data ?? [];
   const members = membersQuery.data ?? [];
 
   const crumbs = useMemo<Crumb[]>(() => {
@@ -41,10 +38,6 @@ export function Breadcrumbs() {
       return chain;
     };
 
-    if (location.pathname.endsWith('/search')) {
-      return [{ label: 'Search', to: ROUTES.workspaceSearch(wsId) }];
-    }
-
     if (location.pathname.endsWith('/containers')) {
       return [{ label: 'Containers', to: ROUTES.workspaceContainers(wsId) }];
     }
@@ -55,21 +48,6 @@ export function Breadcrumbs() {
       return [
         { label: 'Containers', to: ROUTES.workspaceContainers(wsId) },
         ...containerPath(container?.id ?? null),
-      ];
-    }
-
-    if (location.pathname.endsWith('/items')) {
-      return [{ label: 'Items', to: ROUTES.workspaceItems(wsId) }];
-    }
-
-    if (location.pathname.includes('/items/')) {
-      const itemId = location.pathname.split('/items/')[1]?.split('/')[0];
-      const item = items.find((entry) => entry.id === itemId || entry.code === itemId);
-      const container = item?.containerId ? containers.find((entry) => entry.id === item.containerId) : null;
-      return [
-        { label: 'Items', to: ROUTES.workspaceItems(wsId) },
-        ...containerPath(container?.id ?? null),
-        { label: item?.name ?? itemId ?? 'Item' },
       ];
     }
 
@@ -86,24 +64,12 @@ export function Breadcrumbs() {
       ];
     }
 
-    if (location.pathname.endsWith('/activity')) {
-      return [{ label: 'Activity', to: ROUTES.workspaceActivity(wsId) }];
-    }
-
-    if (location.pathname.endsWith('/reports')) {
-      return [{ label: 'Reports', to: ROUTES.workspaceReports(wsId) }];
-    }
-
-    if (location.pathname.endsWith('/notifications')) {
-      return [{ label: 'Notifications', to: ROUTES.workspaceNotifications(wsId) }];
-    }
-
     if (location.pathname.endsWith('/settings')) {
       return [{ label: 'Settings', to: ROUTES.workspaceSettings(wsId) }];
     }
 
     return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
-  }, [containers, currentWorkspace?.name, items, location.pathname, members, wsId]);
+  }, [containers, currentWorkspace?.name, location.pathname, members, wsId]);
 
   if (crumbs.length === 0) {
     return null;

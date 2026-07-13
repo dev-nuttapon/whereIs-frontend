@@ -23,8 +23,8 @@ Stack: React 18 + Vite + TypeScript, React Router, TanStack Query,
 - styling ด้วย Tailwind + shadcn/ui, ใช้ design token (ห้าม hardcode สี) ดู docs/theme.md
 - function component + hooks, named export, TypeScript strict (ห้าม any)
 - แยก feature folder ชัดเจน ตาม docs/folder-structure.md
-- ใช้ Mock API ก่อนได้ถ้า Backend ยังไม่พร้อม (contract = docs/api/api-contract.md)
-- หน้าจอที่ควรวาง mockup ก่อน backend: dashboard, search, item detail, reports, notifications, member/permission, container tree
+- ใช้ API จริงผ่าน contract ใน docs/api/api-contract.md
+- ทำหน้าที่มี endpoint รองรับก่อน แล้วค่อยขยายส่วนที่เหลือตามลำดับความสำคัญ
 ```
 
 ## ขั้นตอนก่อนเริ่มงานทุกครั้ง

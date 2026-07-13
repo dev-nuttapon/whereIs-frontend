@@ -1,39 +1,63 @@
 import { useEffect, useMemo, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
-import { Alert, Avatar, Button, Card, Divider, Input, Typography } from 'antd';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Alert, Avatar, Button, Card, Input, Typography } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
+import { UserIcon } from '@/components/ui/icons';
 import { authStore } from '@/stores/auth.store';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
-import { UserIcon } from '@/components/ui/icons';
-import {
-  createPasswordSchema,
-  createProfileSchema,
-  type PasswordValues,
-  type ProfileValues,
-} from '@/features/profile/validation/profileSchema';
+import { client } from '@/api/client';
+import { getCurrentUser } from '@/api/auth.api';
+import { createProfileSchema, type ProfileValues } from '@/features/profile/validation/profileSchema';
+import type { User } from '@/types/domain.types';
+
+interface UpdateMeRequest {
+  displayName?: string | null;
+  avatarUrl?: string | null;
+}
+
+interface MeEnvelope {
+  success: boolean;
+  data: {
+    id: string;
+    email: string;
+    displayName: string;
+    avatarUrl?: string | null;
+  };
+}
+
+async function updateMe(request: UpdateMeRequest): Promise<User> {
+  const response = await client.patch<MeEnvelope>('/users/me', request);
+  const me = response.data.data;
+  return {
+    id: me.id,
+    email: me.email,
+    name: me.displayName,
+    avatarUrl: me.avatarUrl ?? undefined,
+  };
+}
 
 export function ProfilePage() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const user = authStore((state) => state.user);
-  const password = authStore((state) => state.password);
-  const updateUser = authStore((state) => state.updateUser);
-  const updatePassword = authStore((state) => state.updatePassword);
+  const setUser = authStore((state) => state.updateUser);
+  const profileQuery = useQuery({
+    queryKey: queryKeys.auth.me,
+    queryFn: getCurrentUser,
+  });
   const [saved, setSaved] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const schema = createProfileSchema(t);
-  const passwordSchema = createPasswordSchema(t);
 
+  const currentUser = profileQuery.data ?? user;
   const defaultValues = useMemo<ProfileValues>(
     () => ({
-      name: user?.name ?? '',
-      email: user?.email ?? '',
+      name: currentUser?.name ?? '',
+      email: currentUser?.email ?? '',
     }),
-    [user?.email, user?.name],
+    [currentUser?.email, currentUser?.name],
   );
 
   const {
@@ -56,28 +80,24 @@ export function ProfilePage() {
     }
   }, [isDirty]);
 
-  const {
-    register: registerPassword,
-    handleSubmit: handlePasswordSubmit,
-    reset: resetPassword,
-    formState: { errors: passwordErrors, isSubmitting: isPasswordSubmitting, isDirty: isPasswordDirty },
-  } = useForm<PasswordValues>({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+  const updateMutation = useMutation({
+    mutationFn: (values: ProfileValues) =>
+      updateMe({
+        displayName: values.name.trim(),
+        avatarUrl: null,
+      }),
+    onSuccess: async (nextUser) => {
+      setUser(nextUser);
+      queryClient.setQueryData(queryKeys.auth.me, nextUser);
+      reset({
+        name: nextUser.name,
+        email: nextUser.email,
+      });
+      setSaved(true);
     },
   });
 
-  useEffect(() => {
-    if (isPasswordDirty) {
-      setPasswordSaved(false);
-      setPasswordError(null);
-    }
-  }, [isPasswordDirty]);
-
-  const initials = (user?.name ?? 'U')
+  const initials = (currentUser?.name ?? 'U')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
@@ -85,36 +105,7 @@ export function ProfilePage() {
     .join('');
 
   const onSubmit = handleSubmit(async (values) => {
-    const nextUser = {
-      ...(user ?? { id: 'user-admin', name: values.name, email: values.email }),
-      name: values.name.trim(),
-      email: values.email.trim(),
-    };
-
-    updateUser(nextUser);
-    queryClient.setQueryData(queryKeys.auth.me, nextUser);
-    reset({
-      name: nextUser.name,
-      email: nextUser.email,
-    });
-    setSaved(true);
-  });
-
-  const onPasswordSubmit = handlePasswordSubmit(async (values) => {
-    if (values.currentPassword !== (password ?? '')) {
-      setPasswordError(t('profile.passwordInvalid'));
-      setPasswordSaved(false);
-      return;
-    }
-
-    updatePassword(values.newPassword);
-    resetPassword({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    });
-    setPasswordError(null);
-    setPasswordSaved(true);
+    await updateMutation.mutateAsync(values);
   });
 
   return (
@@ -146,55 +137,12 @@ export function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Typography.Text className="text-sm font-medium">{t('profile.email')}</Typography.Text>
-              <Input id="email" type="email" autoComplete="email" {...register('email')} />
-              {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
+              <Input id="email" type="email" autoComplete="email" {...register('email')} disabled />
             </div>
-            {saved ? (
-              <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.saved')} />
-            ) : null}
+            {saved ? <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.saved')} /> : null}
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="primary" htmlType="submit" disabled={isSubmitting || !isDirty}>
-                {isSubmitting ? t('profile.saving') : t('profile.save')}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </Card>
-      <Divider />
-      <Card className="overflow-hidden">
-        <div className="space-y-5 p-5 sm:p-6">
-          <div className="space-y-1">
-            <Typography.Title level={5} className="!mb-0 !mt-0 text-base">
-              {t('profile.securityTitle')}
-            </Typography.Title>
-            <Typography.Paragraph className="!mb-0 text-muted-foreground">
-              {t('profile.securityDescription')}
-            </Typography.Paragraph>
-          </div>
-
-          <form className="space-y-4" onSubmit={onPasswordSubmit}>
-            <div className="space-y-2">
-              <Typography.Text className="text-sm font-medium">{t('profile.currentPassword')}</Typography.Text>
-              <Input.Password id="currentPassword" autoComplete="current-password" {...registerPassword('currentPassword')} />
-              {passwordErrors.currentPassword ? <p className="text-sm text-destructive">{passwordErrors.currentPassword.message}</p> : null}
-            </div>
-            <div className="space-y-2">
-              <Typography.Text className="text-sm font-medium">{t('profile.newPassword')}</Typography.Text>
-              <Input.Password id="newPassword" autoComplete="new-password" {...registerPassword('newPassword')} />
-              {passwordErrors.newPassword ? <p className="text-sm text-destructive">{passwordErrors.newPassword.message}</p> : null}
-            </div>
-            <div className="space-y-2">
-              <Typography.Text className="text-sm font-medium">{t('profile.confirmNewPassword')}</Typography.Text>
-              <Input.Password id="confirmPassword" autoComplete="new-password" {...registerPassword('confirmPassword')} />
-              {passwordErrors.confirmPassword ? <p className="text-sm text-destructive">{passwordErrors.confirmPassword.message}</p> : null}
-            </div>
-            {passwordError ? <Alert type="error" showIcon message={passwordError} /> : null}
-            {passwordSaved ? (
-              <Alert className="border-border/80 bg-muted/40" type="success" showIcon message={t('profile.passwordChanged')} />
-            ) : null}
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="primary" htmlType="submit" disabled={isPasswordSubmitting || !isPasswordDirty}>
-                {isPasswordSubmitting ? t('profile.saving') : t('profile.changePassword')}
+              <Button type="primary" htmlType="submit" disabled={isSubmitting || !isDirty || updateMutation.isPending}>
+                {isSubmitting || updateMutation.isPending ? t('profile.saving') : t('profile.save')}
               </Button>
             </div>
           </form>

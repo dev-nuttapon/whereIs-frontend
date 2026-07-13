@@ -6,7 +6,6 @@ import { WorkspaceSelectLayout } from '@/layouts/WorkspaceSelectLayout';
 import { AppLayout } from '@/layouts/AppLayout';
 import { ProtectedRoute } from '@/routes/protected-route';
 import { WorkspaceRoute } from '@/routes/workspace-route';
-import { PermissionRoute } from '@/routes/permission-route';
 import { authStore } from '@/stores/auth.store';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
@@ -17,18 +16,12 @@ const AuthCallbackPage = lazy(() => import('@/features/auth/pages/AuthCallbackPa
 const WorkspaceListPage = lazy(() => import('@/features/workspaces/pages/WorkspaceListPage').then((module) => ({ default: module.WorkspaceListPage })));
 const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/WorkspaceNewPage').then((module) => ({ default: module.WorkspaceNewPage })));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
-const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
-const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
 const MemberDetailPage = lazy(() => import('@/features/members/pages/MemberDetailPage').then((module) => ({ default: module.MemberDetailPage })));
-const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage').then((module) => ({ default: module.ActivityPage })));
-const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((module) => ({ default: module.ReportsPage })));
-const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const ContainerDetailPage = lazy(() => import('@/features/containers/pages/ContainerDetailPage').then((module) => ({ default: module.ContainerDetailPage })));
-const ItemDetailPage = lazy(() => import('@/features/items/pages/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
 const NotFoundPage = lazy(() => import('@/features/not-found/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 
 export function AppRoutes() {
@@ -85,28 +78,10 @@ export function AppRoutes() {
           <Route path="/w/:wsId" element={<WorkspaceRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
-              <Route element={<PermissionRoute permission="item.view" />}>
-                <Route path="search" element={<SearchPage />} />
-                <Route path="items" element={<ItemsPage />} />
-                <Route path="items/:itemId" element={<ItemDetailPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="container.view" />}>
-                <Route path="containers" element={<ContainersPage />} />
-                <Route path="containers/:containerId" element={<ContainerDetailPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="member.view" />}>
-                <Route path="members" element={<MembersPage />} />
-                <Route path="members/:memberId" element={<MemberDetailPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="activity.view" />}>
-                <Route path="activity" element={<ActivityPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="report.view" />}>
-                <Route path="reports" element={<ReportsPage />} />
-              </Route>
-              <Route element={<PermissionRoute permission="notification.view" />}>
-                <Route path="notifications" element={<NotificationsPage />} />
-              </Route>
+              <Route path="containers" element={<ContainersPage />} />
+              <Route path="containers/:containerId" element={<ContainerDetailPage />} />
+              <Route path="members" element={<MembersPage />} />
+              <Route path="members/:memberId" element={<MemberDetailPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>

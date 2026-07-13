@@ -8,9 +8,7 @@ import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { LogoutIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
-import { useDemoUsers } from '@/features/auth/hooks/useDemoUsers';
 import { useLogout } from '@/features/auth/hooks/useLogout';
-import { isDemoModeEnabled } from '@/lib/demo-session';
 
 export interface UserMenuProps {
   workspaceId?: string | null;
@@ -20,11 +18,8 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
   const navigate = useNavigate();
   const { wsId } = useParams();
   const user = authStore((state) => state.user);
-  const setAuth = authStore((state) => state.setAuth);
   const logoutMutation = useLogout();
   const { t } = useI18n();
-  const demoUsersQuery = useDemoUsers();
-  const demoUsers = demoUsersQuery.data ?? [];
   const activeWorkspaceId = workspaceId ?? wsId ?? workspaceStore.getState().currentWorkspaceId;
   const showWorkspaceLinks = Boolean(activeWorkspaceId);
 
@@ -41,18 +36,6 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
         ),
       },
       { type: 'divider' },
-      ...(isDemoModeEnabled()
-        ? [
-            {
-              key: 'persona',
-              label: 'Switch demo persona',
-              children: demoUsers.map((candidate) => ({
-                key: candidate.id,
-                label: candidate.name,
-              })),
-            },
-          ]
-        : []),
     ];
 
     if (showWorkspaceLinks) {
@@ -82,7 +65,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
     );
 
     return next;
-  }, [demoUsers, showWorkspaceLinks, t, user?.email, user?.name]);
+  }, [showWorkspaceLinks, t, user?.email, user?.name]);
 
   return (
     <Dropdown
@@ -91,20 +74,6 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       menu={{
         items,
         onClick: ({ key, keyPath }) => {
-          if (keyPath.includes('persona')) {
-            const nextUser = demoUsers.find((candidate) => candidate.id === key);
-            if (nextUser) {
-              setAuth({
-                accessToken: 'demo-token',
-                refreshToken: 'demo-refresh-token',
-                idToken: 'demo-id-token',
-                expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-                user: nextUser,
-              });
-            }
-            return;
-          }
-
           if (key === 'profile' && activeWorkspaceId) {
             navigate(ROUTES.workspaceProfile(activeWorkspaceId));
             return;

@@ -1,20 +1,62 @@
-import type { Container, Item } from '@/types/domain.types';
-import { getContainer as getContainerRecord, getContainerChildren as getContainerChildrenRecord, getContainerItems as getContainerItemsRecord, listContainers as listContainersRecord } from '@/mocks/demo-db';
-import { delay } from '@/utils/mock-api';
+import { client } from '@/api/client';
+import type { Container } from '@/types/domain.types';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+interface PagedResult<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}
+
+interface ContainerDto {
+  id: string;
+  workspaceId: string;
+  locationId: string | null;
+  parentContainerId: string | null;
+  name: string;
+  type: string | null;
+  code: string | null;
+  qrCode: string | null;
+  photoUrl: string | null;
+  itemCount: number;
+  childContainerCount: number;
+  createdAt: string;
+}
+
+function toContainer(dto: ContainerDto): Container {
+  return {
+    id: dto.id,
+    workspaceId: dto.workspaceId,
+    locationId: dto.locationId,
+    parentId: dto.parentContainerId,
+    name: dto.name,
+    typeLabel: dto.type ?? 'Container',
+    note: undefined,
+    code: dto.code ?? undefined,
+    qrCode: dto.qrCode ?? undefined,
+    photoUrl: dto.photoUrl ?? undefined,
+    itemCount: dto.itemCount,
+    childContainerCount: dto.childContainerCount,
+    createdAt: dto.createdAt,
+    updatedAt: dto.createdAt,
+  };
+}
 
 export async function listContainers(wsId: string): Promise<Container[]> {
-  return delay(listContainersRecord(wsId));
+  const response = await client.get<ApiResponse<PagedResult<ContainerDto>>>(`/workspaces/${encodeURIComponent(wsId)}/containers`, {
+    params: { page: 1, pageSize: 100 },
+  });
+  return response.data.data.items.map(toContainer);
 }
 
 export async function getContainer(wsId: string, id: string): Promise<Container> {
-  void wsId;
-  return delay(getContainerRecord(id));
-}
-
-export async function getContainerChildren(wsId: string, id: string): Promise<Container[]> {
-  return delay(getContainerChildrenRecord(wsId, id));
-}
-
-export async function getContainerItems(wsId: string, id: string): Promise<Item[]> {
-  return delay(getContainerItemsRecord(wsId, id));
+  const response = await client.get<ApiResponse<ContainerDto>>(
+    `/workspaces/${encodeURIComponent(wsId)}/containers/${encodeURIComponent(id)}`,
+  );
+  return toContainer(response.data.data);
 }

@@ -2,7 +2,6 @@ import axios from 'axios';
 import { env } from '@/lib/env';
 import { authStore } from '@/stores/auth.store';
 import { queryClient } from '@/lib/queryClient';
-import { isDemoModeEnabled } from '@/lib/demo-session';
 import { refreshKeycloakSession } from '@/lib/keycloak-auth';
 
 let refreshSessionPromise: Promise<void> | null = null;
@@ -31,8 +30,7 @@ client.interceptors.response.use(
     if (
       error?.response?.status === 401 &&
       originalRequest &&
-      !originalRequest._retry &&
-      !isDemoModeEnabled()
+      !originalRequest._retry
     ) {
       const refreshToken = authStore.getState().refreshToken;
 

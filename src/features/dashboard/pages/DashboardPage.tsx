@@ -1,147 +1,92 @@
-import { Link, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { Avatar, Space, Tag, Typography } from 'antd';
+import { useParams } from 'react-router-dom';
 import { PageShell } from '@/components/common/PageShell';
 import { StatCard } from '@/components/common/StatCard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { queryKeys } from '@/lib/queryKeys';
-import { getDashboardSummary } from '@/api/dashboard.api';
-import { ROUTES } from '@/constants/routes';
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { useActivity, useSearchItems } from '@/features/items/hooks/useItems';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useMembers } from '@/features/members/hooks/useMembers';
+import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { useI18n } from '@/hooks/useI18n';
-import { SearchIcon } from '@/components/ui/icons';
-import { buildActivityDisplay } from '@/features/activity/lib/activityDisplay';
-
-const activityToneClasses: Record<'blue' | 'emerald' | 'amber' | 'rose' | 'slate', string> = {
-  blue: 'border-blue-500/20 bg-blue-500/10 text-blue-700',
-  emerald: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700',
-  amber: 'border-amber-500/20 bg-amber-500/10 text-amber-700',
-  rose: 'border-rose-500/20 bg-rose-500/10 text-rose-700',
-  slate: 'border-slate-500/20 bg-slate-500/10 text-slate-700',
-};
+import { workspaceStore } from '@/stores/workspace.store';
 
 export function DashboardPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t, locale } = useI18n();
-  const summaryQuery = useQuery({
-    queryKey: queryKeys.dashboard(wsId),
-    queryFn: () => getDashboardSummary(wsId),
-  });
-  const activityQuery = useActivity(wsId);
-  const itemsQuery = useSearchItems(wsId, { page: 1, limit: 200 });
+  const workspaceQuery = useWorkspace(wsId);
   const containersQuery = useContainers(wsId);
   const membersQuery = useMembers(wsId);
-  const recentActivity = useMemo(() => activityQuery.data?.slice(0, 5) ?? [], [activityQuery.data]);
-  const itemsLink = (params?: Record<string, string>) =>
-    params ? `${ROUTES.workspaceItems(wsId)}?${new URLSearchParams(params).toString()}` : ROUTES.workspaceItems(wsId);
-  const eventTime = (value: string) =>
-    new Intl.DateTimeFormat(locale === 'th' ? 'th-TH' : 'en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
+  const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
+
+  const workspace = workspaceQuery.data ?? currentWorkspace;
+  const containers = containersQuery.data ?? [];
+  const members = membersQuery.data ?? [];
+
+  const summaryCards = [
+    { label: t('dashboard.workspace', 'Workspace'), value: workspace ? 1 : 0 },
+    { label: t('dashboard.members', 'Members'), value: members.length },
+    { label: t('dashboard.containers', 'Containers'), value: containers.length },
+    { label: t('dashboard.active', 'Active'), value: workspace?.myRole ? 1 : 0 },
+  ];
 
   return (
     <PageShell
       title={t('dashboard.title')}
       description={t('dashboard.description')}
-      actions={
-        <Button asChild>
-          <Link to={ROUTES.workspaceSearch(wsId)}>
-            <SearchIcon className="h-4 w-4" />
-            {t('dashboard.search')}
-          </Link>
-        </Button>
-      }
     >
-
-      {summaryQuery.isLoading ? <LoadingState label={t('dashboard.loadingSummary')} /> : null}
-      {summaryQuery.isError ? <ErrorState message={t('dashboard.summaryError')} onRetry={() => summaryQuery.refetch()} /> : null}
-      {summaryQuery.data ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label={t('dashboard.totalItems')} value={summaryQuery.data.totalItems} to={itemsLink()} />
-          <StatCard label={t('dashboard.stored')} value={summaryQuery.data.stored} to={itemsLink({ status: 'stored' })} />
-          <StatCard label={t('dashboard.takenOut')} value={summaryQuery.data.borrowed} to={itemsLink({ status: 'taken_out' })} />
-          <StatCard label={t('dashboard.missing')} value={summaryQuery.data.missing} to={itemsLink({ status: 'missing' })} />
-          <StatCard label={t('dashboard.lowStock')} value={summaryQuery.data.lowStock} to={itemsLink({ stock: 'low' })} />
-          <StatCard label={t('dashboard.outOfStock')} value={summaryQuery.data.outOfStock} to={itemsLink({ stock: 'out' })} />
-          <StatCard
-            label={t('dashboard.returnableItems')}
-            value={summaryQuery.data.borrowed + summaryQuery.data.reserved + summaryQuery.data.overdueReturn}
-            to={itemsLink({ usageType: 'returnable' })}
-          />
-        </div>
+      {workspaceQuery.isLoading || containersQuery.isLoading || membersQuery.isLoading ? (
+        <LoadingState label={t('common.loading')} />
+      ) : null}
+      {workspaceQuery.isError || containersQuery.isError || membersQuery.isError ? (
+        <ErrorState
+          message={t('dashboard.summaryError', 'Unable to load workspace overview.')}
+          onRetry={() => {
+            void workspaceQuery.refetch();
+            void containersQuery.refetch();
+            void membersQuery.refetch();
+          }}
+        />
       ) : null}
 
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{t('dashboard.recentActivity')}</CardTitle>
-            <CardDescription>{t('dashboard.recentDescription')}</CardDescription>
-          </div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to={ROUTES.workspaceActivity(wsId)}>{t('dashboard.viewAll')}</Link>
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {activityQuery.isLoading ? <LoadingState label={t('dashboard.loadingActivity')} /> : null}
-          {activityQuery.isError ? <ErrorState message={t('dashboard.activityError')} onRetry={() => activityQuery.refetch()} /> : null}
-          {recentActivity.length > 0 ? (
-            <div className="divide-y divide-border">
-              {recentActivity.map((event) => {
-                const display = buildActivityDisplay(event, {
-                  events: activityQuery.data ?? [],
-                  items: itemsQuery.data?.data ?? [],
-                  containers: containersQuery.data ?? [],
-                  members: membersQuery.data ?? [],
-                  locale,
-                  t,
-                });
+      {workspace ? (
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="space-y-2 p-6">
+              <CardTitle className="text-lg">{workspace.name}</CardTitle>
+              <CardDescription>
+                {workspace.slug ?? workspace.id}
+                {' · '}
+                {workspace.myRole}
+                {' · '}
+                {new Intl.DateTimeFormat(locale === 'th' ? 'th-TH' : 'en-US', {
+                  dateStyle: 'medium',
+                }).format(new Date(workspace.createdAt))}
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-                return (
-                  <div key={event.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex min-w-0 gap-3">
-                      <Avatar className={`${activityToneClasses[display.tone]}`}>{display.glyph}</Avatar>
-                      <div className="min-w-0 space-y-2">
-                        <Space size={8} wrap>
-                          <Typography.Text strong>{event.actor.name}</Typography.Text>
-                          <Tag className={`uppercase tracking-[0.18em] ${activityToneClasses[display.tone]}`}>{display.eventLabel}</Tag>
-                          <Typography.Text type="secondary" className="truncate text-xs">
-                            {display.itemName}
-                          </Typography.Text>
-                        </Space>
-                        <div className="space-y-2">
-                          <Typography.Paragraph className="!mb-0 text-sm text-muted-foreground">
-                            {display.summary}
-                          </Typography.Paragraph>
-                          <div className="flex flex-wrap gap-2 text-[0.7rem]">
-                            {display.currentStateLabel ? <Tag>{t('activity.current.status')}: {display.currentStateLabel}</Tag> : null}
-                            {display.currentLocationLabel ? <Tag>{t('activity.current.location')}: {display.currentLocationLabel}</Tag> : null}
-                            {display.currentReturnLabel ? <Tag>{t('activity.current.return')}: {display.currentReturnLabel}</Tag> : null}
-                          </div>
-                          {display.detail ? <Typography.Text type="secondary" className="text-xs">{display.detail}</Typography.Text> : null}
-                        </div>
-                      </div>
-                    </div>
-                    <Typography.Text type="secondary" className="shrink-0 text-xs">
-                      {eventTime(event.createdAt)}
-                    </Typography.Text>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
-              {t('dashboard.recentEmpty')}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {summaryCards.map((card) => (
+              <StatCard key={card.label} label={card.label} value={card.value} />
+            ))}
+          </div>
+
+          <Card>
+            <CardContent className="space-y-2 p-6">
+              <CardTitle className="text-base">{t('workspace.list.summaryLabel', 'Workspace status')}</CardTitle>
+              <CardDescription>
+                {t('workspace.card.role')}: {workspace.myRole}
+              </CardDescription>
+              <CardDescription>
+                {t('containers.list.total')}: {containers.length}
+              </CardDescription>
+              <CardDescription>
+                {t('members.title')}: {members.length}
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </PageShell>
   );
 }

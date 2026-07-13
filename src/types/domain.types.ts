@@ -45,6 +45,10 @@ export interface ContainerAccessScope {
 export interface Workspace {
   id: string;
   name: string;
+  slug?: string;
+  type?: string;
+  ownerUserId?: string;
+  isActive?: boolean;
   description?: string;
   myRole: Role;
   permissions: string[];
@@ -56,11 +60,16 @@ export interface Workspace {
 export interface Container {
   id: string;
   workspaceId: string;
+  locationId?: string | null;
   parentId: string | null;
   name: string;
   typeLabel: string;
   note?: string;
+  code?: string | null;
+  qrCode?: string | null;
   photoUrl?: string;
+  itemCount?: number;
+  childContainerCount?: number;
   createdAt: string;
   updatedAt: string;
 }

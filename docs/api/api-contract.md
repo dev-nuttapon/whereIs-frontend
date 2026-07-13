@@ -3,7 +3,7 @@
 สัญญาการเรียก API ที่ **frontend สมมติจาก backend** (backend เป็นอีก service, stack-agnostic)
 
 > ⚠️ นี่คือ **contract ที่ frontend ยึด** — backend คือ source of truth จริง ถ้าไม่ตรงให้ **อัปเดตไฟล์นี้ก่อน** แล้วค่อยแก้โค้ด
-> Frontend ใช้ไฟล์นี้สร้าง: API client, TypeScript types, React Query hooks, และ Mock data
+> Frontend ใช้ไฟล์นี้สร้าง: API client, TypeScript types, และ React Query hooks
 
 ## หลักการทั่วไป
 - Protocol: **REST over HTTPS**
@@ -246,7 +246,6 @@ Response `200`:
 
 ## Frontend Mock Adapter Status
 - โค้ด production-facing ควรเรียกผ่าน `src/api/*.api.ts` และ React Query hooks เท่านั้น
-- `src/mocks/demo-db.ts` เป็น mock adapter ชั่วคราวจนกว่า backend จริงจะพร้อม
 - เมื่อ backend พร้อม ให้คง signatures ในไฟล์ API เดิม แล้วเปลี่ยน implementation ให้ใช้ `client` จาก `src/api/client.ts`
 
 ## Open Questions

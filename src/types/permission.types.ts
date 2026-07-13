@@ -35,4 +35,5 @@ export type PermissionKey =
   | 'report.export'
   | 'notification.view'
   | 'notification.manage'
-  | 'activity.view';
+  | 'activity.view'
+  | 'setting.manage';

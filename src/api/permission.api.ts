@@ -1,7 +1,11 @@
-import { delay } from '@/utils/mock-api';
+import { client } from '@/api/client';
 import type { PermissionKey } from '@/types/permission.types';
 import type { ContainerAccessScope, Role } from '@/types/domain.types';
-import { getMemberPermissions as getMemberPermissionsRecord, updateMemberPermissions as updateMemberPermissionsRecord } from '@/mocks/demo-db';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
 
 export interface MemberPermissionsResponse {
   primaryRole: Role;
@@ -10,15 +14,79 @@ export interface MemberPermissionsResponse {
   containerAccessScope: ContainerAccessScope | null;
 }
 
-export async function getMemberPermissions(memberId: string): Promise<MemberPermissionsResponse> {
-  const member = getMemberPermissionsRecord(memberId);
-  return delay(member as MemberPermissionsResponse);
+interface PermissionCatalogDto {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+}
+
+interface MemberPermissionsDto {
+  roleCode: string;
+  effective: string[];
+  overrides: Array<{ code: string; effect: string }>;
+}
+
+async function fetchPermissionCatalog() {
+  const response = await client.get<ApiResponse<{ items: PermissionCatalogDto[] }>>('/permissions', {
+    params: { page: 1, pageSize: 200 },
+  });
+  return response.data.data.items;
+}
+
+export async function getMemberPermissions(wsId: string, memberId: string): Promise<MemberPermissionsResponse> {
+  const response = await client.get<ApiResponse<MemberPermissionsDto>>(
+    `/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(memberId)}/permissions`,
+  );
+  const dto = response.data.data;
+  const overrides = Object.fromEntries(
+    dto.overrides.map((item) => [item.code, item.effect.toLowerCase() === 'allow']),
+  ) as Record<string, boolean>;
+  return {
+    primaryRole: dto.roleCode as Role,
+    effective: dto.effective as PermissionKey[],
+    overrides,
+    containerAccessScope: null,
+  };
 }
 
 export async function updateMemberPermissions(
+  wsId: string,
   memberId: string,
   overrides: Record<string, boolean>,
   containerAccessScope?: ContainerAccessScope | null,
 ): Promise<MemberPermissionsResponse> {
-  return delay(updateMemberPermissionsRecord(memberId, overrides, containerAccessScope) as MemberPermissionsResponse);
+  const permissions = await fetchPermissionCatalog();
+  const payload = {
+    overrides: Object.entries(overrides).flatMap(([code, enabled]) => {
+      const permission = permissions.find((item) => item.code === code);
+      if (!permission) {
+        return [];
+      }
+
+      return [
+        {
+          permissionId: permission.id,
+          effect: enabled ? 'Allow' : 'Deny',
+        },
+      ];
+    }),
+    containerAccessScope,
+  };
+
+  const response = await client.put<ApiResponse<MemberPermissionsDto>>(
+    `/workspaces/${encodeURIComponent(wsId)}/members/${encodeURIComponent(memberId)}/permissions`,
+    payload,
+  );
+  const dto = response.data.data;
+  const nextOverrides = Object.fromEntries(
+    dto.overrides.map((item) => [item.code, item.effect.toLowerCase() === 'allow']),
+  ) as Record<string, boolean>;
+
+  return {
+    primaryRole: dto.roleCode as Role,
+    effective: dto.effective as PermissionKey[],
+    overrides: nextOverrides,
+    containerAccessScope: null,
+  };
 }

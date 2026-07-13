@@ -5,10 +5,9 @@ import type { PermissionKey } from '@/types/permission.types';
 
 const FALLBACK_PERMISSIONS: PermissionKey[] = [
   'workspace.view',
-  'item.view',
+  'member.view',
   'container.view',
-  'activity.view',
-  'notification.view',
+  'setting.manage',
 ];
 
 interface WorkspaceState {
