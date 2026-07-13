@@ -4,17 +4,13 @@ import { authStore } from '@/stores/auth.store';
 
 export function AuthBootstrap() {
   const query = useCurrentUser();
-  const setAuth = authStore((state) => state.setAuth);
+  const updateUser = authStore((state) => state.updateUser);
 
   useEffect(() => {
     if (query.data) {
-      const token = authStore.getState().accessToken;
-      if (token) {
-        setAuth(token, query.data);
-      }
+      updateUser(query.data);
     }
-  }, [query.data, setAuth]);
+  }, [query.data, updateUser]);
 
   return null;
 }
-

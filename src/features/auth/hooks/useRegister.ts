@@ -14,7 +14,7 @@ export function useRegister() {
   return useMutation({
     mutationFn: (input: RegisterInput) => register(input),
     onSuccess: async (session) => {
-      setAuth(session.token, session.user);
+      setAuth(session);
       await queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
       navigate(ROUTES.workspaces);
     },

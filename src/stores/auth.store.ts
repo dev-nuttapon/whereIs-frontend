@@ -1,15 +1,20 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@/types/domain.types';
+import type { AuthSession } from '@/types/auth.types';
 import { workspaceStore } from '@/stores/workspace.store';
 import { getInitialAuthState, isDemoModeEnabled } from '@/lib/demo-session';
 
 interface AuthState {
   accessToken: string | null;
+  refreshToken: string | null;
+  idToken: string | null;
+  expiresAt: string | null;
   user: User | null;
   isAuthenticated: boolean;
   password: string | null;
-  setAuth: (token: string, user: User) => void;
+  setAuth: (session: AuthSession) => void;
+  updateTokens: (session: Pick<AuthSession, 'accessToken' | 'refreshToken' | 'idToken' | 'expiresAt'>) => void;
   updateUser: (user: User) => void;
   updatePassword: (password: string) => void;
   logout: () => void;
@@ -19,11 +24,21 @@ export const authStore = create<AuthState>()(
   persist(
     (set) => ({
       ...getInitialAuthState(),
-      setAuth: (token, user) =>
+      setAuth: (session) =>
         set({
-          accessToken: token,
-          user,
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken ?? null,
+          idToken: session.idToken ?? null,
+          expiresAt: session.expiresAt ?? null,
+          user: session.user,
           isAuthenticated: true,
+        }),
+      updateTokens: (session) =>
+        set({
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken ?? null,
+          idToken: session.idToken ?? null,
+          expiresAt: session.expiresAt ?? null,
         }),
       updateUser: (user) =>
         set({
@@ -36,6 +51,9 @@ export const authStore = create<AuthState>()(
       logout: () =>
         set({
           accessToken: null,
+          refreshToken: null,
+          idToken: null,
+          expiresAt: null,
           user: null,
           isAuthenticated: false,
           password: null,
@@ -46,8 +64,9 @@ export const authStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       merge: (persistedState, currentState) => {
         if (isDemoModeEnabled()) {
-          const persistedUser = (persistedState as Partial<AuthState> | undefined)?.user ?? currentState.user;
-          const persistedPassword = (persistedState as Partial<AuthState> | undefined)?.password ?? currentState.password;
+          const persisted = persistedState as Partial<AuthState> | undefined;
+          const persistedUser = persisted?.user ?? currentState.user;
+          const persistedPassword = persisted?.password ?? currentState.password;
 
           return {
             ...currentState,
@@ -64,6 +83,9 @@ export const authStore = create<AuthState>()(
       },
       partialize: (state) => ({
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        idToken: state.idToken,
+        expiresAt: state.expiresAt,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         password: state.password,

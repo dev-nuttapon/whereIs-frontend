@@ -9,6 +9,8 @@ import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { LogoutIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
 import { useDemoUsers } from '@/features/auth/hooks/useDemoUsers';
+import { useLogout } from '@/features/auth/hooks/useLogout';
+import { isDemoModeEnabled } from '@/lib/demo-session';
 
 export interface UserMenuProps {
   workspaceId?: string | null;
@@ -19,7 +21,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
   const { wsId } = useParams();
   const user = authStore((state) => state.user);
   const setAuth = authStore((state) => state.setAuth);
-  const logout = authStore((state) => state.logout);
+  const logoutMutation = useLogout();
   const { t } = useI18n();
   const demoUsersQuery = useDemoUsers();
   const demoUsers = demoUsersQuery.data ?? [];
@@ -39,14 +41,18 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
         ),
       },
       { type: 'divider' },
-      {
-        key: 'persona',
-        label: 'Switch demo persona',
-        children: demoUsers.map((candidate) => ({
-          key: candidate.id,
-          label: candidate.name,
-        })),
-      },
+      ...(isDemoModeEnabled()
+        ? [
+            {
+              key: 'persona',
+              label: 'Switch demo persona',
+              children: demoUsers.map((candidate) => ({
+                key: candidate.id,
+                label: candidate.name,
+              })),
+            },
+          ]
+        : []),
     ];
 
     if (showWorkspaceLinks) {
@@ -88,7 +94,13 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
           if (keyPath.includes('persona')) {
             const nextUser = demoUsers.find((candidate) => candidate.id === key);
             if (nextUser) {
-              setAuth('demo-token', nextUser);
+              setAuth({
+                accessToken: 'demo-token',
+                refreshToken: 'demo-refresh-token',
+                idToken: 'demo-id-token',
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                user: nextUser,
+              });
             }
             return;
           }
@@ -104,8 +116,7 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
           }
 
           if (key === 'logout') {
-            logout();
-            navigate(ROUTES.login);
+            logoutMutation.mutate();
           }
         },
       }}

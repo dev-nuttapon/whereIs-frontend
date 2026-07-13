@@ -14,7 +14,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: (input: LoginInput) => login(input),
     onSuccess: async (session) => {
-      setAuth(session.token, session.user);
+      setAuth(session);
       await queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
       navigate(ROUTES.workspaces);
     },
