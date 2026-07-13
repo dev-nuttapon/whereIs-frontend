@@ -2,7 +2,7 @@
 
 # WhereIs Frontend Project Context
 
-This repo is the frontend POC for the WhereIs workspace-based asset and stock tracking system.
+This repo is the frontend application for the WhereIs workspace-based asset and stock tracking system.
 
 ## Project Information
 
@@ -29,7 +29,7 @@ This repo is the frontend POC for the WhereIs workspace-based asset and stock tr
 
 # Project Vision
 
-WhereIs is a workspace-based asset and stock management system designed to help users organize, track, borrow, return, restock, and consume items.
+WhereIs is a workspace-based asset and stock management system designed to help users organize, track, borrow, return, restock, and consume items through live API-backed screens.
 
 The system is designed for multiple scenarios:
 
@@ -51,7 +51,7 @@ The primary goal is to answer the following questions:
 * Why was it marked missing, disposed, or sold?
 * How much stock remains, who used it, and when was it restocked?
 
-The frontend should make these answers available quickly with a simple and intuitive user experience, while still making the demo/POC nature obvious to anyone opening the app.
+The frontend should make these answers available quickly with a simple and intuitive user experience.
 
 ---
 
@@ -59,7 +59,7 @@ The frontend should make these answers available quickly with a simple and intui
 
 The UI should prioritize:
 
-* Fast Search
+* Fast Access
 * Simple Navigation
 * Clear Container Display
 * Minimal Clicks
@@ -68,7 +68,7 @@ The UI should prioritize:
 * Permission-based UI
 * Mobile Friendly
 
-The Search page is the most important page of the application.
+The dashboard and workspace navigation should be the fastest path to the active data.
 
 ---
 
@@ -78,17 +78,9 @@ The Search page is the most important page of the application.
 * Workspace Management
 * Dashboard
 * Container Management
-* Item Management
-* Stock Management
-* Item Search
-* Item Detail
-* Move Item
-* Take Out
-* Return
-* Missing Item
 * Member Management
 * Permission Management
-* Activity Log
+* Profile
 * Settings
 
 ---
@@ -101,17 +93,11 @@ Workspace
 
 Dashboard
 
-├── Search
-
 ├── Containers
-
-├── Items
-
-├── Stock
 
 ├── Members
 
-├── Activity
+├── Profile
 
 └── Settings
 
@@ -186,13 +172,16 @@ Public Routes
 
 * Login
 * Register
+* Auth Callback
 
 Protected Routes
 
+* Workspace List
+* Workspace Create
 * Dashboard
-* Search
-* Items
+* Containers
 * Members
+* Profile
 * Settings
 
 All protected routes require authentication.
@@ -214,7 +203,6 @@ Examples:
 * auth.api.ts
 * workspace.api.ts
 * container.api.ts
-* item.api.ts
 * member.api.ts
 * permission.api.ts
 
@@ -270,38 +258,16 @@ Common reusable components:
 * AppLayout
 * Sidebar
 * Topbar
-* SearchBar
-* ItemCard
+* WorkspaceSwitcher
+* Breadcrumbs
 * StatusBadge
-* Breadcrumb
 * ConfirmDialog
-* Loading
+* LoadingState
 * EmptyState
 * ErrorState
 * PermissionGuard
 
 ---
-
-# Search Philosophy
-
-Search is the primary feature.
-
-Users should be able to search by:
-
-* Item Name
-* Item Code
-* Description
-* Tag (future)
-* Barcode (future)
-* QR Code (future)
-
-Search results should always display:
-
-* Item Image
-* Item Name
-* Current Status
-* Current Container Path
-* Current Holder
 
 ---
 
@@ -479,4 +445,4 @@ Update CURRENT_TASK if necessary
 
 # Goal
 
-The goal of this repository is to build a clean, scalable, reusable, AI-friendly frontend that provides an excellent user experience and integrates seamlessly with the WhereIs backend.
+The goal of this repository is to build a clean, scalable, reusable, AI-friendly frontend that provides an excellent user experience and integrates seamlessly with the WhereIs backend API.
