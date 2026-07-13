@@ -32,5 +32,6 @@ export const queryKeys = {
   invitations: {
     all: (wsId: string) => ['ws', wsId, 'invitations'] as const,
     detail: (token: string) => ['invitations', token] as const,
+    inbox: () => ['invitations', 'inbox'] as const,
   },
 } as const;

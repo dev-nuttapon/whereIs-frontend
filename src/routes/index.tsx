@@ -23,6 +23,7 @@ const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage')
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const ContainerDetailPage = lazy(() => import('@/features/containers/pages/ContainerDetailPage').then((module) => ({ default: module.ContainerDetailPage })));
 const NotFoundPage = lazy(() => import('@/features/not-found/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
+const InvitationInboxPage = lazy(() => import('@/features/members/pages/InvitationInboxPage').then((module) => ({ default: module.InvitationInboxPage })));
 
 export function AppRoutes() {
   const { t } = useI18n();
@@ -64,6 +65,14 @@ export function AppRoutes() {
             element={
               <WorkspaceSelectLayout>
                 <WorkspaceNewPage />
+              </WorkspaceSelectLayout>
+            }
+          />
+          <Route
+            path={ROUTES.invitationsInbox}
+            element={
+              <WorkspaceSelectLayout>
+                <InvitationInboxPage />
               </WorkspaceSelectLayout>
             }
           />

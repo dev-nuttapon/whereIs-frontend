@@ -5,6 +5,7 @@ import {
   getMember,
   inviteMember,
   listInvitations,
+  listMyInvitations,
   listMembers,
   lookupUserByEmail,
   removeMember,
@@ -57,6 +58,13 @@ export function useInvitations(wsId: string) {
   });
 }
 
+export function useMyInvitations() {
+  return useQuery({
+    queryKey: queryKeys.invitations.inbox(),
+    queryFn: () => listMyInvitations(),
+  });
+}
+
 export function useInvitation(token: string | undefined) {
   return useQuery({
     queryKey: queryKeys.invitations.detail(token ?? ''),
@@ -79,6 +87,7 @@ export function useAcceptInvitation() {
     onSuccess: async (invitation) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
       await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.detail(invitation.token ?? '') });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.inbox() });
       pushNotification({
         variant: 'success',
         title: t('notifications.invitationAccepted', 'ตอบรับคำเชิญแล้ว'),

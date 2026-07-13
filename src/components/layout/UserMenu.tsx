@@ -7,7 +7,7 @@ import { authStore } from '@/stores/auth.store';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { DashboardIcon, LogoutIcon, MemberIcon, MenuIcon, PlusIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
+import { DashboardIcon, LogoutIcon, MailIcon, MemberIcon, MenuIcon, PlusIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 
 export interface UserMenuProps {
@@ -48,6 +48,11 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
         key: 'create-workspace',
         icon: <PlusIcon className="h-4 w-4" />,
         label: t('workspace.list.create'),
+      },
+      {
+        key: 'inbox',
+        icon: <MailIcon className="h-4 w-4" />,
+        label: t('members.myInvitations', 'คำเชิญของฉัน'),
       },
       { type: 'divider' },
       {
@@ -96,6 +101,11 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
 
           if (key === 'create-workspace') {
             navigate(ROUTES.workspaceNew);
+            return;
+          }
+
+          if (key === 'inbox') {
+            navigate(ROUTES.invitationsInbox);
             return;
           }
 

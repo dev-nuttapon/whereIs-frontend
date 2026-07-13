@@ -127,6 +127,13 @@ export async function listInvitations(wsId: string): Promise<InvitationDto[]> {
   return response.data.data.items;
 }
 
+export async function listMyInvitations(): Promise<InvitationDto[]> {
+  const response = await client.get<ApiResponse<PagedResult<InvitationDto>>>('/invitations/inbox', {
+    params: { page: 1, pageSize: 100 },
+  });
+  return response.data.data.items;
+}
+
 export async function getInvitationByToken(token: string): Promise<InvitationDto> {
   const response = await client.get<ApiResponse<InvitationDto>>(`/invitations/${encodeURIComponent(token)}`);
   return response.data.data;

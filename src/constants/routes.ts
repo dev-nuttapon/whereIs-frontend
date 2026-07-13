@@ -2,6 +2,7 @@ export const ROUTES = {
   home: '/',
   login: '/login',
   register: '/register',
+  invitationsInbox: '/invitations',
   invitationAccept: (token: string) => `/invitations/${encodeURIComponent(token)}`,
   settings: '/settings',
   workspaces: '/workspaces',
