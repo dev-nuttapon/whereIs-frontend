@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { Layout } from 'antd';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { workspaceStore } from '@/stores/workspace.store';
 import { findWorkspace } from '@/mocks/demo-db';
 import { ROUTES } from '@/constants/routes';
@@ -16,7 +17,6 @@ export function AppLayout() {
     if (!workspace) {
       return;
     }
-
     setWorkspace(workspace);
   }, [setWorkspace, workspace]);
 
@@ -30,8 +30,9 @@ export function AppLayout() {
         <Sidebar />
         <Layout className="min-w-0 flex-1 bg-transparent">
           <Topbar />
-          <Layout.Content className="flex-1 px-3 py-6 sm:px-4 lg:px-6 lg:py-6">
-            <div className="mx-auto w-full max-w-screen-xl">
+          <Layout.Content className="flex-1 px-3 py-5 sm:px-4 lg:px-6 lg:py-6">
+            <div className="mx-auto w-full max-w-screen-xl space-y-4">
+              <Breadcrumbs />
               <Outlet />
             </div>
           </Layout.Content>

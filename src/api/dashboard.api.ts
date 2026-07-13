@@ -5,11 +5,15 @@ import type { ItemEvent } from '@/types/domain.types';
 export interface DashboardSummary {
   totalItems: number;
   stored: number;
-  takenOut: number;
+  borrowed: number;
+  reserved: number;
   missing: number;
+  repair: number;
   lowStock: number;
   outOfStock: number;
-  returnableItems: number;
+  overdueReturn: number;
+  reservationWaiting: number;
+  reminderCount: number;
 }
 
 export async function getDashboardSummary(wsId: string): Promise<DashboardSummary> {

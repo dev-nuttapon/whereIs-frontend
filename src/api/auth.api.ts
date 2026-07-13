@@ -1,5 +1,5 @@
 import type { User } from '@/types/domain.types';
-import { MOCK_USER } from '@/mocks/mock-data';
+import { MOCK_USERS, MOCK_USER } from '@/mocks/mock-data';
 import { authStore } from '@/stores/auth.store';
 import { delay } from '@/utils/mock-api';
 
@@ -20,18 +20,22 @@ export interface RegisterInput {
 }
 
 export async function login(input: LoginInput): Promise<AuthSession> {
-  void input;
+  const user = MOCK_USERS.find((entry) => entry.email === input.email) ?? MOCK_USER;
   return delay({
     token: 'demo-token',
-    user: MOCK_USER,
+    user,
   });
 }
 
 export async function register(input: RegisterInput): Promise<AuthSession> {
-  void input;
+  const user = {
+    id: `user-${input.email.split('@')[0]}`,
+    email: input.email,
+    name: input.name,
+  };
   return delay({
     token: 'demo-token',
-    user: MOCK_USER,
+    user,
   });
 }
 

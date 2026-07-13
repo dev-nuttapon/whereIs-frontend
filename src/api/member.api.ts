@@ -1,10 +1,16 @@
 import type { Member } from '@/types/domain.types';
-import { getMember as getMemberRecord, inviteMember as inviteMemberRecord, listMembers as listMembersRecord, removeMember as removeMemberRecord, updateMemberRole as updateMemberRoleRecord } from '@/mocks/demo-db';
+import {
+  getMember as getMemberRecord,
+  inviteMember as inviteMemberRecord,
+  listMembers as listMembersRecord,
+  removeMember as removeMemberRecord,
+  updateMemberRole as updateMemberRoleRecord,
+} from '@/mocks/demo-db';
 import { delay } from '@/utils/mock-api';
 
 export interface InviteMemberInput {
   email: string;
-  role: 'admin' | 'member' | 'viewer';
+  role: 'owner' | 'admin' | 'member' | 'viewer';
 }
 
 export async function listMembers(wsId: string): Promise<Member[]> {
@@ -19,7 +25,7 @@ export async function inviteMember(wsId: string, input: InviteMemberInput): Prom
   return delay(inviteMemberRecord(wsId, input.email, input.role));
 }
 
-export async function updateMemberRole(id: string, role: 'admin' | 'member' | 'viewer'): Promise<Member> {
+export async function updateMemberRole(id: string, role: 'owner' | 'admin' | 'member' | 'viewer'): Promise<Member> {
   return delay(updateMemberRoleRecord(id, role));
 }
 

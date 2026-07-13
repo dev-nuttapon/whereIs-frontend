@@ -8,6 +8,7 @@ import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { LogoutIcon, MenuIcon, SettingsIcon, UserIcon } from '@/components/ui/icons';
+import { MOCK_USERS } from '@/mocks/mock-data';
 
 export interface UserMenuProps {
   workspaceId?: string | null;
@@ -17,12 +18,14 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
   const navigate = useNavigate();
   const { wsId } = useParams();
   const user = authStore((state) => state.user);
+  const setAuth = authStore((state) => state.setAuth);
   const logout = authStore((state) => state.logout);
   const { t } = useI18n();
   const activeWorkspaceId = workspaceId ?? wsId ?? workspaceStore.getState().currentWorkspaceId;
   const showWorkspaceLinks = Boolean(activeWorkspaceId);
-  const items = useMemo<MenuProps['items']>(() => {
-    const next: NonNullable<MenuProps['items']> = [
+
+  const items = useMemo<MenuProps['"'"'items'"'"']>(() => {
+    const next: NonNullable<MenuProps['"'"'items'"'"']> = [
       {
         key: 'user',
         disabled: true,
@@ -33,13 +36,20 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
           </div>
         ),
       },
+      { type: 'divider' },
+      {
+        key: 'persona',
+        label: 'Switch demo persona',
+        children: MOCK_USERS.map((candidate) => ({
+          key: candidate.id,
+          label: candidate.name,
+        })),
+      },
     ];
 
     if (showWorkspaceLinks) {
       next.push(
-        {
-          type: 'divider',
-        },
+        { type: 'divider' },
         {
           key: 'profile',
           icon: <UserIcon className="h-4 w-4" />,
@@ -72,7 +82,15 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       placement="bottomRight"
       menu={{
         items,
-        onClick: ({ key }) => {
+        onClick: ({ key, keyPath }) => {
+          if (keyPath.includes('persona')) {
+            const nextUser = MOCK_USERS.find((candidate) => candidate.id === key);
+            if (nextUser) {
+              setAuth('demo-token', nextUser);
+            }
+            return;
+          }
+
           if (key === 'profile' && activeWorkspaceId) {
             navigate(ROUTES.workspaceProfile(activeWorkspaceId));
             return;

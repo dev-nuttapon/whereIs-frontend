@@ -1,8 +1,8 @@
 export type Role = 'owner' | 'admin' | 'member' | 'viewer';
 
-export type ItemStatus = 'stored' | 'taken_out' | 'missing' | 'disposed';
+export type ItemStatus = 'stored' | 'taken_out' | 'reserved' | 'missing' | 'repair' | 'disposed';
 
-export type ItemKind = 'single' | 'bulk';
+export type ItemKind = 'single' | 'stock';
 
 export type ItemUsageType = 'consumable' | 'returnable';
 
@@ -12,10 +12,20 @@ export type ItemEventType =
   | 'created'
   | 'updated'
   | 'moved'
-  | 'taken_out'
+  | 'borrow_requested'
+  | 'borrow_approved'
+  | 'borrowed'
   | 'returned'
+  | 'withdrawn'
+  | 'reserved'
+  | 'reservation_released'
+  | 'marked_repairing'
+  | 'repaired'
   | 'stock_used'
   | 'stock_restocked'
+  | 'stock_counted'
+  | 'stock_adjusted'
+  | 'received'
   | 'marked_missing'
   | 'marked_found'
   | 'disposed';
@@ -27,23 +37,30 @@ export interface User {
   avatarUrl?: string;
 }
 
+export interface ContainerAccessScope {
+  containerIds: string[];
+  includeDescendants: boolean;
+}
+
 export interface Workspace {
   id: string;
   name: string;
+  description?: string;
   myRole: Role;
   permissions: string[];
+  containerAccessScope?: ContainerAccessScope | null;
   createdAt: string;
   updatedAt: string;
-  description?: string;
 }
 
 export interface Container {
   id: string;
   workspaceId: string;
-  code: string;
-  name?: string;
+  parentId: string | null;
+  name: string;
+  typeLabel: string;
+  note?: string;
   photoUrl?: string;
-  qrCode?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,7 +73,16 @@ export interface Item {
   usageType: ItemUsageType;
   returnPolicy: ItemReturnPolicy;
   quantity?: number;
+  baseUnit?: string;
+  unit?: string;
+  alternativeUnits?: Array<{ label: string; quantity: number }>;
   reorderPoint?: number;
+  lotCode?: string;
+  receivedDate?: string | null;
+  expiryDate?: string | null;
+  warrantyEndDate?: string | null;
+  maintenanceNextDueDate?: string | null;
+  dueDate?: string | null;
   code?: string;
   description?: string;
   photoUrl?: string;
@@ -75,6 +101,8 @@ export interface Member {
   role: Role;
   permissions: string[];
   permissionOverrides?: Record<string, boolean>;
+  containerAccessScope?: ContainerAccessScope | null;
+  invitationStatus?: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'expired' | 'revoked';
   createdAt: string;
 }
 
@@ -86,4 +114,25 @@ export interface ItemEvent {
   actor: Pick<User, 'id' | 'name'>;
   payload?: Record<string, unknown>;
   createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  workspaceId: string;
+  type: string;
+  title: string;
+  message: string;
+  itemId?: string;
+  memberId?: string;
+  readAt?: string | null;
+  dueAt?: string | null;
+  createdAt: string;
+}
+
+export interface ReportSummary {
+  key: string;
+  label: string;
+  value: number;
+  unit?: string;
+  trend?: string;
 }

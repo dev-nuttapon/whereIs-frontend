@@ -6,7 +6,7 @@ import { pushNotification } from '@/stores/notification.store';
 
 export function useMembers(wsId: string) {
   return useQuery({
-    queryKey: ['ws', wsId, 'members'] as const,
+    queryKey: queryKeys.members.all(wsId),
     queryFn: () => listMembers(wsId),
     enabled: Boolean(wsId),
   });
@@ -14,7 +14,7 @@ export function useMembers(wsId: string) {
 
 export function useMember(wsId: string, memberId: string) {
   return useQuery({
-    queryKey: ['ws', wsId, 'member', memberId] as const,
+    queryKey: queryKeys.members.detail(wsId, memberId),
     queryFn: () => getMember(memberId),
     enabled: Boolean(wsId && memberId),
   });
@@ -26,7 +26,7 @@ export function useInviteMember(wsId: string) {
   return useMutation({
     mutationFn: (input: InviteMemberInput) => inviteMember(wsId, input),
     onSuccess: async (member) => {
-      await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'members'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.memberInvited'),
@@ -42,8 +42,8 @@ export function useUpdateMemberRole(wsId: string, memberId: string) {
   return useMutation({
     mutationFn: (role: 'admin' | 'member' | 'viewer') => updateMemberRole(memberId, role),
     onSuccess: async (member) => {
-      await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'members'] });
-      await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.members.detail(wsId, memberId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.workspace(wsId) });
       pushNotification({
         variant: 'success',
@@ -60,8 +60,8 @@ export function useRemoveMember(wsId: string, memberId: string) {
   return useMutation({
     mutationFn: () => removeMember(memberId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'members'] });
-      await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.members.detail(wsId, memberId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.memberRemoved'),

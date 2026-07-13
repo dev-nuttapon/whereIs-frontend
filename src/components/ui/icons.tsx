@@ -32,6 +32,57 @@ export function MenuIcon(props: IconProps) {
   );
 }
 
+export function BellIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M6 10a6 6 0 0 1 12 0c0 5 2 6 2 7H4c0-1 2-2 2-7Z" />
+      <path d="M10 18a2 2 0 0 0 4 0" />
+    </Icon>
+  );
+}
+
+export function ClipboardCheckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9 5.5h6" />
+      <path d="M10 3.5h4a2 2 0 0 1 2 2v1H8v-1a2 2 0 0 1 2-2Z" />
+      <path d="M7 8h10v11H7Z" />
+      <path d="m9 13 1.5 1.5L13.5 11" />
+    </Icon>
+  );
+}
+
+export function ReportIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 20V5" />
+      <path d="M5 20h14" />
+      <path d="M8 16v-4" />
+      <path d="M12 16V8" />
+      <path d="M16 16v-6" />
+    </Icon>
+  );
+}
+
+export function WorkspaceIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 8.5 12 4l8 4.5-8 4.5-8-4.5Z" />
+      <path d="M4 8.5V16l8 4 8-4V8.5" />
+      <path d="M8 11.5v6" />
+      <path d="M16 11.5v6" />
+    </Icon>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m9 6 6 6-6 6" />
+    </Icon>
+  );
+}
+
 export function ChevronDownIcon(props: IconProps) {
   return (
     <Icon {...props}>

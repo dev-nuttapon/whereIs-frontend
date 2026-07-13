@@ -13,7 +13,9 @@ export const ROUTES = {
   workspaceContainerDetail: (wsId: string, containerId: string) => `/w/${wsId}/containers/${containerId}`,
   workspaceMembers: (wsId: string) => `/w/${wsId}/members`,
   workspaceActivity: (wsId: string) => `/w/${wsId}/activity`,
+  workspaceReports: (wsId: string) => `/w/${wsId}/reports`,
+  workspaceNotifications: (wsId: string) => `/w/${wsId}/notifications`,
   workspaceSettings: (wsId: string) => `/w/${wsId}/settings`,
-  workspaceItemDetail: (wsId: string, itemCode: string) => `/w/${wsId}/items/${encodeURIComponent(itemCode)}`,
+  workspaceItemDetail: (wsId: string, itemId: string) => `/w/${wsId}/items/${encodeURIComponent(itemId)}`,
   notFound: '*',
 } as const;

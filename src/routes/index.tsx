@@ -22,6 +22,8 @@ const ContainersPage = lazy(() => import('@/features/containers/pages/Containers
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
 const MemberDetailPage = lazy(() => import('@/features/members/pages/MemberDetailPage').then((module) => ({ default: module.MemberDetailPage })));
 const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage').then((module) => ({ default: module.ActivityPage })));
+const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((module) => ({ default: module.ReportsPage })));
+const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const ContainerDetailPage = lazy(() => import('@/features/containers/pages/ContainerDetailPage').then((module) => ({ default: module.ContainerDetailPage })));
@@ -77,7 +79,7 @@ export function AppRoutes() {
               <Route element={<PermissionRoute permission="item.view" />}>
                 <Route path="search" element={<SearchPage />} />
                 <Route path="items" element={<ItemsPage />} />
-                <Route path="items/:itemCode" element={<ItemDetailPage />} />
+                <Route path="items/:itemId" element={<ItemDetailPage />} />
               </Route>
               <Route element={<PermissionRoute permission="container.view" />}>
                 <Route path="containers" element={<ContainersPage />} />
@@ -89,6 +91,12 @@ export function AppRoutes() {
               </Route>
               <Route element={<PermissionRoute permission="activity.view" />}>
                 <Route path="activity" element={<ActivityPage />} />
+              </Route>
+              <Route element={<PermissionRoute permission="report.view" />}>
+                <Route path="reports" element={<ReportsPage />} />
+              </Route>
+              <Route element={<PermissionRoute permission="notification.view" />}>
+                <Route path="notifications" element={<NotificationsPage />} />
               </Route>
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
