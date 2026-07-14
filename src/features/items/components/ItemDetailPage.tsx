@@ -1,103 +1,177 @@
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useState } from 'react';
-import { Descriptions, Popconfirm, Tag } from 'antd';
+import { Popconfirm, Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
+import { EmptyState } from '@/components/feedback/EmptyState';
+import { StatCard } from '@/components/common/StatCard';
 import { useI18n } from '@/hooks/useI18n';
-import { EditIcon } from '@/components/ui/icons';
+import { EditIcon, ItemIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
-import { useAsset, useDeleteAsset } from '@/features/assets/hooks/useAssets';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import { useDeleteItem, useItem, useItemEvents } from '@/features/items/hooks/useItems';
 import { UpdateItemDialog } from '@/features/items/components/UpdateItemDialog';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
-  if (normalized === 'available') return 'green';
-  if (normalized === 'borrowed') return 'blue';
-  if (normalized === 'maintenance') return 'gold';
+  if (normalized === 'stored') return 'green';
+  if (normalized === 'taken_out') return 'blue';
+  if (normalized === 'reserved') return 'gold';
   if (normalized === 'missing') return 'red';
+  if (normalized === 'repair') return 'orange';
   if (normalized === 'disposed') return 'default';
   return 'geekblue';
 }
 
 export function ItemDetailPage() {
-  const { wsId = 'ws-warehouse', assetId } = useParams();
+  const { wsId = 'ws-warehouse', itemId = '' } = useParams();
   const navigate = useNavigate();
   const { t } = useI18n();
-  const resolvedAssetId = assetId ?? '';
-  const assetQuery = useAsset(wsId, resolvedAssetId);
-  const asset = assetQuery.data ?? null;
+  const itemQuery = useItem(wsId, itemId);
+  const eventsQuery = useItemEvents(wsId, itemId);
+  const containersQuery = useContainers(wsId);
+  const item = itemQuery.data ?? null;
   const [editOpen, setEditOpen] = useState(false);
-  const deleteAsset = useDeleteAsset(wsId, resolvedAssetId);
+  const deleteItem = useDeleteItem(wsId, itemId);
+
+  const containerNameById = useMemo(
+    () => new Map((containersQuery.data ?? []).map((container) => [container.id, container.name])),
+    [containersQuery.data],
+  );
+  const containerLabel = item?.containerId ? (containerNameById.get(item.containerId) ?? item.containerId) : t('items.detail.noContainer', 'No container');
 
   return (
-    <PageShell title={t('items.detail.title')} description={t('items.detail.pageDescription')}>
+    <PageShell title={t('items.detail.title', 'Item detail')} description={t('items.detail.pageDescription', 'View item state, metadata, and history.')}>
       <div className="component-stack">
-        {assetQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-        {assetQuery.isError ? <ErrorState message={t('items.detail.loadError', 'Unable to load item.')} onRetry={() => assetQuery.refetch()} /> : null}
+        {itemQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+        {itemQuery.isError ? <ErrorState message={t('items.detail.loadError', 'Unable to load item.')} onRetry={() => itemQuery.refetch()} /> : null}
 
-        <Card>
-          <CardContent className="space-y-4 p-5 sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg">{asset?.productName ?? resolvedAssetId}</CardTitle>
-                <CardDescription>{asset?.serialNumber ?? asset?.barcode ?? t('items.detail.noCode')}</CardDescription>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} disabled={!asset}>
-                  <EditIcon className="h-4 w-4" />
-                  {t('items.detail.edit', 'Edit Item')}
-                </Button>
-                <Popconfirm
-                  title={t('items.detail.deleteConfirmTitle', 'Delete this item?')}
-                  description={t('items.detail.deleteConfirmDescription', 'This will remove the item from the workspace.')}
-                  okText={t('common.delete', 'Delete')}
-                  cancelText={t('common.cancel', 'Cancel')}
-                  okButtonProps={{ danger: true }}
-                  onConfirm={async () => {
-                    await deleteAsset.mutateAsync();
-                    navigate(ROUTES.workspaceItems(wsId), { replace: true });
-                  }}
-                >
-                  <Button variant="destructive" size="sm" disabled={!asset || deleteAsset.isPending}>
-                    {deleteAsset.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
-                  </Button>
-                </Popconfirm>
-              </div>
-            </div>
+        {item ? (
+          <>
+            <Card>
+              <CardContent className="space-y-4 p-5 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">{item.name}</CardTitle>
+                    <CardDescription>{item.code ?? item.id}</CardDescription>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} disabled={!item}>
+                      <EditIcon className="h-4 w-4" />
+                      {t('items.detail.edit', 'Edit item')}
+                    </Button>
+                    <Popconfirm
+                      title={t('items.detail.deleteConfirmTitle', 'Delete this item?')}
+                      description={t('items.detail.deleteConfirmDescription', 'This will remove the item from the workspace.')}
+                      okText={t('common.delete', 'Delete')}
+                      cancelText={t('common.cancel', 'Cancel')}
+                      okButtonProps={{ danger: true }}
+                      onConfirm={async () => {
+                        await deleteItem.mutateAsync();
+                        navigate(ROUTES.workspaceItems(wsId), { replace: true });
+                      }}
+                    >
+                      <Button variant="destructive" size="sm" disabled={deleteItem.isPending}>
+                        {deleteItem.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
+                      </Button>
+                    </Popconfirm>
+                  </div>
+                </div>
 
-            <Descriptions bordered column={{ xs: 1, md: 2, lg: 3 }} size="middle">
-              <Descriptions.Item label={t('items.detail.product', 'Product')}>{asset?.productName ?? '-'}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.location', 'Location')}>{asset?.locationName ?? asset?.locationId ?? t('items.detail.noLocation', 'No location')}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.containerPrefix', 'Container')}>{asset?.containerName ?? asset?.containerId ?? t('items.detail.noContainer')}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.status')}>
-                {asset ? <Tag color={statusColor(asset.status)}>{asset.status}</Tag> : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.condition', 'Condition')}>{asset?.condition ?? '-'}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.holderPrefix', 'Holder')}>{asset?.currentHolderUserId ?? t('items.detail.noHolder')}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.serialNumber', 'Serial number')}>{asset?.serialNumber ?? '-'}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.barcode', 'Barcode')}>{asset?.barcode ?? '-'}</Descriptions.Item>
-              <Descriptions.Item label={t('items.detail.acquiredDate', 'Acquired date')}>
-                {asset?.acquiredDate ? new Date(asset.acquiredDate).toLocaleDateString() : '-'}
-              </Descriptions.Item>
-            </Descriptions>
+                <div className="grid gap-[18px] md:grid-cols-3">
+                  <StatCard label={t('items.detail.kind', 'Type')} value={item.kind === 'stock' ? t('items.kind.stock', 'Quantity Item') : t('items.kind.single', 'Individual Item')} />
+                  <StatCard label={t('items.detail.status', 'Status')} value={item.status} />
+                  <StatCard label={t('items.detail.containerPrefix', 'Container')} value={containerLabel} />
+                </div>
 
-            <div className="space-y-2">
-              <CardTitle className="text-base">{t('items.detail.description')}</CardTitle>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
-                {asset?.notes?.trim() ? asset.notes : t('items.detail.noDescription')}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-2 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.currentState', 'Current state')}</CardTitle>
+                      <Tag color={statusColor(item.status)}>{item.status}</Tag>
+                      <p className="text-sm text-muted-foreground">{item.usageType}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-2 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.lifecycle', 'Lifecycle')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {item.kind === 'stock'
+                          ? t('items.detail.stockLifecycle', 'Tracked by quantity')
+                          : t('items.detail.singleLifecycle', 'Tracked as individual unit')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{item.currentHolderId ? `${t('items.detail.holderPrefix', 'Holder')}: ${item.currentHolderId}` : t('items.detail.noHolder', 'No holder')}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-2 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.dates', 'Dates')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.receivedDate', 'Received')}: {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString() : '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.expiryDate', 'Expiry')}: {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.warrantyEndDate', 'Warranty')}: {item.warrantyEndDate ? new Date(item.warrantyEndDate).toLocaleDateString() : '-'}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid gap-[18px] md:grid-cols-2">
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-2 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.identification', 'Identification')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.code', 'Code')}: {item.code ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.lotCode', 'Lot')}: {item.lotCode ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.reorderPoint', 'Reorder point')}: {item.reorderPoint ?? '-'}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-2 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.description', 'Description')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {item.description?.trim() ? item.description : t('items.detail.noDescription', 'No description')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.container', 'Container')}: {containerLabel}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-3 p-5 sm:p-6">
+                <CardTitle className="text-base">{t('items.detail.activity', 'Activity')}</CardTitle>
+                {eventsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+                {eventsQuery.isError ? <ErrorState message={t('items.detail.activityError', 'Unable to load item history.')} onRetry={() => eventsQuery.refetch()} /> : null}
+                {(eventsQuery.data ?? []).length === 0 ? (
+                  <EmptyState
+                    title={t('items.detail.noActivityTitle', 'No activity yet')}
+                    description={t('items.detail.noActivityDescription', 'Item events will appear here after create/update or workflow actions.')}
+                    icon={<ItemIcon className="h-5 w-5" />}
+                  />
+                ) : (
+                  <div className="component-stack">
+                    {(eventsQuery.data ?? []).map((event) => (
+                      <div key={event.id} className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="text-sm font-medium">{event.type}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(event.createdAt).toLocaleString()}</p>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">{event.actor.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        ) : null}
       </div>
 
-      {asset ? (
+      {item ? (
         <UpdateItemDialog
           wsId={wsId}
-          asset={asset}
+          item={item}
           open={editOpen}
           onOpenChange={setEditOpen}
         />

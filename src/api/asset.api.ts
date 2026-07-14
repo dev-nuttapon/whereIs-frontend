@@ -1,5 +1,5 @@
 import { client } from '@/api/client';
-import type { Asset } from '@/types/domain.types';
+import type { Asset, AssetPhoto } from '@/types/domain.types';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -56,6 +56,13 @@ export interface UpdateAssetInput {
 }
 
 function toAsset(dto: AssetDto): Asset {
+  const photos: AssetPhoto[] = dto.photos.map((photo) => ({
+    id: photo.id,
+    url: photo.url,
+    isMain: photo.isMain,
+    sortOrder: photo.sortOrder,
+  }));
+
   return {
     id: dto.id,
     workspaceId: dto.workspaceId,
@@ -72,7 +79,8 @@ function toAsset(dto: AssetDto): Asset {
     notes: dto.notes ?? undefined,
     acquiredDate: dto.acquiredDate ?? undefined,
     currentHolderUserId: dto.currentHolderUserId ?? undefined,
-    photoUrls: dto.photos.map((photo) => photo.url),
+    photos,
+    photoUrls: photos.map((photo) => photo.url),
     createdAt: dto.createdAt,
   };
 }

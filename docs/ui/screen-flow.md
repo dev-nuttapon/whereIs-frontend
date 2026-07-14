@@ -14,13 +14,13 @@
 | `/w/:wsId/items/:id` | Item Detail | `item.view` | individual/quantity detail + actions |
 | `/w/:wsId/items/new` | Add Item | `item.create` | ฟอร์มเพิ่มของ |
 | `/w/:wsId/items/:id/edit` | Edit Item | `item.update` | ฟอร์มแก้ไข |
+| `/w/:wsId/activity` | Activity Log | `activity.view` | feed ItemEvent + pagination |
+| `/w/:wsId/reports` | Reports | `report.view` | summary / export |
+| `/w/:wsId/notifications` | Notifications | `notification.view` | reminder feed |
 | `/w/:wsId/structure` | Storage Structure | `container.view` | tree ของ container ทั้ง workspace |
 | `/w/:wsId/containers/:id` | Container Detail | `container.view` | child containers + items |
 | `/w/:wsId/members` | Members | `member.view` | จัดการสมาชิก |
 | `/w/:wsId/members/:memberId` | Member Detail / Permissions | `member.view` (+`permission.override`) | role + permission override |
-| `/w/:wsId/activity` | Activity Log | `activity.view` | ประวัติเหตุการณ์ |
-| `/w/:wsId/reports` | Reports | `report.view` | summary / export |
-| `/w/:wsId/notifications` | Notifications | `notification.view` | reminders / important dates |
 | `/w/:wsId/settings` | Settings | member ของ ws | ตั้งค่า workspace/ผู้ใช้ |
 | `/w/:wsId/settings/notifications` | Notification Settings | `notification.manage` | reminder / preference controls |
 | `*` | Not Found | public | 404 |
@@ -66,7 +66,19 @@
    ├─ เปิด detail เมื่อจำเป็น
    └─ เปิด workflow dialog เฉพาะ action ที่ผู้ใช้มีสิทธิ์
 ```
-### 6. Auth Flow
+
+### 6. System Setup Flow
+```
+[Workspace List] → [Workspace Dashboard] → [Master Data] → [Container Structure] → [Item / Stock Creation] → [Search]
+```
+
+### 7. Audit Flow
+```
+[Workspace Dashboard] → [Activity]
+  ├─ [Reports]
+  └─ [Notifications]
+```
+### 8. Auth Flow
 ```
 [เปิดแอป]
    ├─ มี token valid? ── ใช่ ──► [Workspace List / last workspace]

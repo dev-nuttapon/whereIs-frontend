@@ -16,6 +16,13 @@ Build a workspace-based system for tracking items, stock, and item lifecycle wor
   - Extra Permissions
   - Container Access Scope
 
+## Canonical Flow Standard
+- Reference/master data is setup-only.
+- Operational transaction flow is for daily work only.
+- Activity, reports, and notifications are audit/visibility outputs.
+- Search is the primary entry point for daily work.
+- Every screen must have one primary role.
+
 ## Confirmed Product Principles
 - Workspace-first: every screen and action is scoped to the active workspace.
 - Progressive disclosure: show the minimum useful information first, then reveal details and workflows on demand.
@@ -65,6 +72,7 @@ Build a workspace-based system for tracking items, stock, and item lifecycle wor
 - recent activity / history
 - notifications for important dates and reminders
 - reports for workspace and item summaries
+- search page as the primary discovery surface
 
 ## Screen Groups to Design
 - Workspace list and workspace switcher

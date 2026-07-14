@@ -1,5 +1,6 @@
 import { uiStore } from '@/stores/ui.store';
 import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
+import { GlobalSearchBar } from '@/components/layout/GlobalSearchBar';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { Button } from '@/components/ui/button';
 import { MenuIcon } from '@/components/ui/icons';
@@ -21,8 +22,12 @@ export function Topbar() {
           </Button>
         </div>
 
-        <div className="min-w-0 flex-1 sm:max-w-sm lg:max-w-[20rem]">
+        <div className="min-w-0 flex-1 sm:max-w-sm lg:max-w-[18rem]">
           <WorkspaceSwitcher />
+        </div>
+
+        <div className="min-w-0 flex-[1.5]">
+          <GlobalSearchBar />
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">

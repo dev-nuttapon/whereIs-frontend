@@ -15,10 +15,14 @@ const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').the
 const WorkspaceListPage = lazy(() => import('@/features/workspaces/pages/WorkspaceListPage').then((module) => ({ default: module.WorkspaceListPage })));
 const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/WorkspaceNewPage').then((module) => ({ default: module.WorkspaceNewPage })));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
 const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
 const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
 const StockPage = lazy(() => import('@/features/stock/pages/StockPage').then((module) => ({ default: module.StockPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
+const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage').then((module) => ({ default: module.ActivityPage })));
+const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((module) => ({ default: module.ReportsPage })));
+const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const BorrowOrdersPage = lazy(() => import('@/features/borrow-orders/pages/BorrowOrdersPage').then((module) => ({ default: module.BorrowOrdersPage })));
 const MasterDataPage = lazy(() => import('@/features/master-data/pages/MasterDataPage').then((module) => ({ default: module.MasterDataPage })));
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
@@ -100,10 +104,14 @@ export function AppRoutes() {
           <Route path="/w/:wsId" element={<WorkspaceRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
+              <Route path="search" element={<SearchPage />} />
               <Route path="items" element={<ItemsPage />} />
-              <Route path="items/:assetId" element={<ItemDetailPage />} />
+              <Route path="items/:itemId" element={<ItemDetailPage />} />
               <Route path="stock" element={<StockPage />} />
               <Route path="containers" element={<ContainersPage />} />
+              <Route path="activity" element={<ActivityPage />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="borrow-orders" element={<BorrowOrdersPage />} />
               <Route path="master-data" element={<MasterDataPage />} />
               <Route path="containers/:containerId" element={<ContainerDetailPage />} />

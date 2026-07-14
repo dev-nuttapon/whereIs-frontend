@@ -198,6 +198,7 @@ export interface Asset {
   notes?: string | null;
   acquiredDate?: string | null;
   currentHolderUserId?: string | null;
+  photos?: AssetPhoto[];
   photoUrls?: string[];
   createdAt: string;
 }

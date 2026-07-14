@@ -111,7 +111,6 @@ export function ContainerDetailPage() {
         onOpenChange={setCreateItemOpen}
         initialValues={{
           containerId: container?.id ?? undefined,
-          locationId: container?.locationId ?? undefined,
         }}
       />
     </PageShell>

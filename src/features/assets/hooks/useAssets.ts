@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createAsset, deleteAsset, getAsset, listAssets, updateAsset, type CreateAssetInput, type UpdateAssetInput } from '@/api/asset.api';
+import { deleteAssetPhoto, uploadAssetPhoto } from '@/api/asset-photo.api';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
@@ -65,6 +66,40 @@ export function useDeleteAsset(wsId: string, assetId: string) {
       pushNotification({
         variant: 'success',
         title: t('notifications.itemDisposed', 'Item disposed'),
+      });
+    },
+  });
+}
+
+export function useUploadAssetPhoto(wsId: string, assetId: string) {
+  const queryClient = useQueryClient();
+  const { t } = useI18n();
+
+  return useMutation({
+    mutationFn: ({ file, setAsMain }: { file: File; setAsMain: boolean }) => uploadAssetPhoto(wsId, assetId, file, setAsMain),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.assets.detail(wsId, assetId) });
+      pushNotification({
+        variant: 'success',
+        title: t('notifications.assetPhotoUploaded', 'อัปโหลดรูปของแล้ว'),
+      });
+    },
+  });
+}
+
+export function useDeleteAssetPhoto(wsId: string, assetId: string) {
+  const queryClient = useQueryClient();
+  const { t } = useI18n();
+
+  return useMutation({
+    mutationFn: (photoId: string) => deleteAssetPhoto(wsId, assetId, photoId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.assets.detail(wsId, assetId) });
+      pushNotification({
+        variant: 'success',
+        title: t('notifications.assetPhotoDeleted', 'ลบรูปของแล้ว'),
       });
     },
   });

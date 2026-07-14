@@ -13,8 +13,8 @@
 |------------|-----------|---------|
 | Sidebar toggle `[≡]` | `SidebarToggle` | เปิด/ปิด sidebar |
 | Workspace Switcher | `WorkspaceSwitcher` | เลือก/สลับ workspace |
-| Global Search Bar | `GlobalSearchBar` | ค้นหาของจากทุกหน้า |
-| Notification Bell | `NotificationButton` | เปิด notification drawer / center |
+| Global Search Bar | `GlobalSearchBar` | ค้นหาของจากทุกหน้า และเข้า search flow |
+| Notification Bell | `NotificationButton` | เปิด notification center / reminder feed |
 | User Menu | `UserMenu` | profile, logout |
 
 ### Workspace Switcher
