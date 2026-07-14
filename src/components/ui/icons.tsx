@@ -252,6 +252,16 @@ export function ReturnIcon(props: IconProps) {
   );
 }
 
+export function BorrowIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+      <path d="M5 5v14" />
+    </Icon>
+  );
+}
+
 export function EditIcon(props: IconProps) {
   return (
     <Icon {...props}>

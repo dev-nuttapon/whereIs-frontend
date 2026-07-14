@@ -57,6 +57,29 @@ export interface Workspace {
   updatedAt: string;
 }
 
+export interface WorkspaceSettings {
+  workspaceId: string;
+  timezone: string;
+  defaultUnit?: string | null;
+  borrowRequiresApproval: boolean;
+}
+
+export interface LookupOption {
+  code: string;
+  name: string;
+  isSystem: boolean;
+  sortOrder: number;
+}
+
+export interface WorkspaceRole {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  isSystem: boolean;
+  permissions: string[];
+}
+
 export interface Site {
   id: string;
   workspaceId: string;
@@ -177,6 +200,42 @@ export interface Asset {
   currentHolderUserId?: string | null;
   photoUrls?: string[];
   createdAt: string;
+}
+
+export interface BorrowOrderLine {
+  id: string;
+  assetId?: string | null;
+  assetSerialNumber?: string | null;
+  productId?: string | null;
+  productName?: string | null;
+  stockEntryId?: string | null;
+  quantity?: number | null;
+  status: string;
+  returnedAt?: string | null;
+  returnedQuantity?: number | null;
+}
+
+export interface BorrowOrder {
+  id: string;
+  workspaceId: string;
+  requestedBy: string;
+  purpose?: string | null;
+  needByDate: string;
+  returnByDate: string;
+  requiresApproval: boolean;
+  status: string;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
+  reviewNote?: string | null;
+  lines: BorrowOrderLine[];
+  createdAt: string;
+}
+
+export interface AssetPhoto {
+  id: string;
+  url: string;
+  isMain: boolean;
+  sortOrder: number;
 }
 
 export interface Member {

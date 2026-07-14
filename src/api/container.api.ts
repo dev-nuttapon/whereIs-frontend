@@ -37,6 +37,11 @@ export interface CreateContainerInput {
   qrCode?: string | null;
 }
 
+export interface MoveContainerInput {
+  locationId?: string | null;
+  parentContainerId?: string | null;
+}
+
 function toContainer(dto: ContainerDto): Container {
   return {
     id: dto.id,
@@ -56,9 +61,17 @@ function toContainer(dto: ContainerDto): Container {
   };
 }
 
-export async function listContainers(wsId: string): Promise<Container[]> {
+export async function listContainers(
+  wsId: string,
+  params: { locationId?: string | null; parentId?: string | null; page?: number; pageSize?: number } = {},
+): Promise<Container[]> {
   const response = await client.get<ApiResponse<PagedResult<ContainerDto>>>(`/workspaces/${encodeURIComponent(wsId)}/containers`, {
-    params: { page: 1, pageSize: 100 },
+    params: {
+      locationId: params.locationId ?? undefined,
+      parentId: params.parentId ?? undefined,
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 100,
+    },
   });
   return response.data.data.items.map(toContainer);
 }
@@ -92,6 +105,14 @@ export async function updateContainer(
     type: input.type ?? null,
     code: input.code ?? null,
     qrCode: input.qrCode ?? null,
+  });
+  return toContainer(response.data.data);
+}
+
+export async function moveContainer(wsId: string, id: string, input: MoveContainerInput): Promise<Container> {
+  const response = await client.put<ApiResponse<ContainerDto>>(`/workspaces/${encodeURIComponent(wsId)}/containers/${encodeURIComponent(id)}/move`, {
+    locationId: input.locationId ?? null,
+    parentContainerId: input.parentContainerId ?? null,
   });
   return toContainer(response.data.data);
 }

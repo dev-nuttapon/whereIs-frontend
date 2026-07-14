@@ -68,6 +68,10 @@ export function Breadcrumbs() {
       return [{ label: 'Settings', to: ROUTES.workspaceSettings(wsId) }];
     }
 
+    if (location.pathname.endsWith('/borrow-orders')) {
+      return [{ label: 'Borrow orders', to: ROUTES.workspaceBorrowOrders(wsId) }];
+    }
+
     return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
   }, [containers, currentWorkspace?.name, location.pathname, members, wsId]);
 

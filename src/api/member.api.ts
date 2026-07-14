@@ -1,4 +1,5 @@
 import { client } from '@/api/client';
+import { listRoles } from '@/api/roles.api';
 import type { ContainerAccessScope, Member } from '@/types/domain.types';
 
 interface ApiResponse<T> {
@@ -51,12 +52,6 @@ export interface InvitationDto {
   containerAccessScope?: ContainerAccessScope | null;
 }
 
-interface RoleDto {
-  id: string;
-  code: string;
-  name: string;
-}
-
 export interface InviteMemberInput {
   email: string;
   role: 'owner' | 'admin' | 'member' | 'viewer';
@@ -81,10 +76,8 @@ function toMember(wsId: string, dto: MemberDto): Member {
 }
 
 async function resolveRoleId(wsId: string, roleCode: InviteMemberInput['role']) {
-  const response = await client.get<ApiResponse<PagedResult<RoleDto>>>(`/workspaces/${encodeURIComponent(wsId)}/roles`, {
-    params: { page: 1, pageSize: 100 },
-  });
-  const role = response.data.data.items.find((entry) => entry.code === roleCode);
+  const response = await listRoles(wsId, 1, 100);
+  const role = response.items.find((entry) => entry.code === roleCode);
   if (!role) {
     throw new Error(`Role '${roleCode}' not found.`);
   }

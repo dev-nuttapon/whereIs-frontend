@@ -4,8 +4,10 @@ import {
   deleteContainer,
   getContainer,
   listContainers,
+  moveContainer,
   updateContainer,
   type CreateContainerInput,
+  type MoveContainerInput,
 } from '@/api/container.api';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
@@ -73,6 +75,24 @@ export function useDeleteContainer(wsId: string, containerId: string) {
       pushNotification({
         variant: 'success',
         title: t('notifications.containerDeleted', 'ลบ container แล้ว'),
+      });
+    },
+  });
+}
+
+export function useMoveContainer(wsId: string, containerId: string) {
+  const queryClient = useQueryClient();
+  const { t } = useI18n();
+
+  return useMutation({
+    mutationFn: (input: MoveContainerInput) => moveContainer(wsId, containerId, input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.containers.all(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.containers.detail(wsId, containerId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.containers.tree(wsId) });
+      pushNotification({
+        variant: 'success',
+        title: t('notifications.containerMoved', 'ย้าย container แล้ว'),
       });
     },
   });

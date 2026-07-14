@@ -36,6 +36,26 @@ interface LocationTreeNodeDto {
   children: LocationTreeNodeDto[];
 }
 
+export interface CreateLocationInput {
+  siteId: string;
+  parentLocationId?: string | null;
+  name: string;
+  type?: string | null;
+  code?: string | null;
+  sortOrder: number;
+  description?: string | null;
+}
+
+export interface UpdateLocationInput {
+  name?: string | null;
+  type?: string | null;
+  code?: string | null;
+  sortOrder?: number | null;
+  description?: string | null;
+  parentLocationId?: string | null;
+  clearParent?: boolean;
+}
+
 export interface LocationTreeNode {
   id: string;
   name: string;
@@ -89,4 +109,35 @@ export async function getLocationTree(wsId: string, siteId: string): Promise<Loc
     `/workspaces/${encodeURIComponent(wsId)}/sites/${encodeURIComponent(siteId)}/locations/tree`,
   );
   return response.data.data.map((node) => toLocationTreeNode(node));
+}
+
+export async function createLocation(wsId: string, input: CreateLocationInput): Promise<Location> {
+  const response = await client.post<ApiResponse<LocationDto>>(`/workspaces/${encodeURIComponent(wsId)}/locations`, {
+    siteId: input.siteId,
+    parentLocationId: input.parentLocationId ?? null,
+    name: input.name,
+    type: input.type ?? null,
+    code: input.code ?? null,
+    sortOrder: input.sortOrder,
+    description: input.description ?? null,
+  });
+  return toLocation(response.data.data);
+}
+
+export async function updateLocation(wsId: string, locationId: string, input: UpdateLocationInput): Promise<Location> {
+  const response = await client.put<ApiResponse<LocationDto>>(`/workspaces/${encodeURIComponent(wsId)}/locations/${encodeURIComponent(locationId)}`, {
+    name: input.name ?? null,
+    type: input.type ?? null,
+    code: input.code ?? null,
+    sortOrder: input.sortOrder ?? null,
+    description: input.description ?? null,
+    parentLocationId: input.parentLocationId ?? null,
+    clearParent: input.clearParent ?? false,
+  });
+  return toLocation(response.data.data);
+}
+
+export async function deleteLocation(wsId: string, locationId: string): Promise<{ success: true }> {
+  await client.delete(`/workspaces/${encodeURIComponent(wsId)}/locations/${encodeURIComponent(locationId)}`);
+  return { success: true };
 }
