@@ -15,6 +15,7 @@ Stack: React · Vite · TypeScript · React Router · TanStack Query · React Ho
 | [folder-structure.md](architecture/folder-structure.md) | โครงสร้างโฟลเดอร์ + naming |
 | [coding-style.md](architecture/coding-style.md) | มาตรฐานการเขียนโค้ด |
 | [development-rules.md](architecture/development-rules.md) | ความรับผิดชอบของแต่ละ layer + กฎ ownership |
+| [frontend-backend-integration.md](architecture/frontend-backend-integration.md) | frontend/backend path map + mutation flow |
 
 ## UI
 | เอกสาร | เนื้อหา |
