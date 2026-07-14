@@ -18,12 +18,15 @@ const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPag
 const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
 const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
 const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
+const AssetsPage = lazy(() => import('@/features/assets/pages/AssetsPage').then((module) => ({ default: module.AssetsPage })));
+const AssetDetailPage = lazy(() => import('@/features/assets/pages/AssetDetailPage').then((module) => ({ default: module.AssetDetailPage })));
 const StockPage = lazy(() => import('@/features/stock/pages/StockPage').then((module) => ({ default: module.StockPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
 const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage').then((module) => ({ default: module.ActivityPage })));
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((module) => ({ default: module.ReportsPage })));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const BorrowOrdersPage = lazy(() => import('@/features/borrow-orders/pages/BorrowOrdersPage').then((module) => ({ default: module.BorrowOrdersPage })));
+const BorrowOrderDetailPage = lazy(() => import('@/features/borrow-orders/pages/BorrowOrderDetailPage').then((module) => ({ default: module.BorrowOrderDetailPage })));
 const MasterDataPage = lazy(() => import('@/features/master-data/pages/MasterDataPage').then((module) => ({ default: module.MasterDataPage })));
 const MembersPage = lazy(() => import('@/features/members/pages/MembersPage').then((module) => ({ default: module.MembersPage })));
 const MemberDetailPage = lazy(() => import('@/features/members/pages/MemberDetailPage').then((module) => ({ default: module.MemberDetailPage })));
@@ -107,12 +110,15 @@ export function AppRoutes() {
               <Route path="search" element={<SearchPage />} />
               <Route path="items" element={<ItemsPage />} />
               <Route path="items/:itemId" element={<ItemDetailPage />} />
+              <Route path="assets" element={<AssetsPage />} />
+              <Route path="assets/:assetId" element={<AssetDetailPage />} />
               <Route path="stock" element={<StockPage />} />
               <Route path="containers" element={<ContainersPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="borrow-orders" element={<BorrowOrdersPage />} />
+              <Route path="borrow-orders/:orderId" element={<BorrowOrderDetailPage />} />
               <Route path="master-data" element={<MasterDataPage />} />
               <Route path="containers/:containerId" element={<ContainerDetailPage />} />
               <Route path="members" element={<MembersPage />} />

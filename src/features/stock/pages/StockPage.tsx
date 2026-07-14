@@ -19,6 +19,8 @@ import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useStockEntries, useAdjustStock } from '@/features/stock/hooks/useStock';
+import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
+import { TakeOutIcon } from '@/components/ui/icons';
 
 function formatLocationLabel(locationName?: string | null, containerName?: string | null) {
   if (containerName) return containerName;
@@ -176,6 +178,8 @@ export function StockPage() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
   const [adjustOpen, setAdjustOpen] = useState(false);
+  const [borrowOpen, setBorrowOpen] = useState(false);
+  const [borrowDefaults, setBorrowDefaults] = useState<{ productId?: string | null; stockEntryId?: string | null } | null>(null);
   const productsQuery = useProducts(wsId);
   const entriesQuery = useStockEntries(wsId, { pageSize: 100 });
   const products = productsQuery.data ?? [];
@@ -195,10 +199,16 @@ export function StockPage() {
       title={t('stock.title', 'Stock')}
       description={t('stock.description', 'Manage stock quantities before borrowing stock items.')}
       actions={(
-        <Button className="w-full sm:w-auto" onClick={() => setAdjustOpen(true)}>
-          <PlusIcon className="h-4 w-4" />
-          {t('stock.adjust.action', 'Adjust stock')}
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button className="w-full sm:w-auto" variant="outline" onClick={() => setBorrowOpen(true)}>
+            <TakeOutIcon className="h-4 w-4" />
+            {t('stock.borrow.action', 'Create borrow order')}
+          </Button>
+          <Button className="w-full sm:w-auto" onClick={() => setAdjustOpen(true)}>
+            <PlusIcon className="h-4 w-4" />
+            {t('stock.adjust.action', 'Adjust stock')}
+          </Button>
+        </div>
       )}
     >
       <div className="grid gap-[18px] md:grid-cols-3">
@@ -230,6 +240,18 @@ export function StockPage() {
                   <div>{t('stock.location', 'Location')}: {formatLocationLabel(entry.locationName, entry.containerName)}</div>
                   <div>{t('stock.quantity', 'Quantity')}: {entry.quantity}</div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full rounded-full"
+                  onClick={() => {
+                    setBorrowDefaults({ productId: entry.productId, stockEntryId: entry.id });
+                    setBorrowOpen(true);
+                  }}
+                >
+                  <TakeOutIcon className="h-4 w-4" />
+                  {t('stock.borrow.fromEntry', 'Borrow from this entry')}
+                </Button>
               </CardContent>
             </Card>
           ))}
@@ -237,6 +259,13 @@ export function StockPage() {
       )}
 
       <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} />
+      <CreateBorrowOrderDialog
+        wsId={wsId}
+        open={borrowOpen}
+        onOpenChange={setBorrowOpen}
+        initialProductId={borrowDefaults?.productId ?? null}
+        initialStockEntryId={borrowDefaults?.stockEntryId ?? null}
+      />
     </PageShell>
   );
 }

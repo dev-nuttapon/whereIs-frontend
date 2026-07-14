@@ -6,6 +6,8 @@
 ## 1. Purpose
 ให้ owner ปรับสิทธิ์ของ member เป็นรายคน (เพิ่ม/ถอน permission เฉพาะ) นอกเหนือจาก primary role และให้ทั้ง frontend มี helper กลาง (`can()`) ในการเช็คสิทธิ์อย่างสม่ำเสมอ รวมถึงการกำหนด container access scope
 
+ฟีเจอร์นี้ใช้กับ workspace จริงและ reference permission catalog เท่านั้น ไม่เกี่ยวกับ demo data หรือ onboarding flow
+
 ## 2. User Stories
 - ในฐานะ owner ฉันต้องการเห็น permission ปัจจุบันของ member
 - ฉันต้องการเปิด/ปิด permission เฉพาะให้ member บางคน
@@ -105,3 +107,4 @@ Members → tab Permissions → adjust container access scope → Save
 - [ ] ล็อก owner + กฎ dependency เบื้องต้น
 - [ ] Loading/Error states
 - [ ] Responsive matrix/accordion
+- [ ] ไม่มี demo permission setup flow แยกต่างหาก

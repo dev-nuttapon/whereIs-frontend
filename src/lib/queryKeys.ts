@@ -5,6 +5,9 @@ export const queryKeys = {
   lookups: {
     all: ['lookups'] as const,
   },
+  permissions: {
+    all: ['permissions'] as const,
+  },
   workspaces: ['workspaces'] as const,
   workspace: (wsId: string) => ['workspace', wsId] as const,
   sites: (wsId: string) => ['ws', wsId, 'sites'] as const,

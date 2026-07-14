@@ -1,5 +1,5 @@
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useState } from 'react';
 import { Descriptions, Popconfirm, Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
 import { EditIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
-import { useContainer, useDeleteContainer, useUpdateContainer } from '@/features/containers/hooks/useContainers';
+import { useContainer, useContainers, useDeleteContainer, useUpdateContainer } from '@/features/containers/hooks/useContainers';
 import { ContainerFormDialog } from '@/features/containers/components/ContainerFormDialog';
 import { CreateItemDialog } from '@/features/items/components/CreateItemDialog';
 import { PlusIcon } from '@/components/ui/icons';
@@ -20,7 +20,12 @@ export function ContainerDetailPage() {
   const { t } = useI18n();
   const resolvedContainerId = containerId ?? '';
   const containerQuery = useContainer(wsId, resolvedContainerId);
+  const containersQuery = useContainers(wsId);
   const container = containerQuery.data ?? null;
+  const parentContainerNameById = useMemo(
+    () => new Map((containersQuery.data ?? []).map((entry) => [entry.id, entry.name] as const)),
+    [containersQuery.data],
+  );
   const [editOpen, setEditOpen] = useState(false);
   const [createItemOpen, setCreateItemOpen] = useState(false);
   const updateContainer = useUpdateContainer(wsId, resolvedContainerId);
@@ -73,7 +78,7 @@ export function ContainerDetailPage() {
                 <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? containerId}</Descriptions.Item>
                 <Descriptions.Item label={t('items.list.count')}>{container?.itemCount ?? 0}</Descriptions.Item>
                 <Descriptions.Item label={t('containers.list.title')}>
-                  {container?.parentId ?? <Tag>{t('containers.detail.rootContainer', 'root')}</Tag>}
+                  {container?.parentId ? parentContainerNameById.get(container.parentId) ?? container.parentId : <Tag>{t('container.detail.noParent', 'Root container')}</Tag>}
                 </Descriptions.Item>
               </Descriptions>
             </div>
@@ -82,6 +87,7 @@ export function ContainerDetailPage() {
       </div>
 
       <ContainerFormDialog
+        wsId={wsId}
         open={editOpen}
         onOpenChange={setEditOpen}
         title={t('containers.detail.editTitle', 'แก้ไข container')}
@@ -92,6 +98,7 @@ export function ContainerDetailPage() {
           type: container.typeLabel === 'Container' ? '' : container.typeLabel,
           code: container.code ?? '',
           qrCode: container.qrCode ?? '',
+          parentContainerId: container.parentId ?? '',
         } : undefined}
         onSubmit={async (values) => {
           await updateContainer.mutateAsync({

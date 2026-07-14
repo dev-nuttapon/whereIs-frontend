@@ -21,6 +21,13 @@ interface PermissionCatalogDto {
   category: string;
 }
 
+export interface PermissionCatalogItem {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+}
+
 interface MemberPermissionsDto {
   roleCode: string;
   effective: string[];
@@ -28,7 +35,7 @@ interface MemberPermissionsDto {
   containerAccessScope: ContainerAccessScope | null;
 }
 
-async function fetchPermissionCatalog() {
+export async function getPermissionCatalog(): Promise<PermissionCatalogItem[]> {
   const response = await client.get<ApiResponse<{ items: PermissionCatalogDto[] }>>('/permissions', {
     params: { page: 1, pageSize: 200 },
   });
@@ -57,7 +64,7 @@ export async function updateMemberPermissions(
   overrides: Record<string, boolean>,
   containerAccessScope?: ContainerAccessScope | null,
 ): Promise<MemberPermissionsResponse> {
-  const permissions = await fetchPermissionCatalog();
+  const permissions = await getPermissionCatalog();
   const payload = {
     overrides: Object.entries(overrides).flatMap(([code, enabled]) => {
       const permission = permissions.find((item) => item.code === code);

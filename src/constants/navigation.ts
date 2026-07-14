@@ -13,6 +13,7 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { labelKey: 'nav.search', labelFallback: 'Search', iconKey: 'search', to: (wsId) => `/w/${wsId}/search`, roles: ['viewer', 'member', 'admin', 'owner'] },
   { labelKey: 'nav.activity', labelFallback: 'Activity', iconKey: 'activity', to: (wsId) => `/w/${wsId}/activity`, roles: ['viewer', 'member', 'admin', 'owner'] },
   { labelKey: 'nav.items', labelFallback: 'Items', iconKey: 'items', to: (wsId) => `/w/${wsId}/items`, roles: ['member', 'admin', 'owner'] },
+  { labelKey: 'nav.assets', labelFallback: 'Assets', iconKey: 'items', to: (wsId) => `/w/${wsId}/assets`, roles: ['member', 'admin', 'owner'] },
   { labelKey: 'nav.stock', labelFallback: 'Stock', iconKey: 'stock', to: (wsId) => `/w/${wsId}/stock`, roles: ['member', 'admin', 'owner'] },
   { labelKey: 'nav.containers', labelFallback: 'Containers', iconKey: 'containers', to: (wsId) => `/w/${wsId}/containers`, roles: ['member', 'admin', 'owner'] },
   { labelKey: 'nav.borrowOrders', labelFallback: 'Borrow orders', iconKey: 'borrow', to: (wsId) => `/w/${wsId}/borrow-orders`, roles: ['member', 'admin', 'owner'] },

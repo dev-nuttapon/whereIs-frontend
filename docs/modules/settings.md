@@ -6,6 +6,8 @@
 ## 1. Purpose
 ให้ owner ปรับแต่ง workspace (ชื่อ, คำอธิบาย, timezone) และให้ผู้ใช้ทุกคนจัดการ profile ส่วนตัว (ชื่อ, avatar) และ preference (ธีม) ภายใน workspace
 
+หน้าจอนี้เป็นส่วนของ setup/configuration จริง ไม่ใช่ onboarding หรือ demo wizard
+
 ## 2. User Stories
 - ในฐานะ owner ฉันต้องการ **เปลี่ยนชื่อ / คำอธิบาย** ของ workspace
 - ในฐานะ owner ฉันต้องการ **ลบ workspace** (Danger Zone)
@@ -132,7 +134,12 @@ Transfer ownership → confirm → POST → reload workspace data
 - Workspace logo upload
 - API keys / integrations
 
-## 17. Definition of Done
+## 17. Setup Rules
+- ไม่มี demo workspace/provisioning flow ในหน้า settings
+- workspace settings เป็นค่าตั้งต้นและค่าที่แก้ไขได้จริงเท่านั้น
+- profile settings แก้เฉพาะ user ปัจจุบัน ไม่สร้างข้อมูลตัวอย่าง
+
+## 18. Definition of Done
 - [ ] Workspace Settings form + validation + update
 - [ ] Profile Settings form + update
 - [ ] Theme toggle (light/dark) + persist

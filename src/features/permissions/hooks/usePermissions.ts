@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMemberPermissions, updateMemberPermissions, type MemberPermissionsResponse } from '@/api/permission.api';
+import {
+  getMemberPermissions,
+  getPermissionCatalog,
+  updateMemberPermissions,
+  type MemberPermissionsResponse,
+  type PermissionCatalogItem,
+} from '@/api/permission.api';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
@@ -32,4 +38,12 @@ export function useUpdatePermissions(wsId: string, memberId: string) {
   });
 }
 
+export function usePermissionsCatalog() {
+  return useQuery({
+    queryKey: queryKeys.permissions.all,
+    queryFn: () => getPermissionCatalog(),
+  });
+}
+
 export type { MemberPermissionsResponse };
+export type { PermissionCatalogItem };

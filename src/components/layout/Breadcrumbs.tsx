@@ -4,6 +4,7 @@ import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useItem } from '@/features/items/hooks/useItems';
+import { useBorrowOrder } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { useMembers } from '@/features/members/hooks/useMembers';
 import { ChevronRightIcon } from '@/components/ui/icons';
 
@@ -19,8 +20,11 @@ export function Breadcrumbs() {
   const containersQuery = useContainers(wsId ?? '');
   const membersQuery = useMembers(wsId ?? '');
   const itemPathSegment = location.pathname.includes('/items/') ? location.pathname.split('/items/')[1]?.split('/')[0] ?? '' : '';
+  const borrowOrderPathSegment = location.pathname.includes('/borrow-orders/') ? location.pathname.split('/borrow-orders/')[1]?.split('/')[0] ?? '' : '';
   const isItemDetailRoute = Boolean(itemPathSegment) && itemPathSegment !== 'new' && itemPathSegment !== 'edit';
+  const isBorrowOrderDetailRoute = Boolean(borrowOrderPathSegment) && borrowOrderPathSegment !== 'new';
   const itemQuery = useItem(wsId ?? '', isItemDetailRoute ? itemPathSegment : '');
+  const borrowOrderQuery = useBorrowOrder(wsId ?? '', isBorrowOrderDetailRoute ? borrowOrderPathSegment : '');
   const containers = containersQuery.data ?? [];
   const members = membersQuery.data ?? [];
 
@@ -103,8 +107,15 @@ export function Breadcrumbs() {
       return [{ label: 'Borrow orders', to: ROUTES.workspaceBorrowOrders(wsId) }];
     }
 
+    if (location.pathname.includes('/borrow-orders/')) {
+      return [
+        { label: 'Borrow orders', to: ROUTES.workspaceBorrowOrders(wsId) },
+        { label: borrowOrderQuery.data?.purpose ?? borrowOrderQuery.data?.id ?? 'Borrow order' },
+      ];
+    }
+
     return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
-  }, [containers, currentWorkspace?.name, itemQuery.data?.name, location.pathname, members, wsId]);
+  }, [borrowOrderQuery.data?.id, borrowOrderQuery.data?.purpose, containers, currentWorkspace?.name, itemQuery.data?.name, location.pathname, members, wsId]);
 
   if (crumbs.length === 0) {
     return null;

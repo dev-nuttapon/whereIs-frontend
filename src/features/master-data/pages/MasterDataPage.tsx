@@ -11,13 +11,17 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { PlusIcon, EditIcon, DatabaseIcon, SiteIcon, LocationIcon } from '@/components/ui/icons';
+import { PermissionGuard } from '@/components/common/PermissionGuard';
 import { useI18n } from '@/hooks/useI18n';
-import type { Category, Location, Product, Site } from '@/types/domain.types';
+import type { Category, Location, Product, Site, WorkspaceRole } from '@/types/domain.types';
 import type { LocationTreeNode } from '@/api/location.api';
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/features/products/hooks/useProducts';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/features/categories/hooks/useCategories';
 import { useSites, useCreateSite, useUpdateSite, useDeleteSite } from '@/features/sites/hooks/useSites';
 import { useLocations, useLocationTree, useCreateLocation, useUpdateLocation, useDeleteLocation } from '@/features/locations/hooks/useLocations';
+import { useLookups } from '@/features/lookups/hooks/useLookups';
+import { usePermissionsCatalog } from '@/features/permissions/hooks/usePermissions';
+import { useRoles } from '@/features/roles/hooks/useRoles';
 import { ProductFormDialog } from '@/features/master-data/components/ProductFormDialog';
 import { CategoryFormDialog } from '@/features/master-data/components/CategoryFormDialog';
 import { SiteFormDialog } from '@/features/master-data/components/SiteFormDialog';
@@ -65,6 +69,140 @@ function findLocationNode(nodes: LocationTreeNode[], id: string): LocationTreeNo
     }
   }
   return undefined;
+}
+
+function rolePermissionCount(role: Pick<WorkspaceRole, 'permissions'>) {
+  return role.permissions?.length ?? 0;
+}
+
+function renderLookupValues(values: Array<{ code: string; name: string; isSystem: boolean; sortOrder: number }>) {
+  return values
+    .slice()
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .map((value) => (
+      <li key={value.code} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/70 px-3 py-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">{value.name}</p>
+          <p className="truncate text-xs text-muted-foreground">{value.code}</p>
+        </div>
+        <Tag color={value.isSystem ? 'blue' : 'default'}>{value.isSystem ? 'system' : 'custom'}</Tag>
+      </li>
+    ));
+}
+
+function ReferenceDataDetails({
+  wsId,
+  lookupData,
+}: {
+  wsId: string;
+  lookupData?: {
+    siteTypes: Array<{ code: string; name: string; isSystem: boolean; sortOrder: number }>;
+    locationTypes: Array<{ code: string; name: string; isSystem: boolean; sortOrder: number }>;
+    containerTypes: Array<{ code: string; name: string; isSystem: boolean; sortOrder: number }>;
+    unitTypes: Array<{ code: string; name: string; isSystem: boolean; sortOrder: number }>;
+  };
+}) {
+  const { t } = useI18n();
+  const rolesQuery = useRoles(wsId);
+  const permissionsCatalogQuery = usePermissionsCatalog();
+  const roles = rolesQuery.data?.items ?? [];
+  const systemRoles = roles.filter((role) => role.isSystem);
+  const customRoles = roles.filter((role) => !role.isSystem);
+  const permissionsCatalog = permissionsCatalogQuery.data ?? [];
+
+  return (
+    <div className="component-stack">
+      {rolesQuery.isLoading || permissionsCatalogQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
+      {rolesQuery.isError || permissionsCatalogQuery.isError ? (
+        <ErrorState
+          message={t('masterData.reference.error', 'Unable to load reference data.')}
+          onRetry={() => {
+            void rolesQuery.refetch();
+            void permissionsCatalogQuery.refetch();
+          }}
+        />
+      ) : null}
+
+      <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label={t('masterData.lookups.siteTypes', 'Site types')} value={lookupData?.siteTypes.length ?? 0} />
+        <StatCard label={t('masterData.lookups.locationTypes', 'Location types')} value={lookupData?.locationTypes.length ?? 0} />
+        <StatCard label={t('masterData.roles.systemCount', 'System roles')} value={systemRoles.length} />
+        <StatCard label={t('masterData.permissions.count', 'Permissions')} value={permissionsCatalog.length} />
+      </div>
+
+      <Card className="shadow-sm">
+        <CardContent className="component-stack p-5 sm:p-6">
+          <div className="space-y-1.5">
+            <CardTitle className="text-lg">{t('masterData.roles.title', 'Roles')}</CardTitle>
+            <CardDescription>{t('masterData.roles.description', 'Seeded system roles are immutable. Custom roles are workspace-scoped.')}</CardDescription>
+          </div>
+          <div className="grid gap-[18px] sm:grid-cols-3">
+            <StatCard label={t('masterData.roles.systemCount', 'System roles')} value={systemRoles.length} />
+            <StatCard label={t('masterData.roles.customCount', 'Custom roles')} value={customRoles.length} />
+            <StatCard label={t('masterData.roles.permissionCount', 'Permissions')} value={permissionsCatalog.length} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-[18px] xl:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardContent className="component-stack p-5 sm:p-6">
+            <div className="space-y-1.5">
+              <CardTitle className="text-lg">{t('masterData.roles.systemTitle', 'System roles')}</CardTitle>
+              <CardDescription>{t('masterData.roles.systemDescription', 'Owner, Admin, Member, and Viewer are seeded by the API and cannot be changed here.')}</CardDescription>
+            </div>
+            <div className="space-y-3">
+              {systemRoles.map((role) => (
+                <div key={role.id} className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{role.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{role.code}</p>
+                    </div>
+                    <Tag color="blue">{t('masterData.roles.systemBadge', 'system')}</Tag>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {t('masterData.roles.permissionTotal', '{count} permissions', { count: rolePermissionCount(role) })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardContent className="component-stack p-5 sm:p-6">
+            <div className="space-y-1.5">
+              <CardTitle className="text-lg">{t('masterData.permissions.title', 'Permission catalog')}</CardTitle>
+              <CardDescription>{t('masterData.permissions.description', 'Canonical permission keys exposed by the backend and reused across the UI.')}</CardDescription>
+            </div>
+            <div className="grid gap-[18px] sm:grid-cols-2">
+              {Array.from(new Set(permissionsCatalog.map((permission) => permission.category))).map((category) => (
+                <div key={category} className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{category}</h3>
+                    <Tag color="geekblue">
+                      {permissionsCatalog.filter((permission) => permission.category === category).length}
+                    </Tag>
+                  </div>
+                  <ul className="space-y-2">
+                    {permissionsCatalog
+                      .filter((permission) => permission.category === category)
+                      .map((permission) => (
+                        <li key={permission.id} className="rounded-xl border border-border/70 bg-card px-3 py-2">
+                          <p className="text-sm font-medium">{permission.name}</p>
+                          <p className="text-xs text-muted-foreground">{permission.code}</p>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
 
 interface ProductCardActionsProps {
@@ -371,6 +509,7 @@ function EditLocationDialog({ wsId, location, sites, locationTree, onClose }: { 
 export function MasterDataPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t } = useI18n();
+  const lookupsQuery = useLookups();
   const productsQuery = useProducts(wsId);
   const categoriesQuery = useCategories(wsId);
   const sitesQuery = useSites(wsId);
@@ -409,6 +548,7 @@ export function MasterDataPage() {
   const selectedSiteLocationTreeQuery = useLocationTree(wsId, selectedSiteId);
   const selectedSiteLocationTree = selectedSiteLocationTreeQuery.data ?? [];
   const locationLookup = useMemo(() => new Map(selectedSiteLocations.map((location) => [location.id, location] as const)), [selectedSiteLocations]);
+  const lookupData = lookupsQuery.data;
 
   const stats = useMemo(() => [
     { label: t('masterData.stats.products', 'Products'), value: products.length },
@@ -642,6 +782,67 @@ export function MasterDataPage() {
     </div>
   );
 
+  const referenceTab = (
+    <div className="component-stack">
+      <Card className="shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
+          <div className="space-y-1">
+            <CardTitle className="text-lg">{t('masterData.reference.title', 'Reference data')}</CardTitle>
+            <CardDescription>{t('masterData.reference.description', 'Seeded lookup tables, system roles, and the canonical permission catalog.')}</CardDescription>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-2">
+        <StatCard label={t('masterData.lookups.siteTypes', 'Site types')} value={lookupData?.siteTypes.length ?? 0} />
+        <StatCard label={t('masterData.lookups.locationTypes', 'Location types')} value={lookupData?.locationTypes.length ?? 0} />
+      </div>
+
+      <Card className="shadow-sm">
+        <CardContent className="component-stack p-5 sm:p-6">
+          <div className="space-y-1.5">
+            <CardTitle className="text-lg">{t('masterData.lookups.title', 'Lookup tables')}</CardTitle>
+            <CardDescription>{t('masterData.lookups.description', 'These values are seeded once and reused by workspace forms.')}</CardDescription>
+          </div>
+          <div className="grid gap-[18px] lg:grid-cols-2">
+            <div className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t('masterData.lookups.siteTypes', 'Site types')}</h3>
+                <Tag color="blue">{lookupData?.siteTypes.length ?? 0}</Tag>
+              </div>
+              <ul className="space-y-2">{renderLookupValues(lookupData?.siteTypes ?? [])}</ul>
+            </div>
+            <div className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t('masterData.lookups.locationTypes', 'Location types')}</h3>
+                <Tag color="blue">{lookupData?.locationTypes.length ?? 0}</Tag>
+              </div>
+              <ul className="space-y-2">{renderLookupValues(lookupData?.locationTypes ?? [])}</ul>
+            </div>
+            <div className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t('masterData.lookups.containerTypes', 'Container types')}</h3>
+                <Tag color="blue">{lookupData?.containerTypes.length ?? 0}</Tag>
+              </div>
+              <ul className="space-y-2">{renderLookupValues(lookupData?.containerTypes ?? [])}</ul>
+            </div>
+            <div className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t('masterData.lookups.unitTypes', 'Unit types')}</h3>
+                <Tag color="blue">{lookupData?.unitTypes.length ?? 0}</Tag>
+              </div>
+              <ul className="space-y-2">{renderLookupValues(lookupData?.unitTypes ?? [])}</ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <PermissionGuard perm="role.view">
+        <ReferenceDataDetails wsId={wsId} lookupData={lookupData} />
+      </PermissionGuard>
+    </div>
+  );
+
   return (
     <PageShell
       title={t('masterData.title', 'Master data')}
@@ -660,6 +861,7 @@ export function MasterDataPage() {
           { key: 'categories', label: t('masterData.categories.tab', 'Categories'), children: categoryTab },
           { key: 'sites', label: t('masterData.sites.tab', 'Sites'), children: siteTab },
           { key: 'locations', label: t('masterData.locations.tab', 'Locations'), children: locationTab },
+          { key: 'reference', label: t('masterData.reference.tab', 'Reference'), children: referenceTab },
         ]}
       />
 

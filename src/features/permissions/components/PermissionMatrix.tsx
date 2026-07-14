@@ -37,11 +37,15 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
   },
   {
     title: 'permissions.group.structure',
-    permissions: ['container.view', 'container.create', 'container.update', 'container.delete', 'container.visibility.manage', 'container.access.manage'],
+    permissions: ['container.view', 'container.create', 'container.update', 'container.move', 'container.delete', 'container.visibility.manage', 'container.access.manage'],
   },
   {
     title: 'permissions.group.stock',
     permissions: ['stock.view', 'stock.consume', 'stock.restock', 'stock.count', 'stock.adjust'],
+  },
+  {
+    title: 'permissions.group.roles',
+    permissions: ['role.view', 'role.manage'],
   },
   {
     title: 'permissions.group.reports',

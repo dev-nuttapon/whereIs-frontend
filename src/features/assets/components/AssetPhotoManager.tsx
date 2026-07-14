@@ -48,18 +48,18 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
       <CardContent className="space-y-5 p-5 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-base">{t('items.photo.title', 'Photos')}</CardTitle>
-            <p className="text-sm text-muted-foreground">{t('items.photo.description', 'Upload, preview, and remove photos for this item.')}</p>
+            <CardTitle className="text-base">{t('assets.photo.title', 'Photos')}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t('assets.photo.description', 'Upload, preview, and remove photos for this asset.')}</p>
           </div>
           <div className="flex items-center gap-2">
-            {mainPhoto ? <Tag color="blue">{t('items.photo.main', 'Main photo')}</Tag> : null}
+            {mainPhoto ? <Tag color="blue">{t('assets.photo.main', 'Main photo')}</Tag> : null}
             <Button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadPhoto.isPending}
             >
               <PlusIcon className="h-4 w-4" />
-              {t('items.photo.add', 'Add photo')}
+              {t('assets.photo.add', 'Add photo')}
             </Button>
           </div>
         </div>
@@ -68,7 +68,7 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
           <div className="space-y-4 rounded-2xl border border-border/70 bg-muted/20 p-4">
             <div className="space-y-2.5">
               <label className="text-sm font-medium leading-none" htmlFor="asset-photo-file">
-                {t('items.photo.file', 'Photo file')}
+                {t('assets.photo.file', 'Photo file')}
               </label>
               <input
                 id="asset-photo-file"
@@ -84,14 +84,14 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
                   'file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-3 file:py-1 file:text-sm file:font-medium file:text-primary-foreground',
                 )}
               />
-              <p className="text-xs leading-5 text-muted-foreground">{t('items.photo.fileHelp', 'Choose an image file from your device.')}</p>
+              <p className="text-xs leading-5 text-muted-foreground">{t('assets.photo.fileHelp', 'Choose an image file from your device.')}</p>
             </div>
 
             <div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/80 p-3">
               <Checkbox checked={setAsMain} onChange={(event) => setSetAsMain(Boolean(event.target.checked))} />
               <div className="space-y-1">
-                <p className="text-sm font-medium">{t('items.photo.setMain', 'Set as main photo')}</p>
-                <p className="text-xs leading-5 text-muted-foreground">{t('items.photo.setMainHelp', 'Mark the uploaded photo as the primary image for this item.')}</p>
+                <p className="text-sm font-medium">{t('assets.photo.setMain', 'Set as main photo')}</p>
+                <p className="text-xs leading-5 text-muted-foreground">{t('assets.photo.setMainHelp', 'Mark the uploaded photo as the primary image for this asset.')}</p>
               </div>
             </div>
 
@@ -105,7 +105,7 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
                 }}
                 disabled={!selectedFile || uploadPhoto.isPending}
               >
-                {uploadPhoto.isPending ? t('common.saving', 'Saving...') : t('items.photo.upload', 'Upload')}
+                {uploadPhoto.isPending ? t('common.saving', 'Saving...') : t('assets.photo.upload', 'Upload')}
               </Button>
               <Button type="button" variant="outline" onClick={resetSelection}>
                 {t('common.cancel', 'Cancel')}
@@ -114,7 +114,7 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
 
             {selectedFile ? (
               <p className="text-xs text-muted-foreground">
-                {t('items.photo.selected', 'Selected')}: {selectedFile.name}
+                {t('assets.photo.selected', 'Selected')}: {selectedFile.name}
               </p>
             ) : null}
           </div>
@@ -122,8 +122,8 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
           <div className="space-y-4">
             {orderedPhotos.length === 0 ? (
               <EmptyState
-                title={t('items.photo.emptyTitle', 'No photos yet')}
-                description={t('items.photo.emptyDescription', 'Add the first photo to help identify this item faster.')}
+                title={t('assets.photo.emptyTitle', 'No photos yet')}
+                description={t('assets.photo.emptyDescription', 'Add the first photo to help identify this asset faster.')}
                 icon={<ItemIcon className="h-5 w-5" />}
               />
             ) : (
@@ -133,20 +133,20 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
                     <div className="relative overflow-hidden rounded-xl border border-border/70 bg-muted/30">
                       <img
                         src={photo.url}
-                        alt={t('items.photo.alt', 'Item photo')}
+                        alt={t('assets.photo.alt', 'Asset photo')}
                         className={cn('h-44 w-full object-cover', photo.isMain ? 'ring-2 ring-primary/60' : '')}
                       />
                       {photo.isMain ? (
                         <Tag className="absolute left-3 top-3 m-0" color="blue">
-                          {t('items.photo.main', 'Main photo')}
+                          {t('assets.photo.main', 'Main photo')}
                         </Tag>
                       ) : null}
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <p className="min-w-0 truncate text-xs text-muted-foreground">{photo.url}</p>
                       <Popconfirm
-                        title={t('items.photo.deleteConfirmTitle', 'Delete this photo?')}
-                        description={t('items.photo.deleteConfirmDescription', 'This will remove the photo from the item.')}
+                        title={t('assets.photo.deleteConfirmTitle', 'Delete this photo?')}
+                        description={t('assets.photo.deleteConfirmDescription', 'This will remove the photo from the asset.')}
                         okText={t('common.delete', 'Delete')}
                         cancelText={t('common.cancel', 'Cancel')}
                         okButtonProps={{ danger: true }}

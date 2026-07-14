@@ -5,6 +5,14 @@
 ## Goal
 Build a workspace-based system for tracking items, stock, and item lifecycle workflows in a way that is permission-aware, container-scoped, and easy to navigate with progressive disclosure.
 
+Initial setup is reference/master data only:
+- seeded lookup tables
+- seeded permission catalog
+- seeded immutable system roles
+- workspace settings defaults
+
+No demo workspace, demo containers, or demo items are created automatically.
+
 ## Core Model
 - Workspace is the isolation boundary for data, members, permissions, notifications, and reports.
 - Container is a freeform tree with unlimited depth. The system does not impose a fixed level structure.
@@ -31,6 +39,12 @@ Build a workspace-based system for tracking items, stock, and item lifecycle wor
 - Access-aware: navigation, search, dashboard, reports, and item visibility must respect permission and container access scope.
 
 ## Confirmed Scope
+
+### Setup and Reference Data
+- lookup tables for site, location, container, and unit metadata
+- seeded permission catalog
+- seeded system roles and role-permission defaults
+- editable workspace settings defaults
 
 ### Workspace
 - create workspace

@@ -1,23 +1,29 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { FormField } from '@/components/forms/FormField';
 import { useI18n } from '@/hooks/useI18n';
+import { useContainers } from '@/features/containers/hooks/useContainers';
+import type { Container } from '@/types/domain.types';
 
 export interface ContainerFormValues {
   name: string;
   type: string;
   code: string;
   qrCode: string;
+  parentContainerId: string;
 }
 
 export interface ContainerFormDialogProps {
+  wsId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   description: string;
   submitLabel: string;
+  showParentSelector?: boolean;
   initialValues?: Partial<ContainerFormValues>;
   onSubmit: (values: ContainerFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
@@ -28,19 +34,36 @@ const EMPTY_VALUES: ContainerFormValues = {
   type: '',
   code: '',
   qrCode: '',
+  parentContainerId: '',
 };
 
+function flattenContainerOptions(containers: Container[], depth = 0, parentId: string | null = null): Array<{ value: string; label: string }> {
+  return containers
+    .filter((container) => (container.parentId ?? null) === parentId)
+    .flatMap((container) => [
+      {
+        value: container.id,
+        label: `${'— '.repeat(depth)}${container.name}${container.code ? ` (${container.code})` : ''}`,
+      },
+      ...flattenContainerOptions(containers, depth + 1, container.id),
+    ]);
+}
+
 export function ContainerFormDialog({
+  wsId,
   open,
   onOpenChange,
   title,
   description,
   submitLabel,
+  showParentSelector = false,
   initialValues,
   onSubmit,
   isSubmitting = false,
 }: ContainerFormDialogProps) {
   const { t } = useI18n();
+  const containersQuery = useContainers(wsId);
+  const containerOptions = useMemo(() => flattenContainerOptions(containersQuery.data ?? []), [containersQuery.data]);
   const [values, setValues] = useState<ContainerFormValues>(EMPTY_VALUES);
 
   useEffect(() => {
@@ -53,6 +76,7 @@ export function ContainerFormDialog({
       type: initialValues?.type ?? '',
       code: initialValues?.code ?? '',
       qrCode: initialValues?.qrCode ?? '',
+      parentContainerId: initialValues?.parentContainerId ?? '',
     });
   }, [initialValues, open]);
 
@@ -68,6 +92,7 @@ export function ContainerFormDialog({
       type: values.type.trim(),
       code: values.code.trim(),
       qrCode: values.qrCode.trim(),
+      parentContainerId: values.parentContainerId.trim(),
     });
   };
 
@@ -101,6 +126,28 @@ export function ContainerFormDialog({
                 autoComplete="off"
               />
             </FormField>
+            {showParentSelector ? (
+              <FormField
+                label={t('containers.create.parent', 'Parent container')}
+                htmlFor="container-parent"
+                description={t('containers.create.parentHelp', 'Leave blank to create a top-level container.')}
+              >
+                <Select
+                  id="container-parent"
+                  value={values.parentContainerId}
+                  onChange={(event) => setValues((current) => ({ ...current, parentContainerId: event.target.value }))}
+                  className="w-full"
+                  placeholder={t('containers.create.parentPlaceholder', 'Select parent container (optional)')}
+                >
+                  <option value="">{t('containers.create.parentRoot', 'Top-level container')}</option>
+                  {containerOptions.map((container) => (
+                    <option key={container.value} value={container.value}>
+                      {container.label}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+            ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               <FormField label={t('containers.create.code', 'รหัส')} htmlFor="container-code">
                 <Input

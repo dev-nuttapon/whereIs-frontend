@@ -14,6 +14,8 @@ import { ROUTES } from '@/constants/routes';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useDeleteItem, useItem, useItemEvents } from '@/features/items/hooks/useItems';
 import { UpdateItemDialog } from '@/features/items/components/UpdateItemDialog';
+import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
+import { TakeOutIcon } from '@/components/ui/icons';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -35,6 +37,7 @@ export function ItemDetailPage() {
   const containersQuery = useContainers(wsId);
   const item = itemQuery.data ?? null;
   const [editOpen, setEditOpen] = useState(false);
+  const [borrowOpen, setBorrowOpen] = useState(false);
   const deleteItem = useDeleteItem(wsId, itemId);
 
   const containerNameById = useMemo(
@@ -59,6 +62,12 @@ export function ItemDetailPage() {
                     <CardDescription>{item.code ?? item.id}</CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    {item.kind === 'stock' ? (
+                      <Button variant="outline" size="sm" onClick={() => setBorrowOpen(true)} disabled={!item}>
+                        <TakeOutIcon className="h-4 w-4" />
+                        {t('items.detail.borrow', 'Create borrow order')}
+                      </Button>
+                    ) : null}
                     <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} disabled={!item}>
                       <EditIcon className="h-4 w-4" />
                       {t('items.detail.edit', 'Edit item')}
@@ -176,6 +185,13 @@ export function ItemDetailPage() {
           onOpenChange={setEditOpen}
         />
       ) : null}
+
+      <CreateBorrowOrderDialog
+        wsId={wsId}
+        open={borrowOpen}
+        onOpenChange={setBorrowOpen}
+        initialStockEntryId={item?.kind === 'stock' ? item.id : null}
+      />
     </PageShell>
   );
 }

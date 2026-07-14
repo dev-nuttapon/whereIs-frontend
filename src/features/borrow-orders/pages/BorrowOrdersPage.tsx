@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Popconfirm, Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
 import { ClipboardCheckIcon, PlusIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
+import { OpenIcon } from '@/components/ui/icons';
+import { ROUTES } from '@/constants/routes';
 import { useAssets } from '@/features/assets/hooks/useAssets';
 import {
   useApproveBorrowOrder,
@@ -439,6 +441,13 @@ function BorrowOrderCard({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to={ROUTES.workspaceBorrowOrderDetail(order.workspaceId, order.id)}>
+              <OpenIcon className="h-4 w-4" />
+              {t('borrowOrders.openDetail', 'Open detail')}
+            </Link>
+          </Button>
+
           {isPendingApproval ? (
             <>
               <Popconfirm
