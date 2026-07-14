@@ -238,6 +238,20 @@ export interface AssetPhoto {
   sortOrder: number;
 }
 
+export interface StockEntry {
+  id: string;
+  workspaceId: string;
+  productId: string;
+  productName: string;
+  unitCode?: string | null;
+  locationId?: string | null;
+  locationName?: string | null;
+  containerId?: string | null;
+  containerName?: string | null;
+  quantity: number;
+  createdAt: string;
+}
+
 export interface Member {
   id: string;
   workspaceId: string;

@@ -12,6 +12,13 @@ export const queryKeys = {
   categories: (wsId: string) => ['ws', wsId, 'categories'] as const,
   settings: (wsId: string) => ['ws', wsId, 'settings'] as const,
   roles: (wsId: string) => ['ws', wsId, 'roles'] as const,
+  stock: {
+    all: (wsId: string) => ['ws', wsId, 'stock'] as const,
+    list: (
+      wsId: string,
+      params: Record<string, string | number | undefined>,
+    ) => ['ws', wsId, 'stock', 'list', params] as const,
+  },
   locations: {
     all: (wsId: string) => ['ws', wsId, 'locations'] as const,
     bySite: (wsId: string, siteId: string) => ['ws', wsId, 'locations', siteId] as const,

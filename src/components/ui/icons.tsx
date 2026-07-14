@@ -203,6 +203,19 @@ export function DatabaseIcon(props: IconProps) {
   );
 }
 
+export function StockIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 7h16" />
+      <path d="M6 7v12" />
+      <path d="M10 7v12" />
+      <path d="M14 7v12" />
+      <path d="M18 7v12" />
+      <path d="M4 19h16" />
+    </Icon>
+  );
+}
+
 export function PlusIcon(props: IconProps) {
   return (
     <Icon {...props}>

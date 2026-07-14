@@ -5,11 +5,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 
-export function useLocations(wsId: string, siteId: string) {
+export function useLocations(wsId: string, siteId?: string | null) {
   return useQuery({
-    queryKey: queryKeys.locations.bySite(wsId, siteId),
+    queryKey: queryKeys.locations.bySite(wsId, siteId ?? ''),
     queryFn: () => listLocations(wsId, siteId),
-    enabled: Boolean(wsId && siteId),
+    enabled: Boolean(wsId),
   });
 }
 

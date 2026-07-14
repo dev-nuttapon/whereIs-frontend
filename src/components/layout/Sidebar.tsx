@@ -7,6 +7,7 @@ import { workspaceStore } from '@/stores/workspace.store';
 import {
   DashboardIcon,
   ItemIcon,
+  StockIcon,
   ContainerIcon,
   BorrowIcon,
   DatabaseIcon,
@@ -17,6 +18,7 @@ import {
 const ICONS = {
   dashboard: DashboardIcon,
   items: ItemIcon,
+  stock: StockIcon,
   containers: ContainerIcon,
   borrow: BorrowIcon,
   master: DatabaseIcon,
@@ -30,7 +32,7 @@ export interface SidebarProps {
 
 const SECTIONS: Array<{ titleKey: string; titleFallback: string; items: Array<NavItem['labelKey']> }> = [
   { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard'] },
-  { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.items', 'nav.containers', 'nav.borrowOrders'] },
+  { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.items', 'nav.stock', 'nav.containers', 'nav.borrowOrders'] },
   { titleKey: 'nav.group.masterData', titleFallback: 'Master data', items: ['nav.masterData'] },
   { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.members', 'nav.settings'] },
 ] as const;

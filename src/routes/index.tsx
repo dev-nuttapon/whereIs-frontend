@@ -17,6 +17,7 @@ const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/Workspac
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
 const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
+const StockPage = lazy(() => import('@/features/stock/pages/StockPage').then((module) => ({ default: module.StockPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
 const BorrowOrdersPage = lazy(() => import('@/features/borrow-orders/pages/BorrowOrdersPage').then((module) => ({ default: module.BorrowOrdersPage })));
 const MasterDataPage = lazy(() => import('@/features/master-data/pages/MasterDataPage').then((module) => ({ default: module.MasterDataPage })));
@@ -101,6 +102,7 @@ export function AppRoutes() {
               <Route index element={<DashboardPage />} />
               <Route path="items" element={<ItemsPage />} />
               <Route path="items/:assetId" element={<ItemDetailPage />} />
+              <Route path="stock" element={<StockPage />} />
               <Route path="containers" element={<ContainersPage />} />
               <Route path="borrow-orders" element={<BorrowOrdersPage />} />
               <Route path="master-data" element={<MasterDataPage />} />

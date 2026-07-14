@@ -42,6 +42,10 @@ export function Breadcrumbs() {
       return [{ label: 'Containers', to: ROUTES.workspaceContainers(wsId) }];
     }
 
+    if (location.pathname.endsWith('/stock')) {
+      return [{ label: 'Stock', to: ROUTES.workspaceStock(wsId) }];
+    }
+
     if (location.pathname.includes('/containers/')) {
       const containerId = location.pathname.split('/containers/')[1];
       const container = containers.find((entry) => entry.id === containerId);
