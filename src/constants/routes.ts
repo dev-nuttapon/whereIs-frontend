@@ -17,6 +17,7 @@ export const ROUTES = {
   workspaceAssets: (wsId: string) => `/w/${wsId}/assets`,
   workspaceAssetDetail: (wsId: string, assetId: string) => `/w/${wsId}/assets/${encodeURIComponent(assetId)}`,
   workspaceStock: (wsId: string) => `/w/${wsId}/stock`,
+  workspaceStockDetail: (wsId: string, stockEntryId: string) => `/w/${wsId}/stock/${encodeURIComponent(stockEntryId)}`,
   workspaceContainers: (wsId: string) => `/w/${wsId}/containers`,
   workspaceBorrowOrders: (wsId: string) => `/w/${wsId}/borrow-orders`,
   workspaceBorrowOrderDetail: (wsId: string, orderId: string) => `/w/${wsId}/borrow-orders/${encodeURIComponent(orderId)}`,

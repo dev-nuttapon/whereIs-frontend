@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,7 +20,8 @@ import { useSites } from '@/features/sites/hooks/useSites';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useStockEntries, useAdjustStock } from '@/features/stock/hooks/useStock';
 import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
-import { TakeOutIcon } from '@/components/ui/icons';
+import { OpenIcon, TakeOutIcon } from '@/components/ui/icons';
+import { ROUTES } from '@/constants/routes';
 
 function formatLocationLabel(locationName?: string | null, containerName?: string | null) {
   if (containerName) return containerName;
@@ -240,18 +241,26 @@ export function StockPage() {
                   <div>{t('stock.location', 'Location')}: {formatLocationLabel(entry.locationName, entry.containerName)}</div>
                   <div>{t('stock.quantity', 'Quantity')}: {entry.quantity}</div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full rounded-full"
-                  onClick={() => {
-                    setBorrowDefaults({ productId: entry.productId, stockEntryId: entry.id });
-                    setBorrowOpen(true);
-                  }}
-                >
-                  <TakeOutIcon className="h-4 w-4" />
-                  {t('stock.borrow.fromEntry', 'Borrow from this entry')}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => {
+                      setBorrowDefaults({ productId: entry.productId, stockEntryId: entry.id });
+                      setBorrowOpen(true);
+                    }}
+                  >
+                    <TakeOutIcon className="h-4 w-4" />
+                    {t('stock.borrow.fromEntry', 'Borrow from this entry')}
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="rounded-full">
+                    <Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}>
+                      <OpenIcon className="h-4 w-4" />
+                      {t('common.open', 'Open')}
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

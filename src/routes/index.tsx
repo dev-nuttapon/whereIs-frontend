@@ -21,6 +21,7 @@ const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetail
 const AssetsPage = lazy(() => import('@/features/assets/pages/AssetsPage').then((module) => ({ default: module.AssetsPage })));
 const AssetDetailPage = lazy(() => import('@/features/assets/pages/AssetDetailPage').then((module) => ({ default: module.AssetDetailPage })));
 const StockPage = lazy(() => import('@/features/stock/pages/StockPage').then((module) => ({ default: module.StockPage })));
+const StockDetailPage = lazy(() => import('@/features/stock/pages/StockDetailPage').then((module) => ({ default: module.StockDetailPage })));
 const ContainersPage = lazy(() => import('@/features/containers/pages/ContainersPage').then((module) => ({ default: module.ContainersPage })));
 const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage').then((module) => ({ default: module.ActivityPage })));
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((module) => ({ default: module.ReportsPage })));
@@ -113,6 +114,7 @@ export function AppRoutes() {
               <Route path="assets" element={<AssetsPage />} />
               <Route path="assets/:assetId" element={<AssetDetailPage />} />
               <Route path="stock" element={<StockPage />} />
+              <Route path="stock/:stockEntryId" element={<StockDetailPage />} />
               <Route path="containers" element={<ContainersPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="reports" element={<ReportsPage />} />
