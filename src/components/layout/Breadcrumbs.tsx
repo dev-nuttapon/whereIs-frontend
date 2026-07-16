@@ -7,6 +7,7 @@ import { useProduct } from '@/features/products/hooks/useProducts';
 import { useBorrowOrder } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { useMembers } from '@/features/members/hooks/useMembers';
 import { ChevronRightIcon } from '@/components/ui/icons';
+import { useI18n } from '@/hooks/useI18n';
 
 interface Crumb {
   label: string;
@@ -16,6 +17,7 @@ interface Crumb {
 export function Breadcrumbs() {
   const { wsId } = useParams();
   const location = useLocation();
+  const { t } = useI18n();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const containersQuery = useContainers(wsId ?? '');
   const membersQuery = useMembers(wsId ?? '');
@@ -71,13 +73,13 @@ export function Breadcrumbs() {
     }
 
     if (location.pathname.endsWith('/products')) {
-      return [{ label: 'Products', to: ROUTES.workspaceProducts(wsId) }];
+      return [{ label: t('nav.products', 'Products'), to: ROUTES.workspaceProducts(wsId) }];
     }
 
     if (location.pathname.includes('/products/')) {
       return [
-        { label: 'Products', to: ROUTES.workspaceProducts(wsId) },
-        { label: productQuery.data?.name ?? 'Product' },
+        { label: t('nav.products', 'Products'), to: ROUTES.workspaceProducts(wsId) },
+        { label: productQuery.data?.name ?? t('products.detail.title', 'Product detail') },
       ];
     }
 
@@ -119,7 +121,7 @@ export function Breadcrumbs() {
     }
 
     return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
-  }, [borrowOrderQuery.data?.id, borrowOrderQuery.data?.purpose, containers, currentWorkspace?.name, location.pathname, members, productQuery.data?.name, wsId]);
+  }, [borrowOrderQuery.data?.id, borrowOrderQuery.data?.purpose, containers, currentWorkspace?.name, location.pathname, members, productQuery.data?.name, t, wsId]);
 
   if (crumbs.length === 0) {
     return null;
