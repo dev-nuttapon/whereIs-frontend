@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { WorkspaceSelectLayout } from '@/layouts/WorkspaceSelectLayout';
@@ -16,8 +16,8 @@ const WorkspaceListPage = lazy(() => import('@/features/workspaces/pages/Workspa
 const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/WorkspaceNewPage').then((module) => ({ default: module.WorkspaceNewPage })));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
-const ItemsPage = lazy(() => import('@/features/items/pages/ItemsPage').then((module) => ({ default: module.ItemsPage })));
-const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
+const ProductsPage = lazy(() => import('@/features/products/pages/ProductsPage').then((module) => ({ default: module.ProductsPage })));
+const ProductDetailPage = lazy(() => import('@/features/products/pages/ProductDetailPage').then((module) => ({ default: module.ProductDetailPage })));
 const AssetsPage = lazy(() => import('@/features/assets/pages/AssetsPage').then((module) => ({ default: module.AssetsPage })));
 const AssetDetailPage = lazy(() => import('@/features/assets/pages/AssetDetailPage').then((module) => ({ default: module.AssetDetailPage })));
 const StockPage = lazy(() => import('@/features/stock/pages/StockPage').then((module) => ({ default: module.StockPage })));
@@ -37,6 +37,15 @@ const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage').th
 const ContainerDetailPage = lazy(() => import('@/features/containers/pages/ContainerDetailPage').then((module) => ({ default: module.ContainerDetailPage })));
 const NotFoundPage = lazy(() => import('@/features/not-found/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 const InvitationInboxPage = lazy(() => import('@/features/members/pages/InvitationInboxPage').then((module) => ({ default: module.InvitationInboxPage })));
+
+function LegacyItemsRedirect() {
+  const { wsId = '', itemId } = useParams();
+  const destination = itemId
+    ? ROUTES.workspaceProductDetail(wsId, itemId)
+    : ROUTES.workspaceProducts(wsId);
+
+  return <Navigate to={destination} replace />;
+}
 
 export function AppRoutes() {
   const { t } = useI18n();
@@ -109,8 +118,10 @@ export function AppRoutes() {
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="search" element={<SearchPage />} />
-              <Route path="items" element={<ItemsPage />} />
-              <Route path="items/:itemId" element={<ItemDetailPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="products/:productId" element={<ProductDetailPage />} />
+              <Route path="items" element={<LegacyItemsRedirect />} />
+              <Route path="items/:itemId" element={<LegacyItemsRedirect />} />
               <Route path="assets" element={<AssetsPage />} />
               <Route path="assets/:assetId" element={<AssetDetailPage />} />
               <Route path="stock" element={<StockPage />} />

@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { useContainers } from '@/features/containers/hooks/useContainers';
-import { useItem } from '@/features/items/hooks/useItems';
+import { useProduct } from '@/features/products/hooks/useProducts';
 import { useBorrowOrder } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { useMembers } from '@/features/members/hooks/useMembers';
 import { ChevronRightIcon } from '@/components/ui/icons';
@@ -19,11 +19,11 @@ export function Breadcrumbs() {
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const containersQuery = useContainers(wsId ?? '');
   const membersQuery = useMembers(wsId ?? '');
-  const itemPathSegment = location.pathname.includes('/items/') ? location.pathname.split('/items/')[1]?.split('/')[0] ?? '' : '';
+  const productPathSegment = location.pathname.includes('/products/') ? location.pathname.split('/products/')[1]?.split('/')[0] ?? '' : '';
   const borrowOrderPathSegment = location.pathname.includes('/borrow-orders/') ? location.pathname.split('/borrow-orders/')[1]?.split('/')[0] ?? '' : '';
-  const isItemDetailRoute = Boolean(itemPathSegment) && itemPathSegment !== 'new' && itemPathSegment !== 'edit';
+  const isProductDetailRoute = Boolean(productPathSegment) && productPathSegment !== 'new' && productPathSegment !== 'edit';
   const isBorrowOrderDetailRoute = Boolean(borrowOrderPathSegment) && borrowOrderPathSegment !== 'new';
-  const itemQuery = useItem(wsId ?? '', isItemDetailRoute ? itemPathSegment : '');
+  const productQuery = useProduct(wsId ?? '', isProductDetailRoute ? productPathSegment : '');
   const borrowOrderQuery = useBorrowOrder(wsId ?? '', isBorrowOrderDetailRoute ? borrowOrderPathSegment : '');
   const containers = containersQuery.data ?? [];
   const members = membersQuery.data ?? [];
@@ -70,6 +70,17 @@ export function Breadcrumbs() {
       return [{ label: 'Stock', to: ROUTES.workspaceStock(wsId) }];
     }
 
+    if (location.pathname.endsWith('/products')) {
+      return [{ label: 'Products', to: ROUTES.workspaceProducts(wsId) }];
+    }
+
+    if (location.pathname.includes('/products/')) {
+      return [
+        { label: 'Products', to: ROUTES.workspaceProducts(wsId) },
+        { label: productQuery.data?.name ?? 'Product' },
+      ];
+    }
+
     if (location.pathname.includes('/containers/')) {
       const containerId = location.pathname.split('/containers/')[1];
       const container = containers.find((entry) => entry.id === containerId);
@@ -92,13 +103,6 @@ export function Breadcrumbs() {
       ];
     }
 
-    if (location.pathname.includes('/items/')) {
-      return [
-        { label: 'Items', to: ROUTES.workspaceItems(wsId) },
-        { label: itemQuery.data?.name ?? 'Item' },
-      ];
-    }
-
     if (location.pathname.endsWith('/settings')) {
       return [{ label: 'Settings', to: ROUTES.workspaceSettings(wsId) }];
     }
@@ -115,7 +119,7 @@ export function Breadcrumbs() {
     }
 
     return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
-  }, [borrowOrderQuery.data?.id, borrowOrderQuery.data?.purpose, containers, currentWorkspace?.name, itemQuery.data?.name, location.pathname, members, wsId]);
+  }, [borrowOrderQuery.data?.id, borrowOrderQuery.data?.purpose, containers, currentWorkspace?.name, location.pathname, members, productQuery.data?.name, wsId]);
 
   if (crumbs.length === 0) {
     return null;
