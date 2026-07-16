@@ -18,7 +18,6 @@ const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPag
 const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
 const ProductsPage = lazy(() => import('@/features/products/pages/ProductsPage').then((module) => ({ default: module.ProductsPage })));
 const ProductDetailPage = lazy(() => import('@/features/products/pages/ProductDetailPage').then((module) => ({ default: module.ProductDetailPage })));
-const ItemDetailPage = lazy(() => import('@/features/items/components/ItemDetailPage').then((module) => ({ default: module.ItemDetailPage })));
 const AssetsPage = lazy(() => import('@/features/assets/pages/AssetsPage').then((module) => ({ default: module.AssetsPage })));
 const AssetDetailPage = lazy(() => import('@/features/assets/pages/AssetDetailPage').then((module) => ({ default: module.AssetDetailPage })));
 const StockPage = lazy(() => import('@/features/stock/pages/StockPage').then((module) => ({ default: module.StockPage })));
@@ -39,7 +38,7 @@ const ContainerDetailPage = lazy(() => import('@/features/containers/pages/Conta
 const NotFoundPage = lazy(() => import('@/features/not-found/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 const InvitationInboxPage = lazy(() => import('@/features/members/pages/InvitationInboxPage').then((module) => ({ default: module.InvitationInboxPage })));
 
-function LegacyItemsListRedirect() {
+function LegacyItemsRedirect() {
   const { wsId = '', itemId } = useParams();
   const destination = itemId
     ? ROUTES.workspaceProductDetail(wsId, itemId)
@@ -121,8 +120,8 @@ export function AppRoutes() {
               <Route path="search" element={<SearchPage />} />
               <Route path="products" element={<ProductsPage />} />
               <Route path="products/:productId" element={<ProductDetailPage />} />
-              <Route path="items" element={<LegacyItemsListRedirect />} />
-              <Route path="items/:itemId" element={<ItemDetailPage />} />
+              <Route path="items" element={<LegacyItemsRedirect />} />
+              <Route path="items/:itemId" element={<LegacyItemsRedirect />} />
               <Route path="assets" element={<AssetsPage />} />
               <Route path="assets/:assetId" element={<AssetDetailPage />} />
               <Route path="stock" element={<StockPage />} />
