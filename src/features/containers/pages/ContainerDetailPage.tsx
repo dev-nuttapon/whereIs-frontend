@@ -18,7 +18,7 @@ import { useSites } from '@/features/sites/hooks/useSites';
 import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
 
 export function ContainerDetailPage() {
-  const { wsId = 'ws-warehouse', containerId } = useParams();
+  const { wsId = '', containerId } = useParams();
   const navigate = useNavigate();
   const { t } = useI18n();
   const resolvedContainerId = containerId ?? '';

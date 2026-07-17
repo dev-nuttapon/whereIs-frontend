@@ -10,7 +10,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { useReports } from '@/features/reports/hooks/useReports';
 
 export function ReportsPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const reportsQuery = useReports(wsId);
   const reports = reportsQuery.data ?? [];

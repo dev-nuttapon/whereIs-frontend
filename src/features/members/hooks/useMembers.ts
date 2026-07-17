@@ -15,6 +15,7 @@ import {
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
+import { refreshWorkspaceContext } from '@/features/workspaces/utils/refreshWorkspaceContext';
 
 export function useMembers(wsId: string) {
   return useQuery({
@@ -113,7 +114,7 @@ export function useUpdateMemberRole(wsId: string, memberId: string) {
     onSuccess: async (member) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.detail(wsId, memberId) });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.workspace(wsId) });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({
         variant: 'success',
         title: t('notifications.memberRoleUpdated'),
@@ -131,6 +132,7 @@ export function useRemoveMember(wsId: string, memberId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.all(wsId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.members.detail(wsId, memberId) });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({
         variant: 'success',
         title: t('notifications.memberRemoved'),

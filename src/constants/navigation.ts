@@ -21,5 +21,5 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { labelKey: 'nav.reports', labelFallback: 'Reports', iconKey: 'reports', to: (wsId) => `/w/${wsId}/reports`, roles: ['member', 'admin', 'owner'] },
   { labelKey: 'nav.notifications', labelFallback: 'Notifications', iconKey: 'notifications', to: (wsId) => `/w/${wsId}/notifications`, roles: ['viewer', 'member', 'admin', 'owner'] },
   { labelKey: 'nav.members', labelFallback: 'Members', iconKey: 'members', to: (wsId) => `/w/${wsId}/members`, roles: ['admin', 'owner'] },
-  { labelKey: 'nav.settings', labelFallback: 'Settings', iconKey: 'settings', to: (wsId) => `/w/${wsId}/settings`, roles: ['admin', 'owner', 'member', 'viewer'] },
+  { labelKey: 'nav.workspaceSettings', labelFallback: 'Workspace settings', iconKey: 'settings', to: (wsId) => `/w/${wsId}/settings`, roles: ['admin', 'owner', 'member', 'viewer'] },
 ];

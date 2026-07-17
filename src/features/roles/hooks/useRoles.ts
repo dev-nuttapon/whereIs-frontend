@@ -13,6 +13,7 @@ import {
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
+import { refreshWorkspaceContext } from '@/features/workspaces/utils/refreshWorkspaceContext';
 
 export function useRoles(wsId: string) {
   return useQuery({
@@ -38,6 +39,7 @@ export function useCreateRole(wsId: string) {
     mutationFn: (input: CreateRoleInput) => createRole(wsId, input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.roles(wsId) });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({ variant: 'success', title: t('notifications.roleCreated', 'สร้าง role แล้ว') });
     },
   });
@@ -52,6 +54,7 @@ export function useUpdateRole(wsId: string, roleId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.roles(wsId) });
       await queryClient.invalidateQueries({ queryKey: [...queryKeys.roles(wsId), roleId] as const });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({ variant: 'success', title: t('notifications.roleUpdated', 'อัปเดต role แล้ว') });
     },
   });
@@ -66,6 +69,7 @@ export function useSetRolePermissions(wsId: string, roleId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.roles(wsId) });
       await queryClient.invalidateQueries({ queryKey: [...queryKeys.roles(wsId), roleId] as const });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({ variant: 'success', title: t('notifications.rolePermissionsUpdated', 'อัปเดตสิทธิ์ role แล้ว') });
     },
   });
@@ -79,6 +83,7 @@ export function useDeleteRole(wsId: string, roleId: string) {
     mutationFn: () => deleteRole(wsId, roleId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.roles(wsId) });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({ variant: 'success', title: t('notifications.roleDeleted', 'ลบ role แล้ว') });
     },
   });

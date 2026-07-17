@@ -507,7 +507,7 @@ function EditLocationDialog({ wsId, location, sites, locationTree, onClose }: { 
 }
 
 export function MasterDataPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const lookupsQuery = useLookups();
   const productsQuery = useProducts(wsId);

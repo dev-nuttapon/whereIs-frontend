@@ -105,7 +105,7 @@ export function Breadcrumbs() {
     }
 
     if (location.pathname.endsWith('/settings')) {
-      return [{ label: 'Settings', to: ROUTES.workspaceSettings(wsId) }];
+      return [{ label: 'Workspace settings', to: ROUTES.workspaceSettings(wsId) }];
     }
 
     if (location.pathname.endsWith('/borrow-orders')) {

@@ -82,7 +82,7 @@ function ContainerTreeCard({
 }
 
 export function ContainersPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const containersQuery = useContainers(wsId);
   const locationsQuery = useLocations(wsId);

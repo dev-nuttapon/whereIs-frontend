@@ -84,7 +84,7 @@ function AssetCardActions({ wsId, asset, onEdit }: AssetCardActionsProps) {
 }
 
 export function AssetsPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const [filters, setFilters] = useState<AssetFilters>(DEFAULT_FILTERS);
   const assetsQuery = useAssets(wsId, {

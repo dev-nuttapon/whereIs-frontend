@@ -1,39 +1,18 @@
-import { Navigate, Outlet, useParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { Drawer, Layout } from 'antd';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { workspaceStore } from '@/stores/workspace.store';
 import { uiStore } from '@/stores/ui.store';
-import { LoadingState } from '@/components/feedback/LoadingState';
-import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { ROUTES } from '@/constants/routes';
 
 export function AppLayout() {
-  const { wsId } = useParams();
-  const setWorkspace = workspaceStore((state) => state.setWorkspace);
+  const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const sidebarOpen = uiStore((state) => state.sidebarOpen);
   const setSidebarOpen = uiStore((state) => state.setSidebarOpen);
-  const workspaceQuery = useWorkspace(wsId ?? '');
-  const workspace = workspaceQuery.data;
 
-  useEffect(() => {
-    if (!workspace) {
-      return;
-    }
-    setWorkspace(workspace);
-  }, [setWorkspace, workspace]);
-
-  if (!wsId) {
-    return <Navigate to={ROUTES.workspaces} replace />;
-  }
-
-  if (workspaceQuery.isLoading) {
-    return <LoadingState />;
-  }
-
-  if (!workspace) {
+  if (!currentWorkspace) {
     return <Navigate to={ROUTES.workspaces} replace />;
   }
 

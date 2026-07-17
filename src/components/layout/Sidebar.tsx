@@ -41,15 +41,16 @@ export interface SidebarProps {
 const SECTIONS: Array<{ titleKey: string; titleFallback: string; items: Array<NavItem['labelKey']> }> = [
   { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard', 'nav.search', 'nav.activity'] },
   { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.products', 'nav.assets', 'nav.stock', 'nav.containers', 'nav.borrowOrders'] },
-  { titleKey: 'nav.group.masterData', titleFallback: 'Master data', items: ['nav.masterData'] },
-  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.reports', 'nav.notifications', 'nav.members', 'nav.settings'] },
+  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.reports', 'nav.notifications', 'nav.members', 'nav.workspaceSettings'] },
 ] as const;
 
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const { wsId = workspaceStore.getState().currentWorkspaceId ?? 'ws-hq' } = useParams();
+  const { wsId } = useParams();
   const location = useLocation();
   const { t } = useI18n();
+  const currentWorkspaceId = workspaceStore((state) => state.currentWorkspaceId);
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
+  const resolvedWsId = wsId ?? currentWorkspaceId ?? '';
   const items = WORKSPACE_NAV_ITEMS.filter((item) => {
     const role = currentWorkspace?.myRole ?? 'viewer';
     return item.roles ? item.roles.includes(role) : true;
@@ -63,7 +64,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         label: t(section.titleKey, section.titleFallback),
         key: section.titleKey,
         children: sectionItems.map((item) => {
-          const to = item.to(wsId);
+          const to = item.to(resolvedWsId);
           const Icon = ICONS[item.iconKey];
           return {
             key: to,
@@ -84,19 +85,19 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           }),
         };
       }).filter((section) => section.children.length > 0),
-    [items, onNavigate, t, wsId],
+    [items, onNavigate, t, resolvedWsId],
   );
 
   const selectedKey = useMemo(() => {
-    const directMatch = items.find((item) => location.pathname === item.to(wsId));
+    const directMatch = items.find((item) => location.pathname === item.to(resolvedWsId));
     if (directMatch) {
-      return directMatch.to(wsId);
+      return directMatch.to(resolvedWsId);
     }
     const nestedMatch = [...items]
-      .sort((a, b) => b.to(wsId).length - a.to(wsId).length)
-      .find((item) => location.pathname.startsWith(item.to(wsId) + '/'));
-    return nestedMatch?.to(wsId) ?? location.pathname;
-  }, [items, location.pathname, wsId]);
+      .sort((a, b) => b.to(resolvedWsId).length - a.to(resolvedWsId).length)
+      .find((item) => location.pathname.startsWith(item.to(resolvedWsId) + '/'));
+    return nestedMatch?.to(resolvedWsId) ?? location.pathname;
+  }, [items, location.pathname, resolvedWsId]);
 
   return (
     <aside className="flex h-full min-h-0 flex-col overflow-auto bg-card">

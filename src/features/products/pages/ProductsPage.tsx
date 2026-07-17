@@ -39,7 +39,7 @@ function trackingTypeColor(trackingType: string) {
 }
 
 export function ProductsPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const [filters, setFilters] = useState<ProductFilters>(DEFAULT_FILTERS);
 

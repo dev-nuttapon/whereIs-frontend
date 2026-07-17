@@ -1,14 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Workspace } from '@/types/domain.types';
-import type { PermissionKey } from '@/types/permission.types';
-
-const FALLBACK_PERMISSIONS: PermissionKey[] = [
-  'workspace.view',
-  'member.view',
-  'container.view',
-  'setting.manage',
-];
 
 interface WorkspaceState {
   currentWorkspaceId: string | null;
@@ -23,12 +15,12 @@ export const workspaceStore = create<WorkspaceState>()(
     (set) => ({
       currentWorkspaceId: null,
       currentWorkspace: null,
-      permissions: FALLBACK_PERMISSIONS,
+      permissions: [],
       setWorkspace: (workspace) =>
         set({
           currentWorkspaceId: workspace.id,
           currentWorkspace: workspace,
-          permissions: workspace.permissions.length > 0 ? workspace.permissions : FALLBACK_PERMISSIONS,
+          permissions: [...workspace.permissions],
         }),
       clear: () =>
         set({

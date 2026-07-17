@@ -68,7 +68,7 @@ function ItemCardActions({ wsId, item, onEdit }: ItemCardActionsProps) {
 }
 
 export function ItemsPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const [filters, setFilters] = useState<ItemFilters>(DEFAULT_FILTERS);
   const [createOpen, setCreateOpen] = useState(false);

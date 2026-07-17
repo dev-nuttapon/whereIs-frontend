@@ -29,7 +29,7 @@ function statusColor(status: string) {
 }
 
 export function ItemDetailPage() {
-  const { wsId = 'ws-warehouse', itemId = '' } = useParams();
+  const { wsId = '', itemId = '' } = useParams();
   const navigate = useNavigate();
   const { t } = useI18n();
   const itemQuery = useItem(wsId, itemId);

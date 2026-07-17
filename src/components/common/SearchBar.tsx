@@ -21,7 +21,7 @@ export function SearchBar({ placeholder, compact = false }: SearchBarProps) {
     setValue(searchParams.get('q') ?? '');
   }, [searchParams]);
 
-  const wsId = params.wsId ?? 'ws-warehouse';
+  const wsId = params.wsId ?? '';
 
   return (
     <div className="relative">

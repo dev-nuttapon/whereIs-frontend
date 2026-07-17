@@ -29,7 +29,7 @@ function statusColor(status: string) {
 }
 
 export function AssetDetailPage() {
-  const { wsId = 'ws-warehouse', assetId = '' } = useParams();
+  const { wsId = '', assetId = '' } = useParams();
   const navigate = useNavigate();
   const { t } = useI18n();
   const assetQuery = useAsset(wsId, assetId);

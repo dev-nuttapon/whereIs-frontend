@@ -11,7 +11,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/features/notifications/hooks/useNotifications';
 
 export function NotificationsPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const notificationsQuery = useNotifications(wsId);
   const notifications = notificationsQuery.data?.items ?? [];

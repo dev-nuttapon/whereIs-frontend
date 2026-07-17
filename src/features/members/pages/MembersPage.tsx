@@ -70,7 +70,7 @@ function MemberRow({ wsId, member, isCurrentUser }: MemberRowProps) {
 }
 
 export function MembersPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const membersQuery = useMembers(wsId);
   const invitationsQuery = useInvitations(wsId);
   const workspaceQuery = useWorkspace(wsId);

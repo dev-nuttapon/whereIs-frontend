@@ -17,7 +17,7 @@ import type { Role } from '@/types/domain.types';
 const editableRoles: Array<Exclude<Role, 'owner'>> = ['admin', 'member', 'viewer'];
 
 export function MemberDetailPage() {
-  const { wsId = 'ws-warehouse', memberId = '' } = useParams();
+  const { wsId = '', memberId = '' } = useParams();
   const memberQuery = useMember(wsId, memberId);
   const workspaceQuery = useWorkspace(wsId);
   const permissionsQuery = useMemberPermissions(wsId, memberId);

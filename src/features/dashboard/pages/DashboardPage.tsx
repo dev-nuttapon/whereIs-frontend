@@ -11,7 +11,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { workspaceStore } from '@/stores/workspace.store';
 
 export function DashboardPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t, locale } = useI18n();
   const workspaceQuery = useWorkspace(wsId);
   const containersQuery = useContainers(wsId);

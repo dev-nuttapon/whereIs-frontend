@@ -10,6 +10,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 import type { ContainerAccessScope } from '@/types/domain.types';
+import { refreshWorkspaceContext } from '@/features/workspaces/utils/refreshWorkspaceContext';
 
 export function useMemberPermissions(wsId: string, memberId: string) {
   return useQuery({
@@ -29,7 +30,7 @@ export function useUpdatePermissions(wsId: string, memberId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId, 'permissions'] });
       await queryClient.invalidateQueries({ queryKey: ['ws', wsId, 'member', memberId] });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.workspace(wsId) });
+      await refreshWorkspaceContext(queryClient, wsId);
       pushNotification({
         variant: 'success',
         title: t('notifications.permissionsUpdated'),

@@ -3,9 +3,7 @@ import { useParams } from 'react-router-dom';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { FormField } from '@/components/forms/FormField';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
@@ -15,14 +13,12 @@ import { ThemeSelector } from '@/components/layout/ThemeSelector';
 import { LocaleSelector } from '@/components/layout/LocaleSelector';
 import { useLookups } from '@/features/lookups/hooks/useLookups';
 import { useWorkspaceSettings, useUpdateWorkspaceSettings } from '@/features/settings/hooks/useWorkspaceSettings';
-import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 
 export function SettingsPage() {
   const { wsId } = useParams();
   const { t } = useI18n();
   const lookupsQuery = useLookups();
   const settingsQuery = useWorkspaceSettings(wsId ?? '');
-  const workspaceQuery = useWorkspace(wsId ?? '');
   const updateSettings = useUpdateWorkspaceSettings(wsId ?? '');
   const [timezone, setTimezone] = useState('Asia/Bangkok');
   const [defaultUnit, setDefaultUnit] = useState('');
@@ -61,41 +57,7 @@ export function SettingsPage() {
   };
 
   return (
-    <PageShell title={t('settings.title', 'Settings')} description={t('settings.description', 'Theme, language, and workspace preferences.')}>
-      {wsId ? (
-        <Card className="shadow-sm">
-          <CardContent className="component-stack p-5 sm:p-6">
-            <div className="space-y-1.5">
-              <CardTitle className="text-lg">{t('settings.accessTitle', 'Your workspace access')}</CardTitle>
-              <CardDescription>
-                {t('settings.accessDescription', 'Your role, permissions, and container visibility in this workspace.')}
-              </CardDescription>
-            </div>
-            {workspaceQuery.isLoading ? <LoadingState label={t('common.loading', 'Loading...')} /> : null}
-            {workspaceQuery.data ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('members.detail.role', 'Role')}</p>
-                  <p className="mt-1 font-semibold">{t(`members.role.${workspaceQuery.data.myRole}`, workspaceQuery.data.myRole)}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('members.detail.permissions', 'Effective permissions')}</p>
-                  <p className="mt-1 font-semibold">{workspaceQuery.data.permissions.length}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('members.visibleContainerScope', 'Visible container scope')}</p>
-                  <p className="mt-1 font-semibold">
-                    {workspaceQuery.data.containerAccessScope
-                      ? t('members.visibilitySelectedCount', 'เห็น {count} container', { count: workspaceQuery.data.containerAccessScope.containerIds.length })
-                      : t('members.visibilityAllContainers', 'All containers')}
-                  </p>
-                </div>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : null}
-
+    <PageShell title={t('settings.title', 'Settings')} description={t('settings.description', 'Theme and language settings for this app shell.')}>
       {wsId ? (
         <Card className="shadow-sm">
           <CardContent className="component-stack p-5 sm:p-6">
@@ -118,15 +80,6 @@ export function SettingsPage() {
                     onRetry={() => void saveWorkspaceSettings()}
                   />
                 ) : null}
-                <FormField label={t('settings.timezone', 'Timezone')} htmlFor="workspace-timezone">
-                  <Input
-                    id="workspace-timezone"
-                    value={timezone}
-                    onChange={(event) => setTimezone(event.target.value)}
-                    placeholder="Asia/Bangkok"
-                    autoComplete="off"
-                  />
-                </FormField>
 
                 <FormField label={t('settings.defaultUnit', 'Default unit')} htmlFor="workspace-unit">
                   <Select
@@ -144,18 +97,6 @@ export function SettingsPage() {
                     ))}
                   </Select>
                 </FormField>
-
-                <label className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <Switch checked={borrowRequiresApproval} onChange={(checked) => setBorrowRequiresApproval(checked)} />
-                  <span className="space-y-1">
-                    <span className="block text-sm font-medium">
-                      {t('settings.borrowRequiresApproval', 'Borrow requests require approval')}
-                    </span>
-                    <span className="block text-sm text-muted-foreground">
-                      {t('settings.borrowRequiresApprovalHelp', 'Turn this off to let users checkout immediately when policy allows.')}
-                    </span>
-                  </span>
-                </label>
 
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button className="w-full sm:w-auto" onClick={saveWorkspaceSettings} disabled={updateSettings.isPending || settingsQuery.isLoading || lookupsQuery.isLoading}>

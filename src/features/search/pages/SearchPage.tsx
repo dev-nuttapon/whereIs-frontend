@@ -20,7 +20,7 @@ function readParams(searchParams: URLSearchParams): SearchFilterValues {
 }
 
 export function SearchPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
   const [filters, setFilters] = useState<SearchFilterValues>(() => readParams(searchParams));

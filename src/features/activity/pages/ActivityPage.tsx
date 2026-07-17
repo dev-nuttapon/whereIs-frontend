@@ -10,7 +10,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { useActivity } from '@/features/activity/hooks/useActivity';
 
 export function ActivityPage() {
-  const { wsId = 'ws-warehouse' } = useParams();
+  const { wsId = '' } = useParams();
   const { t } = useI18n();
   const activityQuery = useActivity(wsId, { limit: 20 });
   const events = activityQuery.data?.items ?? [];

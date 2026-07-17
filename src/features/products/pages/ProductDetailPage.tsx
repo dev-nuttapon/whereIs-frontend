@@ -18,7 +18,7 @@ import { useStockEntries } from '@/features/stock/hooks/useStock';
 import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders';
 
 export function ProductDetailPage() {
-  const { wsId = 'ws-warehouse', productId = '' } = useParams();
+  const { wsId = '', productId = '' } = useParams();
   const { t } = useI18n();
   const productQuery = useProduct(wsId, productId);
   const categoriesQuery = useCategories(wsId);
