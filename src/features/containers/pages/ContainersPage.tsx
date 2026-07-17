@@ -13,6 +13,9 @@ import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
 import { ContainerIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
 import { CreateContainerDialog } from '@/features/containers/components/CreateContainerDialog';
+import { useLocations } from '@/features/locations/hooks/useLocations';
+import { useSites } from '@/features/sites/hooks/useSites';
+import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
 import type { Container } from '@/types/domain.types';
 
 function groupContainersByParent(containers: Container[]) {
@@ -30,11 +33,13 @@ function ContainerTreeCard({
   childMap,
   wsId,
   t,
+  locationLabelById,
 }: {
   container: Container;
   childMap: Map<string | null, Container[]>;
   wsId: string;
   t: (key: string, fallback?: string) => string;
+  locationLabelById: Map<string, string>;
 }) {
   const children = (childMap.get(container.id) ?? []).slice().sort((left, right) => left.name.localeCompare(right.name));
 
@@ -42,12 +47,18 @@ function ContainerTreeCard({
     <div className="space-y-3">
       <Card className="hover:-translate-y-0.5 hover:shadow-md">
         <CardContent className="space-y-4 p-5 sm:p-6">
+          {container.photoUrl ? (
+            <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
+              <img src={container.photoUrl} alt={container.name} className="h-36 w-full object-cover" />
+            </div>
+          ) : null}
           <div className="space-y-1">
             <CardTitle className="text-lg">{container.name}</CardTitle>
             <CardDescription>{container.typeLabel}</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Tag>{container.parentId ? container.parentId : t('containers.list.root', 'Root container')}</Tag>
+            <Tag>{container.locationId ? (locationLabelById.get(container.locationId) ?? container.locationId) : t('container.detail.noLocation', 'No location')}</Tag>
             <Tag>{container.itemCount ?? 0} {container.itemCount === 1 ? t('common.item', 'item') : t('common.items', 'items')}</Tag>
             <Tag>{container.childContainerCount ?? 0} {container.childContainerCount === 1 ? t('common.child', 'child') : t('common.children', 'children')}</Tag>
           </div>
@@ -62,7 +73,7 @@ function ContainerTreeCard({
       {children.length > 0 ? (
         <div className="ml-4 space-y-3 border-l border-border/60 pl-4">
           {children.map((child) => (
-            <ContainerTreeCard key={child.id} container={child} childMap={childMap} wsId={wsId} t={t} />
+            <ContainerTreeCard key={child.id} container={child} childMap={childMap} wsId={wsId} t={t} locationLabelById={locationLabelById} />
           ))}
         </div>
       ) : null}
@@ -74,7 +85,13 @@ export function ContainersPage() {
   const { wsId = 'ws-warehouse' } = useParams();
   const { t } = useI18n();
   const containersQuery = useContainers(wsId);
+  const locationsQuery = useLocations(wsId);
+  const sitesQuery = useSites(wsId);
   const containers = containersQuery.data ?? [];
+  const locationLabelById = useMemo(
+    () => buildLocationLabelMap(locationsQuery.data ?? [], sitesQuery.data ?? []),
+    [locationsQuery.data, sitesQuery.data],
+  );
   const childMap = useMemo(() => groupContainersByParent(containers), [containers]);
   const rootContainers = useMemo(
     () => (childMap.get(null) ?? []).slice().sort((left, right) => left.name.localeCompare(right.name)),
@@ -110,7 +127,14 @@ export function ContainersPage() {
       ) : (
         <div className="space-y-4">
           {rootContainers.map((container) => (
-            <ContainerTreeCard key={container.id} container={container} childMap={childMap} wsId={wsId} t={t} />
+            <ContainerTreeCard
+              key={container.id}
+              container={container}
+              childMap={childMap}
+              wsId={wsId}
+              t={t}
+              locationLabelById={locationLabelById}
+            />
           ))}
         </div>
       )}

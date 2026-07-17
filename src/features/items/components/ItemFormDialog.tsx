@@ -29,6 +29,7 @@ const EMPTY_VALUES: CreateItemValues = {
   kind: 'single',
   usageType: 'returnable',
   code: null,
+  photoUrl: null,
   description: null,
   containerId: '',
   quantity: null,
@@ -93,6 +94,7 @@ export function ItemFormDialog({
       ...initialValues,
       kind: initialValues?.kind ?? 'single',
       usageType: initialValues?.usageType ?? 'returnable',
+      photoUrl: initialValues?.photoUrl ?? null,
       containerId: initialValues?.containerId ?? '',
     });
   }, [initialValues, open, reset]);
@@ -106,6 +108,7 @@ export function ItemFormDialog({
     await onSubmit({
       ...values,
       code: values.code?.trim() || null,
+      photoUrl: values.photoUrl?.trim() || null,
       description: values.description?.trim() || null,
       containerId: values.containerId.trim(),
       unit: values.unit?.trim() || null,
@@ -196,6 +199,21 @@ export function ItemFormDialog({
                       value={field.value ?? ''}
                       onChange={(event) => field.onChange(event.target.value)}
                       placeholder={t('items.form.codePlaceholder', 'Optional code')}
+                    />
+                  )}
+                />
+              </FormField>
+
+              <FormField label={t('items.form.photoUrl', 'Photo URL')} htmlFor="item-photo-url">
+                <Controller
+                  name="photoUrl"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="item-photo-url"
+                      value={field.value ?? ''}
+                      onChange={(event) => field.onChange(event.target.value)}
+                      placeholder={t('items.form.photoUrlPlaceholder', 'วาง URL รูปภาพ')}
                     />
                   )}
                 />

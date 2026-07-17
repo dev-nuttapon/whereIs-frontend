@@ -18,21 +18,23 @@ export function ActivityPage() {
   return (
     <PageShell title={t('activity.title', 'Activity')} description={t('activity.description', 'All workspace actions in one feed.')}>
       {activityQuery.isLoading ? <LoadingState label={t('activity.loading', 'Loading activity...')} /> : null}
-      {activityQuery.isError ? <ErrorState message={t('activity.error', 'Activity failed to load.')} onRetry={() => activityQuery.refetch()} /> : null}
+      {activityQuery.isError ? <ErrorState message={t('activity.errorAction', 'We could not load activity. Try again.')} onRetry={() => activityQuery.refetch()} /> : null}
 
-      <div className="grid gap-[18px] md:grid-cols-3">
-        <StatCard label={t('activity.title', 'Activity')} value={events.length} />
-        <StatCard label={t('activity.feed', 'Feed items')} value={events.length} />
-        <StatCard label={t('activity.scope', 'Workspace')} value={1} />
-      </div>
+      {activityQuery.isSuccess ? (
+        <div className="grid gap-[18px] md:grid-cols-3">
+          <StatCard label={t('activity.title', 'Activity')} value={events.length} />
+          <StatCard label={t('activity.feed', 'Feed items')} value={events.length} />
+          <StatCard label={t('activity.scope', 'Workspace')} value={1} />
+        </div>
+      ) : null}
 
-      {events.length === 0 ? (
+      {activityQuery.isSuccess && events.length === 0 ? (
         <EmptyState
-          title={t('activity.emptyTitle', 'ยังไม่มีกิจกรรม')}
-          description={t('activity.emptyDescription', 'กิจกรรมจะปรากฏเมื่อมีการทำงานกับ item หรือ container ใน workspace นี้')}
+          title={t('activity.emptyTitleAction', 'No activity yet')}
+          description={t('activity.emptyDescriptionAction', 'Create the first product, add the first container, or invite the first member to start generating activity.')}
           icon={<ActivityIcon className="h-5 w-5" />}
         />
-      ) : (
+      ) : activityQuery.isSuccess ? (
         <div className="component-stack">
           {events.map((event) => (
             <Card key={event.id}>
@@ -45,7 +47,7 @@ export function ActivityPage() {
             </Card>
           ))}
         </div>
-      )}
+      ) : null}
     </PageShell>
   );
 }

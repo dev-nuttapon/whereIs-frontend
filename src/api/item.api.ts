@@ -36,6 +36,7 @@ export interface CreateItemInput {
   usageType: 'consumable' | 'returnable';
   name: string;
   code?: string;
+  photoUrl?: string | null;
   description?: string;
   containerId: string;
   quantity?: number;
@@ -52,6 +53,7 @@ export interface CreateItemInput {
 export interface UpdateItemInput {
   name?: string;
   code?: string;
+  photoUrl?: string | null;
   description?: string;
   containerId?: string | null;
   quantity?: number;
@@ -100,6 +102,7 @@ export async function getItem(wsId: string, itemId: string): Promise<Item> {
 export async function createItem(wsId: string, input: CreateItemInput): Promise<Item> {
   const response = await client.post<ApiResponse<Item>>(`/workspaces/${encodeURIComponent(wsId)}/items`, {
     ...input,
+    photoUrl: input.photoUrl ?? null,
     receivedDate: input.receivedDate ?? null,
     expiryDate: input.expiryDate ?? null,
     warrantyEndDate: input.warrantyEndDate ?? null,
@@ -111,6 +114,7 @@ export async function createItem(wsId: string, input: CreateItemInput): Promise<
 export async function updateItem(wsId: string, itemId: string, input: UpdateItemInput): Promise<Item> {
   const response = await client.put<ApiResponse<Item>>(`/workspaces/${encodeURIComponent(wsId)}/items/${encodeURIComponent(itemId)}`, {
     ...input,
+    photoUrl: input.photoUrl ?? null,
     receivedDate: input.receivedDate ?? null,
     expiryDate: input.expiryDate ?? null,
     warrantyEndDate: input.warrantyEndDate ?? null,

@@ -96,6 +96,35 @@ export function ItemDetailPage() {
                   <StatCard label={t('items.detail.containerPrefix', 'Container')} value={containerLabel} />
                 </div>
 
+                <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-3 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.photo', 'Photo')}</CardTitle>
+                      {item.photoUrl ? (
+                        <img
+                          src={item.photoUrl}
+                          alt={item.name}
+                          className="h-72 w-full rounded-2xl object-cover"
+                        />
+                      ) : (
+                        <EmptyState
+                          title={t('items.detail.noPhotoTitle', 'No photo yet')}
+                          description={t('items.detail.noPhotoDescription', 'Add a photo URL from the edit form to show the item image here.')}
+                          icon={<ItemIcon className="h-5 w-5" />}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="border-border/70 bg-background/70">
+                    <CardContent className="space-y-2 p-4">
+                      <CardTitle className="text-sm">{t('items.detail.storage', 'Storage')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.container', 'Container')}: {containerLabel}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.holderPrefix', 'Holder')}: {item.currentHolderId ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.stockCount', 'Quantity')}: {item.quantity ?? '-'}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">

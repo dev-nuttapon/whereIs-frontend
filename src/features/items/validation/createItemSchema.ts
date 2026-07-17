@@ -8,6 +8,7 @@ export function createItemSchema(t: TranslateFn) {
     kind: z.enum(['single', 'stock']),
     usageType: z.enum(['consumable', 'returnable']),
     code: z.string().max(64, t('items.validation.codeTooLong', 'รหัสยาวเกินไป')).optional().nullable(),
+    photoUrl: z.string().max(2048, t('items.validation.photoUrlTooLong', 'URL รูปภาพยาวเกินไป')).optional().nullable(),
     description: z.string().max(1000, t('items.validation.descriptionTooLong', 'รายละเอียดยาวเกินไป')).optional().nullable(),
     containerId: z.string().min(1, t('items.validation.containerRequired', 'ต้องเลือก container')),
     quantity: z.coerce.number().int().positive(t('items.validation.quantityPositive', 'จำนวนต้องมากกว่า 0')).optional().nullable(),
@@ -53,6 +54,7 @@ export interface CreateItemValues {
   kind: 'single' | 'stock';
   usageType: 'consumable' | 'returnable';
   code?: string | null;
+  photoUrl?: string | null;
   description?: string | null;
   containerId: string;
   quantity?: number | null;

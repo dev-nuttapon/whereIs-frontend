@@ -42,8 +42,8 @@ export function RegisterPage() {
         user,
       });
       navigate(ROUTES.workspaces, { replace: true });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('auth.register.error'));
+    } catch {
+      setError(t('auth.register.errorDescription', 'Check the details and try again. If you already have an account, sign in instead.'));
     } finally {
       setSubmitting(false);
     }
@@ -93,11 +93,11 @@ export function RegisterPage() {
         <Input.Password autoComplete="new-password" placeholder={t('auth.confirmPassword.placeholder')} />
       </Form.Item>
       <div className="auth-action-stack">
-        <Button type="primary" htmlType="submit" loading={submitting}>
+        <Button className="w-full sm:w-auto" type="primary" htmlType="submit" loading={submitting}>
           {t('auth.register.action')}
         </Button>
         <Link to={ROUTES.login}>
-          <Button type="default">
+          <Button className="w-full sm:w-auto" type="default">
             {t('auth.register.link')}
           </Button>
         </Link>

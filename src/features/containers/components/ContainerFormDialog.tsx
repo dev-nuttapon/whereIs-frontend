@@ -6,13 +6,17 @@ import { Select } from '@/components/ui/select';
 import { FormField } from '@/components/forms/FormField';
 import { useI18n } from '@/hooks/useI18n';
 import { useContainers } from '@/features/containers/hooks/useContainers';
-import type { Container } from '@/types/domain.types';
+import { useLocations } from '@/features/locations/hooks/useLocations';
+import { useSites } from '@/features/sites/hooks/useSites';
+import type { Container, Location, Site } from '@/types/domain.types';
 
 export interface ContainerFormValues {
+  locationId: string;
   name: string;
   type: string;
   code: string;
   qrCode: string;
+  photoUrl: string;
   parentContainerId: string;
 }
 
@@ -30,10 +34,12 @@ export interface ContainerFormDialogProps {
 }
 
 const EMPTY_VALUES: ContainerFormValues = {
+  locationId: '',
   name: '',
   type: '',
   code: '',
   qrCode: '',
+  photoUrl: '',
   parentContainerId: '',
 };
 
@@ -46,6 +52,25 @@ function flattenContainerOptions(containers: Container[], depth = 0, parentId: s
         label: `${'— '.repeat(depth)}${container.name}${container.code ? ` (${container.code})` : ''}`,
       },
       ...flattenContainerOptions(containers, depth + 1, container.id),
+    ]);
+}
+
+function flattenLocationOptions(
+  locations: Location[],
+  siteNameById: Map<string, string>,
+  depth = 0,
+  parentLocationId: string | null = null,
+  siteId?: string,
+): Array<{ value: string; label: string }> {
+  return locations
+    .filter((location) => (location.parentLocationId ?? null) === parentLocationId && (!siteId || location.siteId === siteId))
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name))
+    .flatMap((location) => [
+      {
+        value: location.id,
+        label: `${siteNameById.get(location.siteId) ?? location.siteId} / ${'— '.repeat(depth)}${location.name}${location.code ? ` (${location.code})` : ''}`,
+      },
+      ...flattenLocationOptions(locations, siteNameById, depth + 1, location.id, location.siteId),
     ]);
 }
 
@@ -63,7 +88,15 @@ export function ContainerFormDialog({
 }: ContainerFormDialogProps) {
   const { t } = useI18n();
   const containersQuery = useContainers(wsId);
+  const locationsQuery = useLocations(wsId);
+  const sitesQuery = useSites(wsId);
   const containerOptions = useMemo(() => flattenContainerOptions(containersQuery.data ?? []), [containersQuery.data]);
+  const locationOptions = useMemo(() => {
+    const sites = sitesQuery.data ?? [];
+    const locations = locationsQuery.data ?? [];
+    const siteNameById = new Map(sites.map((site) => [site.id, site.name] as const));
+    return flattenLocationOptions(locations, siteNameById);
+  }, [locationsQuery.data, sitesQuery.data]);
   const [values, setValues] = useState<ContainerFormValues>(EMPTY_VALUES);
 
   useEffect(() => {
@@ -71,13 +104,15 @@ export function ContainerFormDialog({
       return;
     }
 
-    setValues({
-      name: initialValues?.name ?? '',
-      type: initialValues?.type ?? '',
-      code: initialValues?.code ?? '',
-      qrCode: initialValues?.qrCode ?? '',
-      parentContainerId: initialValues?.parentContainerId ?? '',
-    });
+      setValues({
+        locationId: initialValues?.locationId ?? '',
+        name: initialValues?.name ?? '',
+        type: initialValues?.type ?? '',
+        code: initialValues?.code ?? '',
+        qrCode: initialValues?.qrCode ?? '',
+        photoUrl: initialValues?.photoUrl ?? '',
+        parentContainerId: initialValues?.parentContainerId ?? '',
+      });
   }, [initialValues, open]);
 
   const resetAndClose = () => {
@@ -92,6 +127,8 @@ export function ContainerFormDialog({
       type: values.type.trim(),
       code: values.code.trim(),
       qrCode: values.qrCode.trim(),
+      photoUrl: values.photoUrl.trim(),
+      locationId: values.locationId.trim(),
       parentContainerId: values.parentContainerId.trim(),
     });
   };
@@ -108,6 +145,23 @@ export function ContainerFormDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="component-stack px-5 pb-5 sm:px-6">
+            <FormField label={t('containers.create.location', 'Location')} htmlFor="container-location">
+              <Select
+                id="container-location"
+                value={values.locationId}
+                onChange={(event) => setValues((current) => ({ ...current, locationId: event.target.value }))}
+                className="w-full"
+                placeholder={t('containers.create.locationPlaceholder', 'Select location (optional)')}
+              >
+                <option value="">{t('containers.create.locationPlaceholder', 'Select location (optional)')}</option>
+                {locationOptions.map((location) => (
+                  <option key={location.value} value={location.value}>
+                    {location.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+
             <FormField label={t('containers.create.name', 'ชื่อ container')} htmlFor="container-name">
               <Input
                 id="container-name"
@@ -168,6 +222,16 @@ export function ContainerFormDialog({
                 />
               </FormField>
             </div>
+
+            <FormField label={t('containers.create.photoUrl', 'Photo URL')} htmlFor="container-photo">
+              <Input
+                id="container-photo"
+                value={values.photoUrl}
+                onChange={(event) => setValues((current) => ({ ...current, photoUrl: event.target.value }))}
+                placeholder={t('containers.create.photoPlaceholder', 'วาง URL รูปภาพ')}
+                autoComplete="off"
+              />
+            </FormField>
           </div>
 
           <DialogFooter className="border-t border-border/70 bg-muted/30 px-5 py-4 sm:px-6">

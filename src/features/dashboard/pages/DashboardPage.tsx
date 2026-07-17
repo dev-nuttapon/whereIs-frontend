@@ -21,6 +21,9 @@ export function DashboardPage() {
   const workspace = workspaceQuery.data ?? currentWorkspace;
   const containers = containersQuery.data ?? [];
   const members = membersQuery.data ?? [];
+  const isLoading = workspaceQuery.isLoading || containersQuery.isLoading || membersQuery.isLoading;
+  const hasError = workspaceQuery.isError || containersQuery.isError || membersQuery.isError;
+  const isReady = !isLoading && !hasError;
 
   const summaryCards = [
     { label: t('dashboard.workspace', 'Workspace'), value: workspace ? 1 : 0 },
@@ -34,12 +37,12 @@ export function DashboardPage() {
       title={t('dashboard.title')}
       description={t('dashboard.description')}
     >
-      {workspaceQuery.isLoading || containersQuery.isLoading || membersQuery.isLoading ? (
+      {isLoading ? (
         <LoadingState label={t('common.loading')} />
       ) : null}
-      {workspaceQuery.isError || containersQuery.isError || membersQuery.isError ? (
+      {hasError ? (
         <ErrorState
-          message={t('dashboard.summaryError', 'Unable to load workspace overview.')}
+          message={t('dashboard.summaryErrorAction', 'We could not load the workspace overview. Try again.')}
           onRetry={() => {
             void workspaceQuery.refetch();
             void containersQuery.refetch();
@@ -48,7 +51,7 @@ export function DashboardPage() {
         />
       ) : null}
 
-      {workspace ? (
+      {isReady && workspace ? (
         <div className="component-stack">
           <Card>
             <CardContent className="space-y-2 p-5 sm:p-6">
@@ -85,6 +88,17 @@ export function DashboardPage() {
               </CardDescription>
             </CardContent>
           </Card>
+
+          {containers.length === 0 || members.length === 0 ? (
+            <Card>
+              <CardContent className="space-y-2 p-5 sm:p-6">
+                <CardTitle className="text-base">{t('dashboard.getStartedTitle', 'Get started')}</CardTitle>
+                <CardDescription>
+                  {t('dashboard.getStartedDescription', 'Create the first product, add the first container, or invite the first member to get this workspace ready.')}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       ) : null}
     </PageShell>

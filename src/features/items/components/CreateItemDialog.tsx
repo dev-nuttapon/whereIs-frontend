@@ -31,6 +31,7 @@ export function CreateItemDialog({ wsId, open, onOpenChange, initialValues }: Cr
           kind: values.kind,
           usageType: values.usageType,
           code: values.code ?? undefined,
+          photoUrl: values.photoUrl ?? undefined,
           description: values.description ?? undefined,
           containerId: values.containerId,
           quantity: values.kind === 'stock' ? values.quantity ?? undefined : undefined,

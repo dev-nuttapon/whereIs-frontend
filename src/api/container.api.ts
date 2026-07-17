@@ -35,6 +35,7 @@ export interface CreateContainerInput {
   type?: string | null;
   code?: string | null;
   qrCode?: string | null;
+  photoUrl?: string | null;
 }
 
 export interface MoveContainerInput {
@@ -91,6 +92,7 @@ export async function createContainer(wsId: string, input: CreateContainerInput)
     type: input.type ?? null,
     code: input.code ?? null,
     qrCode: input.qrCode ?? null,
+    photoUrl: input.photoUrl ?? null,
   });
   return toContainer(response.data.data);
 }
@@ -98,13 +100,14 @@ export async function createContainer(wsId: string, input: CreateContainerInput)
 export async function updateContainer(
   wsId: string,
   id: string,
-  input: Pick<CreateContainerInput, 'name' | 'type' | 'code' | 'qrCode'>,
+  input: Pick<CreateContainerInput, 'name' | 'type' | 'code' | 'qrCode' | 'photoUrl'>,
 ): Promise<Container> {
   const response = await client.put<ApiResponse<ContainerDto>>(`/workspaces/${encodeURIComponent(wsId)}/containers/${encodeURIComponent(id)}`, {
     name: input.name,
     type: input.type ?? null,
     code: input.code ?? null,
     qrCode: input.qrCode ?? null,
+    photoUrl: input.photoUrl ?? null,
   });
   return toContainer(response.data.data);
 }

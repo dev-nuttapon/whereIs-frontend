@@ -7,7 +7,6 @@ import {
   listInvitations,
   listMyInvitations,
   listMembers,
-  lookupUserByEmail,
   removeMember,
   revokeInvitation,
   updateMemberRole,
@@ -70,12 +69,6 @@ export function useInvitation(token: string | undefined) {
     queryKey: queryKeys.invitations.detail(token ?? ''),
     queryFn: () => getInvitationByToken(token!),
     enabled: Boolean(token),
-  });
-}
-
-export function useLookupUserByEmail() {
-  return useMutation({
-    mutationFn: (email: string) => lookupUserByEmail(email),
   });
 }
 

@@ -15,16 +15,19 @@ import { ThemeSelector } from '@/components/layout/ThemeSelector';
 import { LocaleSelector } from '@/components/layout/LocaleSelector';
 import { useLookups } from '@/features/lookups/hooks/useLookups';
 import { useWorkspaceSettings, useUpdateWorkspaceSettings } from '@/features/settings/hooks/useWorkspaceSettings';
+import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 
 export function SettingsPage() {
   const { wsId } = useParams();
   const { t } = useI18n();
   const lookupsQuery = useLookups();
   const settingsQuery = useWorkspaceSettings(wsId ?? '');
+  const workspaceQuery = useWorkspace(wsId ?? '');
   const updateSettings = useUpdateWorkspaceSettings(wsId ?? '');
   const [timezone, setTimezone] = useState('Asia/Bangkok');
   const [defaultUnit, setDefaultUnit] = useState('');
   const [borrowRequiresApproval, setBorrowRequiresApproval] = useState(true);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     if (settingsQuery.data) {
@@ -44,15 +47,55 @@ export function SettingsPage() {
       return;
     }
 
-    await updateSettings.mutateAsync({
-      timezone,
-      defaultUnit: defaultUnit || null,
-      borrowRequiresApproval,
-    });
+    setSaveError(false);
+
+    try {
+      await updateSettings.mutateAsync({
+        timezone,
+        defaultUnit: defaultUnit || null,
+        borrowRequiresApproval,
+      });
+    } catch {
+      setSaveError(true);
+    }
   };
 
   return (
     <PageShell title={t('settings.title', 'Settings')} description={t('settings.description', 'Theme, language, and workspace preferences.')}>
+      {wsId ? (
+        <Card className="shadow-sm">
+          <CardContent className="component-stack p-5 sm:p-6">
+            <div className="space-y-1.5">
+              <CardTitle className="text-lg">{t('settings.accessTitle', 'Your workspace access')}</CardTitle>
+              <CardDescription>
+                {t('settings.accessDescription', 'Your role, permissions, and container visibility in this workspace.')}
+              </CardDescription>
+            </div>
+            {workspaceQuery.isLoading ? <LoadingState label={t('common.loading', 'Loading...')} /> : null}
+            {workspaceQuery.data ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('members.detail.role', 'Role')}</p>
+                  <p className="mt-1 font-semibold">{t(`members.role.${workspaceQuery.data.myRole}`, workspaceQuery.data.myRole)}</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('members.detail.permissions', 'Effective permissions')}</p>
+                  <p className="mt-1 font-semibold">{workspaceQuery.data.permissions.length}</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('members.visibleContainerScope', 'Visible container scope')}</p>
+                  <p className="mt-1 font-semibold">
+                    {workspaceQuery.data.containerAccessScope
+                      ? t('members.visibilitySelectedCount', 'เห็น {count} container', { count: workspaceQuery.data.containerAccessScope.containerIds.length })
+                      : t('members.visibilityAllContainers', 'All containers')}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
       {wsId ? (
         <Card className="shadow-sm">
           <CardContent className="component-stack p-5 sm:p-6">
@@ -64,11 +107,17 @@ export function SettingsPage() {
             </div>
 
             {settingsQuery.isLoading ? <LoadingState label={t('common.loading', 'Loading...')} /> : null}
-            {settingsQuery.isError ? <ErrorState message={t('settings.loadError', 'Unable to load workspace settings.')} onRetry={() => settingsQuery.refetch()} /> : null}
+            {settingsQuery.isError ? <ErrorState message={t('settings.loadError', 'We could not load workspace settings. Try again.')} onRetry={() => settingsQuery.refetch()} /> : null}
             {lookupsQuery.isLoading ? <LoadingState label={t('common.loading', 'Loading...')} /> : null}
 
             {!settingsQuery.isLoading && !settingsQuery.isError ? (
               <div className="component-stack">
+                {saveError ? (
+                  <ErrorState
+                    message={t('settings.saveError', 'We could not save your changes. Check your connection and try again.')}
+                    onRetry={() => void saveWorkspaceSettings()}
+                  />
+                ) : null}
                 <FormField label={t('settings.timezone', 'Timezone')} htmlFor="workspace-timezone">
                   <Input
                     id="workspace-timezone"
@@ -109,7 +158,7 @@ export function SettingsPage() {
                 </label>
 
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button onClick={saveWorkspaceSettings} disabled={updateSettings.isPending || settingsQuery.isLoading || lookupsQuery.isLoading}>
+                  <Button className="w-full sm:w-auto" onClick={saveWorkspaceSettings} disabled={updateSettings.isPending || settingsQuery.isLoading || lookupsQuery.isLoading}>
                     {updateSettings.isPending ? t('common.saving', 'Saving...') : t('common.save', 'Save')}
                   </Button>
                 </div>

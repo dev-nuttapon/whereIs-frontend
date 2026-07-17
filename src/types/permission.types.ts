@@ -40,3 +40,5 @@ export type PermissionKey =
   | 'notification.manage'
   | 'activity.view'
   | 'setting.manage';
+
+export type PermissionOverrideMap = Partial<Record<PermissionKey, boolean>>;

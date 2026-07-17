@@ -30,22 +30,22 @@ export function NotificationsPage() {
           cancelText={t('common.cancel', 'Cancel')}
           onConfirm={() => markAll.mutate()}
         >
-          <Button disabled={markAll.isPending || notifications.length === 0}>
+          <Button className="w-full sm:w-auto" disabled={markAll.isPending || notifications.length === 0}>
             {t('notifications.markAllRead', 'Mark all read')}
           </Button>
         </Popconfirm>
       )}
     >
       {notificationsQuery.isLoading ? <LoadingState label={t('notifications.loading', 'Loading notifications...')} /> : null}
-      {notificationsQuery.isError ? <ErrorState message={t('notifications.error', 'Notifications failed to load.')} onRetry={() => notificationsQuery.refetch()} /> : null}
+      {notificationsQuery.isError ? <ErrorState message={t('notifications.errorAction', 'We could not load notifications. Try again.')} onRetry={() => notificationsQuery.refetch()} /> : null}
 
-      {notifications.length === 0 ? (
+      {notificationsQuery.isSuccess && notifications.length === 0 ? (
         <EmptyState
-          title={t('notifications.emptyTitle', 'ยังไม่มีการแจ้งเตือน')}
-          description={t('notifications.emptyDescription', 'ระบบจะแสดง reminder และ workflow alerts ที่ยังไม่ถูกอ่าน')}
+          title={t('notifications.emptyTitleAction', 'No notifications yet')}
+          description={t('notifications.emptyDescriptionAction', 'Continue working in your workspace. Reminders and workflow alerts will appear here when action is needed.')}
           icon={<BellIcon className="h-5 w-5" />}
         />
-      ) : (
+      ) : notificationsQuery.isSuccess ? (
         <div className="component-stack">
           {notifications.map((notification) => (
             <Card key={notification.id}>
@@ -68,7 +68,7 @@ export function NotificationsPage() {
             </Card>
           ))}
         </div>
-      )}
+      ) : null}
     </PageShell>
   );
 }

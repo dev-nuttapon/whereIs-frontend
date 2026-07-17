@@ -1,5 +1,5 @@
 import { client } from '@/api/client';
-import type { Workspace } from '@/types/domain.types';
+import type { ContainerAccessScope, Workspace } from '@/types/domain.types';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -21,6 +21,8 @@ interface WorkspaceDto {
   ownerUserId: string;
   isActive: boolean;
   myRoleCode: string;
+  permissions?: string[];
+  containerAccessScope?: ContainerAccessScope | null;
   createdAt: string;
 }
 
@@ -38,8 +40,8 @@ function toWorkspace(dto: WorkspaceDto): Workspace {
     isActive: dto.isActive,
     description: undefined,
     myRole: dto.myRoleCode as Workspace['myRole'],
-    permissions: [],
-    containerAccessScope: null,
+    permissions: dto.permissions ?? [],
+    containerAccessScope: dto.containerAccessScope ?? null,
     createdAt: dto.createdAt,
     updatedAt: dto.createdAt,
   };

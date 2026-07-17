@@ -1,3 +1,5 @@
+import type { PermissionOverrideMap } from '@/types/permission.types';
+
 export type Role = 'owner' | 'admin' | 'member' | 'viewer';
 
 export type ItemStatus = 'stored' | 'taken_out' | 'reserved' | 'missing' | 'repair' | 'disposed';
@@ -259,7 +261,7 @@ export interface Member {
   user: User;
   role: Role;
   permissions: string[];
-  permissionOverrides?: Record<string, boolean>;
+  permissionOverrides?: PermissionOverrideMap;
   containerAccessScope?: ContainerAccessScope | null;
   invitationStatus?: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'expired' | 'revoked';
   createdAt: string;

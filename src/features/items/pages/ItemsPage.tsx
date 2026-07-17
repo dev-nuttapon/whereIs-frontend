@@ -197,6 +197,11 @@ export function ItemsPage() {
           {items.map((item) => (
             <Card key={item.id} className="hover:-translate-y-0.5 hover:shadow-md">
               <CardContent className="space-y-4 p-5 sm:p-6">
+                {item.photoUrl ? (
+                  <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
+                    <img src={item.photoUrl} alt={item.name} className="h-40 w-full object-cover" />
+                  </div>
+                ) : null}
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{item.name}</CardTitle>
                   <CardDescription>{item.code ?? item.id}</CardDescription>

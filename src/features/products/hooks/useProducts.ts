@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createProduct, deleteProduct, listProducts, updateProduct, type CreateProductInput, type UpdateProductInput } from '@/api/product.api';
+import { createProduct, deleteProduct, getProduct, listProducts, updateProduct, type CreateProductInput, type UpdateProductInput } from '@/api/product.api';
 import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
@@ -9,6 +9,14 @@ export function useProducts(wsId: string) {
     queryKey: queryKeys.products(wsId),
     queryFn: () => listProducts(wsId),
     enabled: Boolean(wsId),
+  });
+}
+
+export function useProduct(wsId: string, productId: string) {
+  return useQuery({
+    queryKey: queryKeys.product.detail(wsId, productId),
+    queryFn: () => getProduct(wsId, productId),
+    enabled: Boolean(wsId && productId),
   });
 }
 
@@ -36,6 +44,7 @@ export function useUpdateProduct(wsId: string, productId: string) {
     mutationFn: (input: UpdateProductInput) => updateProduct(wsId, productId, input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.products(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.product.detail(wsId, productId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.productUpdated', 'อัปเดต product แล้ว'),
@@ -52,6 +61,7 @@ export function useDeleteProduct(wsId: string, productId: string) {
     mutationFn: () => deleteProduct(wsId, productId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.products(wsId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.product.detail(wsId, productId) });
       pushNotification({
         variant: 'success',
         title: t('notifications.productDeleted', 'ลบ product แล้ว'),

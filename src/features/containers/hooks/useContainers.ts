@@ -50,7 +50,7 @@ export function useUpdateContainer(wsId: string, containerId: string) {
   const { t } = useI18n();
 
   return useMutation({
-    mutationFn: (input: Pick<CreateContainerInput, 'name' | 'type' | 'code' | 'qrCode'>) => updateContainer(wsId, containerId, input),
+    mutationFn: (input: Pick<CreateContainerInput, 'name' | 'type' | 'code' | 'qrCode' | 'photoUrl'>) => updateContainer(wsId, containerId, input),
     onSuccess: async (container) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.containers.all(wsId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.containers.detail(wsId, containerId) });

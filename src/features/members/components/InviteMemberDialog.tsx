@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Avatar, Typography } from 'antd';
+import { Alert, Typography } from 'antd';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,12 +9,14 @@ import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormField } from '@/components/forms/FormField';
 import { createInviteMemberSchema, type InviteMemberValues } from '@/features/members/validation/inviteMemberSchema';
-import { useInviteMember, useLookupUserByEmail } from '@/features/members/hooks/useMembers';
+import { useInviteMember } from '@/features/members/hooks/useMembers';
 import { useWorkspaces } from '@/features/workspaces/hooks/useWorkspaces';
 import { useContainers } from '@/features/containers/hooks/useContainers';
+import { usePermissionsCatalog } from '@/features/permissions/hooks/usePermissions';
 import { useI18n } from '@/hooks/useI18n';
-import { MailIcon, SearchIcon, UserIcon } from '@/components/ui/icons';
-import type { UserLookupDto } from '@/api/member.api';
+import { usePermission } from '@/hooks/usePermission';
+import { MailIcon } from '@/components/ui/icons';
+import type { PermissionKey } from '@/types/permission.types';
 
 interface InviteScopeState {
   restricted: boolean;
@@ -30,14 +32,14 @@ export interface InviteMemberDialogProps {
 
 export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDialogProps) {
   const inviteMutation = useInviteMember(wsId);
-  const lookupMutation = useLookupUserByEmail();
   const workspacesQuery = useWorkspaces();
+  const permissionsCatalogQuery = usePermissionsCatalog();
+  const { can } = usePermission();
   const { t } = useI18n();
   const inviteMemberSchema = createInviteMemberSchema(t);
-  const [foundUser, setFoundUser] = useState<UserLookupDto | null>(null);
-  const [lookupEmail, setLookupEmail] = useState('');
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wsId);
   const [containerSearch, setContainerSearch] = useState('');
+  const [permissionOverrides, setPermissionOverrides] = useState<Partial<Record<PermissionKey, boolean>>>({});
   const [scope, setScope] = useState<InviteScopeState>({
     restricted: false,
     selectedContainerIds: [],
@@ -57,10 +59,9 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
     },
   });
   const email = watch('email').trim().toLowerCase();
-  const lookupMatchesInput = Boolean(foundUser && lookupEmail === email);
-  const foundUserInitial = foundUser?.displayName?.slice(0, 1).toUpperCase() ?? foundUser?.email.slice(0, 1).toUpperCase() ?? 'U';
   const availableWorkspaces = workspacesQuery.data ?? [];
   const selectedWorkspace = availableWorkspaces.find((workspace) => workspace.id === selectedWorkspaceId) ?? availableWorkspaces[0] ?? null;
+  const canManageOverrides = selectedWorkspaceId === wsId && can('permission.override');
   const containersQuery = useContainers(selectedWorkspaceId);
   const containers = containersQuery.data ?? [];
   const filteredContainers = containers.filter((container) => {
@@ -87,32 +88,16 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
     }
   }, [open, wsId]);
 
-  useEffect(() => {
-    if (lookupEmail && lookupEmail !== email) {
-      setFoundUser(null);
-      lookupMutation.reset();
-    }
-  }, [email, lookupEmail, lookupMutation]);
-
-  const handleLookup = async () => {
-    setFoundUser(null);
-    const user = await lookupMutation.mutateAsync(email);
-    setFoundUser(user);
-    setLookupEmail(email);
-  };
-
   const resetDialog = () => {
     reset();
-    setFoundUser(null);
-    setLookupEmail('');
     setSelectedWorkspaceId(wsId);
     setContainerSearch('');
+    setPermissionOverrides({});
     setScope({
       restricted: false,
       selectedContainerIds: [],
       includeDescendants: true,
     });
-    lookupMutation.reset();
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -123,9 +108,6 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
   };
 
   const onSubmit = handleSubmit(async (values) => {
-    if (!lookupMatchesInput) {
-      return;
-    }
     await inviteMutation.mutateAsync({
       ...values,
       workspaceId: selectedWorkspaceId,
@@ -135,6 +117,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
           includeDescendants: scope.includeDescendants,
         }
         : null,
+      permissionOverrides: canManageOverrides ? permissionOverrides : undefined,
     });
     resetDialog();
     onOpenChange(false);
@@ -159,80 +142,35 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
             <section className="rounded-2xl border border-border/70 bg-background/70 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">1</span>
-                <Typography.Text strong>{t('members.lookupTitle', 'ค้นหาผู้ใช้ในระบบ')}</Typography.Text>
+                <Typography.Text strong>{t('members.inviteEmail', 'Email')}</Typography.Text>
               </div>
               <FormField label={t('members.inviteEmail')} htmlFor="member-email" error={errors.email?.message}>
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                  <Controller
-                    name="email"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        id="member-email"
-                        name={field.name}
-                        value={field.value}
-                        onBlur={field.onBlur}
-                        onChange={(event) => field.onChange(event.target.value)}
-                        type="email"
-                        autoComplete="email"
-                        placeholder={t('members.inviteEmailPlaceholder', 'กรอกอีเมลสมาชิก')}
-                        prefix={<MailIcon className="h-4 w-4 text-muted-foreground" />}
-                      />
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                    disabled={!email || lookupMutation.isPending}
-                    onClick={handleLookup}
-                  >
-                    <SearchIcon className="h-4 w-4" />
-                    {lookupMutation.isPending ? t('members.lookupSearching', 'กำลังค้นหา...') : t('members.lookupAction', 'ค้นหา')}
-                  </Button>
-                </div>
-              </FormField>
-              {lookupMutation.isError ? (
-                <Alert
-                  className="mt-3"
-                  type="error"
-                  showIcon
-                  message={t('members.lookupNotFound', 'ไม่พบผู้ใช้อีเมลนี้ในระบบ')}
-                  description={t('members.lookupNotFoundDescription', 'ให้ผู้ใช้สมัครสมาชิกหรือเข้าสู่ระบบก่อน แล้วค่อยเชิญเข้าร่วม workspace')}
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="member-email"
+                      name={field.name}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onChange={(event) => field.onChange(event.target.value)}
+                      type="email"
+                      autoComplete="email"
+                      placeholder={t('members.inviteEmailPlaceholder', 'name@example.com')}
+                      prefix={<MailIcon className="h-4 w-4 text-muted-foreground" />}
+                    />
+                  )}
                 />
-              ) : null}
-            </section>
-
-            <section className="rounded-2xl border border-border/70 bg-card p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">2</span>
-                <Typography.Text strong>{t('members.confirmUserTitle', 'ยืนยันผู้รับคำเชิญ')}</Typography.Text>
-              </div>
-              {lookupMatchesInput && foundUser ? (
-                <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
-                  <Avatar className="bg-primary text-primary-foreground">{foundUserInitial}</Avatar>
-                  <div className="min-w-0">
-                    <Typography.Text strong className="block truncate">
-                      {foundUser.displayName}
-                    </Typography.Text>
-                    <Typography.Text className="block truncate text-sm text-muted-foreground">
-                      {foundUser.email}
-                    </Typography.Text>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 rounded-xl border border-dashed border-border bg-background/60 p-3 text-muted-foreground">
-                  <UserIcon className="h-5 w-5" />
-                  <Typography.Text className="text-sm text-muted-foreground">
-                    {t('members.lookupRequired', 'ค้นหาอีเมลก่อน เพื่อยืนยันว่าผู้ใช้นี้มีอยู่จริง')}
-                  </Typography.Text>
-                </div>
-              )}
+              </FormField>
+              <Typography.Text className="mt-2 block text-sm text-muted-foreground">
+                {t('members.inviteEmailHelp', 'Send an invitation directly to any valid email address. The recipient can accept it from their invitation inbox.')}
+              </Typography.Text>
             </section>
 
             <section className="rounded-2xl border border-border/70 bg-background/70 p-4">
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">3</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">2</span>
                 <Typography.Text strong>{t('members.visibilitySetupTitle', 'กำหนด workspace และ container ที่มองเห็น')}</Typography.Text>
               </div>
               <div className="space-y-3">
@@ -258,6 +196,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
                         selectedContainerIds: [],
                         includeDescendants: true,
                       });
+                      setPermissionOverrides({});
                       setContainerSearch('');
                     }}
                   >
@@ -366,7 +305,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
 
             <section className="rounded-2xl border border-border/70 bg-background/70 p-4">
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">4</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">3</span>
                 <Typography.Text strong>{t('members.roleSetupTitle', 'กำหนดบทบาทเริ่มต้น')}</Typography.Text>
               </div>
               <FormField label={t('members.inviteRole')} htmlFor="member-role" error={errors.role?.message}>
@@ -389,6 +328,39 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
                 />
               </FormField>
             </section>
+
+            {canManageOverrides ? (
+              <section className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">4</span>
+                  <Typography.Text strong>{t('members.specialPermissions', 'Special permissions')}</Typography.Text>
+                </div>
+                <Typography.Text className="mb-3 block text-sm text-muted-foreground">
+                  {t('members.specialPermissionsHelp', 'Grant extra permissions in this workspace only. Role permissions remain the default.')}
+                </Typography.Text>
+                {permissionsCatalogQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(permissionsCatalogQuery.data ?? []).map((permission) => {
+                    const key = permission.code as PermissionKey;
+                    return (
+                      <label key={permission.id} className="flex items-start gap-3 rounded-xl border border-border bg-card px-3 py-2 text-sm">
+                        <Checkbox
+                          checked={Boolean(permissionOverrides[key])}
+                          onChange={(event) => setPermissionOverrides((current) => ({
+                            ...current,
+                            [key]: event.target.checked,
+                          }))}
+                        />
+                        <span className="min-w-0">
+                          <span className="block font-medium">{permission.name}</span>
+                          <span className="block text-xs text-muted-foreground">{permission.code}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
           </div>
 
           <div className="flex flex-col-reverse gap-2 border-t border-border/70 bg-muted/30 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
@@ -398,7 +370,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
             <Button
               type="submit"
               className="w-full sm:w-auto"
-              disabled={isSubmitting || inviteMutation.isPending || !lookupMatchesInput || !selectedWorkspaceId || hasInvalidScope}
+              disabled={isSubmitting || inviteMutation.isPending || !email || !selectedWorkspaceId || hasInvalidScope}
             >
               {isSubmitting || inviteMutation.isPending ? t('members.inviteSaving') : t('members.inviteAction')}
             </Button>

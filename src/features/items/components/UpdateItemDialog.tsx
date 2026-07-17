@@ -18,6 +18,7 @@ function toFormValues(item: Item): Partial<CreateItemValues> {
     kind: item.kind,
     usageType: item.usageType,
     code: item.code ?? null,
+    photoUrl: item.photoUrl ?? null,
     description: item.description ?? null,
     containerId: item.containerId ?? '',
     quantity: item.quantity ?? null,
@@ -50,6 +51,7 @@ export function UpdateItemDialog({ wsId, item, open, onOpenChange }: UpdateItemD
         await updateItem.mutateAsync({
           name: values.name,
           code: values.code ?? undefined,
+          photoUrl: values.photoUrl ?? undefined,
           description: values.description ?? undefined,
           containerId: values.containerId,
           quantity: values.kind === 'stock' ? values.quantity ?? undefined : undefined,

@@ -40,8 +40,8 @@ export function LoginPage() {
         user,
       });
       navigate(ROUTES.workspaces, { replace: true });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('auth.login.error'));
+    } catch {
+      setError(t('auth.login.errorDescription', 'Check your email and password, then try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -69,11 +69,11 @@ export function LoginPage() {
         <Input.Password autoComplete="current-password" placeholder={t('auth.password.placeholder')} />
       </Form.Item>
       <div className="auth-action-stack">
-        <Button type="primary" htmlType="submit" loading={submitting}>
+        <Button className="w-full sm:w-auto" type="primary" htmlType="submit" loading={submitting}>
           {t('auth.login.action')}
         </Button>
         <Link to={ROUTES.register}>
-          <Button type="default">
+          <Button className="w-full sm:w-auto" type="default">
             {t('auth.login.link')}
           </Button>
         </Link>

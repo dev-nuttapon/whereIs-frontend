@@ -23,10 +23,12 @@ export function CreateContainerDialog({ wsId, open, onOpenChange }: CreateContai
       showParentSelector
       onSubmit={async (values) => {
         await createContainer.mutateAsync({
+          locationId: values.locationId || null,
           name: values.name,
           type: values.type || null,
           code: values.code || null,
           qrCode: values.qrCode || null,
+          photoUrl: values.photoUrl || null,
           parentContainerId: values.parentContainerId || null,
         });
         onOpenChange(false);

@@ -7,6 +7,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMember, useUpdateMemberRole } from '@/features/members/hooks/useMembers';
 import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
+import { useContainers } from '@/features/containers/hooks/useContainers';
 import { PermissionMatrix } from '@/features/permissions/components/PermissionMatrix';
 import { useI18n } from '@/hooks/useI18n';
 import { StatCard } from '@/components/common/StatCard';
@@ -20,12 +21,16 @@ export function MemberDetailPage() {
   const memberQuery = useMember(wsId, memberId);
   const workspaceQuery = useWorkspace(wsId);
   const permissionsQuery = useMemberPermissions(wsId, memberId);
+  const containersQuery = useContainers(wsId);
   const updateRole = useUpdateMemberRole(wsId, memberId);
   const { t } = useI18n();
   const workspace = workspaceQuery.data;
   const effectiveCount = permissionsQuery.data?.effective.length ?? 0;
   const overrideCount = Object.values(permissionsQuery.data?.overrides ?? {}).filter(Boolean).length;
   const highlightedPermissions = permissionsQuery.data?.effective.slice(0, 4) ?? [];
+  const explicitPermissions = Object.entries(permissionsQuery.data?.overrides ?? {});
+  const scope = permissionsQuery.data?.containerAccessScope;
+  const containerNameById = new Map((containersQuery.data ?? []).map((container) => [container.id, container.name]));
 
   return (
     <PageShell title={t('members.detail.title')} description={t('members.detail.description')}>
@@ -62,6 +67,14 @@ export function MemberDetailPage() {
                     </div>
                   </Descriptions.Item>
                   <Descriptions.Item label={t('members.detail.workspace')}>{workspace?.name ?? wsId}</Descriptions.Item>
+                  <Descriptions.Item label={t('members.visibleWorkspaceScope', 'Visible workspace scope')}>
+                    {workspace?.name ?? wsId}
+                  </Descriptions.Item>
+                  <Descriptions.Item label={t('members.visibleContainerScope', 'Visible container scope')}>
+                    {scope
+                      ? `${t('members.visibilitySelectedCount', 'เห็น {count} container', { count: scope.containerIds.length })}${scope.includeDescendants ? `, ${t('permissions.scope.includeDescendants', 'Include child containers')}` : ''}`
+                      : t('members.visibilityAllContainers', 'All containers in this workspace')}
+                  </Descriptions.Item>
                 </Descriptions>
               </div>
             </CardContent>
@@ -87,6 +100,47 @@ export function MemberDetailPage() {
               </CardContent>
             </Card>
           ) : null}
+
+          <Card>
+            <CardContent className="space-y-3 p-5 sm:p-6">
+              <CardTitle className="text-base">{t('members.explicitPermissions', 'Explicit permissions')}</CardTitle>
+              <CardDescription>
+                {t('members.explicitPermissionsHelp', 'These overrides apply in this workspace in addition to the member role.')}
+              </CardDescription>
+              {explicitPermissions.length > 0 ? (
+                <Space wrap>
+                  {explicitPermissions.map(([permission, enabled]) => (
+                    <Tag key={permission} color={enabled ? 'green' : 'red'} className="rounded-full">
+                      {enabled ? t('permissions.enabled') : t('permissions.disabled')}: {t(`permissions.label.${permission}`, permission)}
+                    </Tag>
+                  ))}
+                </Space>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t('members.noExplicitPermissions', 'No explicit permissions. Access is determined by the workspace role.')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-3 p-5 sm:p-6">
+              <CardTitle className="text-base">{t('members.visibleContainerScope', 'Visible container scope')}</CardTitle>
+              <CardDescription>
+                {scope
+                  ? t('members.visibleContainerScopeHelp', 'This member is limited to the containers listed below in this workspace.')
+                  : t('members.visibilityAllContainers', 'All containers in this workspace')}
+              </CardDescription>
+              {scope ? (
+                <div className="flex flex-wrap gap-2">
+                  {scope.containerIds.map((containerId) => (
+                    <Tag key={containerId} className="rounded-full">{containerNameById.get(containerId) ?? containerId}</Tag>
+                  ))}
+                  {scope.includeDescendants ? <Tag color="blue" className="rounded-full">{t('permissions.scope.includeDescendants', 'Include child containers')}</Tag> : null}
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
         </div>
       ) : null}
       <PermissionMatrix wsId={wsId} memberId={memberId} />

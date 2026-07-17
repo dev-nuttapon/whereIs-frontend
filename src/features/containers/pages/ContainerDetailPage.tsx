@@ -9,10 +9,13 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
 import { EditIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
-import { useContainer, useContainers, useDeleteContainer, useUpdateContainer } from '@/features/containers/hooks/useContainers';
+import { useContainer, useContainers, useDeleteContainer, useMoveContainer, useUpdateContainer } from '@/features/containers/hooks/useContainers';
 import { ContainerFormDialog } from '@/features/containers/components/ContainerFormDialog';
 import { CreateItemDialog } from '@/features/items/components/CreateItemDialog';
 import { PlusIcon } from '@/components/ui/icons';
+import { useLocations } from '@/features/locations/hooks/useLocations';
+import { useSites } from '@/features/sites/hooks/useSites';
+import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
 
 export function ContainerDetailPage() {
   const { wsId = 'ws-warehouse', containerId } = useParams();
@@ -21,7 +24,13 @@ export function ContainerDetailPage() {
   const resolvedContainerId = containerId ?? '';
   const containerQuery = useContainer(wsId, resolvedContainerId);
   const containersQuery = useContainers(wsId);
+  const locationsQuery = useLocations(wsId);
+  const sitesQuery = useSites(wsId);
   const container = containerQuery.data ?? null;
+  const locationLabelById = useMemo(
+    () => buildLocationLabelMap(locationsQuery.data ?? [], sitesQuery.data ?? []),
+    [locationsQuery.data, sitesQuery.data],
+  );
   const parentContainerNameById = useMemo(
     () => new Map((containersQuery.data ?? []).map((entry) => [entry.id, entry.name] as const)),
     [containersQuery.data],
@@ -29,6 +38,7 @@ export function ContainerDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [createItemOpen, setCreateItemOpen] = useState(false);
   const updateContainer = useUpdateContainer(wsId, resolvedContainerId);
+  const moveContainer = useMoveContainer(wsId, resolvedContainerId);
   const deleteContainer = useDeleteContainer(wsId, resolvedContainerId);
 
   return (
@@ -73,12 +83,20 @@ export function ContainerDetailPage() {
                 </div>
               </div>
             </div>
+            {container?.photoUrl ? (
+              <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
+                <img src={container.photoUrl} alt={container.name} className="h-64 w-full object-cover" />
+              </div>
+            ) : null}
             <div className="responsive-descriptions">
               <Descriptions bordered column={{ xs: 1, md: 3 }} size="middle">
                 <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? containerId}</Descriptions.Item>
                 <Descriptions.Item label={t('items.list.count')}>{container?.itemCount ?? 0}</Descriptions.Item>
                 <Descriptions.Item label={t('containers.list.title')}>
                   {container?.parentId ? parentContainerNameById.get(container.parentId) ?? container.parentId : <Tag>{t('container.detail.noParent', 'Root container')}</Tag>}
+                </Descriptions.Item>
+                <Descriptions.Item label={t('container.detail.location', 'Location')}>
+                  {container?.locationId ? locationLabelById.get(container.locationId) ?? container.locationId : <Tag>{t('container.detail.noLocation', 'No location')}</Tag>}
                 </Descriptions.Item>
               </Descriptions>
             </div>
@@ -98,18 +116,47 @@ export function ContainerDetailPage() {
           type: container.typeLabel === 'Container' ? '' : container.typeLabel,
           code: container.code ?? '',
           qrCode: container.qrCode ?? '',
+          photoUrl: container.photoUrl ?? '',
+          locationId: container.locationId ?? '',
           parentContainerId: container.parentId ?? '',
         } : undefined}
         onSubmit={async (values) => {
-          await updateContainer.mutateAsync({
-            name: values.name,
-            type: values.type || null,
-            code: values.code || null,
-            qrCode: values.qrCode || null,
-          });
+          const nextLocationId = values.locationId.trim() || null;
+          const nextParentContainerId = values.parentContainerId.trim() || null;
+          const nextName = values.name.trim();
+          const nextType = values.type.trim() || null;
+          const nextCode = values.code.trim() || null;
+          const nextQrCode = values.qrCode.trim() || null;
+          const nextPhotoUrl = values.photoUrl.trim() || null;
+          const shouldUpdateMeta =
+            nextName !== container?.name ||
+            nextType !== (container?.typeLabel === 'Container' ? null : container?.typeLabel ?? null) ||
+            nextCode !== (container?.code ?? null) ||
+            nextQrCode !== (container?.qrCode ?? null) ||
+            nextPhotoUrl !== (container?.photoUrl ?? null);
+          const shouldMove =
+            nextLocationId !== (container?.locationId ?? null) ||
+            nextParentContainerId !== (container?.parentId ?? null);
+
+          if (shouldUpdateMeta) {
+            await updateContainer.mutateAsync({
+              name: nextName,
+              type: nextType,
+              code: nextCode,
+              qrCode: nextQrCode,
+              photoUrl: nextPhotoUrl,
+            });
+          }
+          if (shouldMove) {
+            await moveContainer.mutateAsync({
+              locationId: nextLocationId,
+              parentContainerId: nextParentContainerId,
+            });
+          }
+
           setEditOpen(false);
         }}
-        isSubmitting={updateContainer.isPending}
+        isSubmitting={updateContainer.isPending || moveContainer.isPending}
       />
 
       <CreateItemDialog

@@ -12,6 +12,9 @@ export const queryKeys = {
   workspace: (wsId: string) => ['workspace', wsId] as const,
   sites: (wsId: string) => ['ws', wsId, 'sites'] as const,
   products: (wsId: string) => ['ws', wsId, 'products'] as const,
+  product: {
+    detail: (wsId: string, id: string) => ['ws', wsId, 'products', 'detail', id] as const,
+  },
   categories: (wsId: string) => ['ws', wsId, 'categories'] as const,
   settings: (wsId: string) => ['ws', wsId, 'settings'] as const,
   roles: (wsId: string) => ['ws', wsId, 'roles'] as const,

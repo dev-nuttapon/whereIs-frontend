@@ -1,6 +1,8 @@
 import { client } from '@/api/client';
+import { getPermissionCatalog } from '@/api/permission.api';
 import { listRoles } from '@/api/roles.api';
 import type { ContainerAccessScope, Member } from '@/types/domain.types';
+import type { PermissionOverrideMap } from '@/types/permission.types';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -30,13 +32,6 @@ interface MemberPermissionsDto {
   overrides: Array<{ code: string; effect: string }>;
 }
 
-export interface UserLookupDto {
-  id: string;
-  email: string;
-  displayName: string;
-  avatarUrl?: string | null;
-}
-
 export interface InvitationDto {
   id: string;
   workspaceId: string;
@@ -50,6 +45,7 @@ export interface InvitationDto {
   createdAt: string;
   token: string;
   containerAccessScope?: ContainerAccessScope | null;
+  permissionOverrides?: PermissionOverrideMap;
 }
 
 export interface InviteMemberInput {
@@ -57,6 +53,7 @@ export interface InviteMemberInput {
   role: 'owner' | 'admin' | 'member' | 'viewer';
   workspaceId?: string;
   containerAccessScope?: ContainerAccessScope | null;
+  permissionOverrides?: PermissionOverrideMap;
 }
 
 function toMember(wsId: string, dto: MemberDto): Member {
@@ -98,17 +95,17 @@ export async function getMember(wsId: string, id: string): Promise<Member> {
 
 export async function inviteMember(wsId: string, input: InviteMemberInput): Promise<InvitationDto> {
   const roleId = await resolveRoleId(wsId, input.role);
+  const selectedOverrides = Object.entries(input.permissionOverrides ?? {}).filter(([, enabled]) => enabled);
+  const permissions = selectedOverrides.length > 0 ? await getPermissionCatalog() : [];
+  const overrides = selectedOverrides.flatMap(([code]) => {
+    const permission = permissions.find((item) => item.code === code);
+    return permission ? [{ permissionId: permission.id, effect: 'Allow' }] : [];
+  });
   const response = await client.post<ApiResponse<InvitationDto>>(`/workspaces/${encodeURIComponent(wsId)}/invitations`, {
     email: input.email,
     roleId,
     containerAccessScope: input.containerAccessScope,
-  });
-  return response.data.data;
-}
-
-export async function lookupUserByEmail(email: string): Promise<UserLookupDto> {
-  const response = await client.get<ApiResponse<UserLookupDto>>('/users/lookup', {
-    params: { email },
+    overrides,
   });
   return response.data.data;
 }
