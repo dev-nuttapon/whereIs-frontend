@@ -15,17 +15,16 @@ interface Crumb {
 }
 
 export function Breadcrumbs() {
-  const { wsId } = useParams();
+  const { wsId, productId } = useParams();
   const location = useLocation();
   const { t } = useI18n();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const containersQuery = useContainers(wsId ?? '');
   const membersQuery = useMembers(wsId ?? '');
-  const productPathSegment = location.pathname.includes('/products/') ? location.pathname.split('/products/')[1]?.split('/')[0] ?? '' : '';
   const borrowOrderPathSegment = location.pathname.includes('/borrow-orders/') ? location.pathname.split('/borrow-orders/')[1]?.split('/')[0] ?? '' : '';
-  const isProductDetailRoute = Boolean(productPathSegment) && productPathSegment !== 'new' && productPathSegment !== 'edit';
+  const isProductDetailRoute = Boolean(productId) && productId !== 'new' && productId !== 'edit';
   const isBorrowOrderDetailRoute = Boolean(borrowOrderPathSegment) && borrowOrderPathSegment !== 'new';
-  const productQuery = useProduct(wsId ?? '', isProductDetailRoute ? productPathSegment : '');
+  const productQuery = useProduct(wsId ?? '', isProductDetailRoute ? (productId ?? '') : '');
   const borrowOrderQuery = useBorrowOrder(wsId ?? '', isBorrowOrderDetailRoute ? borrowOrderPathSegment : '');
   const containers = containersQuery.data ?? [];
   const members = membersQuery.data ?? [];
