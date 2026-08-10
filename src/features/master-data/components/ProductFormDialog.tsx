@@ -16,6 +16,7 @@ export interface ProductFormValues {
   sku: string;
   trackingType: 'Asset' | 'Stock';
   minStockAlert: string;
+  expiryLeadDaysDefault: string;
   imageUrl: string;
   description: string;
   isActive: 'true' | 'false';
@@ -42,6 +43,7 @@ const EMPTY_VALUES: ProductFormValues = {
   sku: '',
   trackingType: 'Asset',
   minStockAlert: '',
+  expiryLeadDaysDefault: '',
   imageUrl: '',
   description: '',
   isActive: 'true',
@@ -75,6 +77,7 @@ export function ProductFormDialog({
       sku: initialValues?.sku ?? '',
       trackingType: (initialValues?.trackingType as ProductFormValues['trackingType']) ?? 'Asset',
       minStockAlert: initialValues?.minStockAlert?.toString() ?? '',
+      expiryLeadDaysDefault: initialValues?.expiryLeadDaysDefault?.toString() ?? '',
       imageUrl: initialValues?.imageUrl ?? '',
       description: initialValues?.description ?? '',
       isActive: initialValues?.isActive === false ? 'false' : 'true',
@@ -98,6 +101,7 @@ export function ProductFormDialog({
       description: values.description.trim(),
       imageUrl: values.imageUrl.trim(),
       minStockAlert: values.minStockAlert.trim(),
+      expiryLeadDaysDefault: values.expiryLeadDaysDefault.trim(),
     });
   };
 
@@ -153,6 +157,9 @@ export function ProductFormDialog({
                 </Select>
               </FormField>
             </div>
+            <FormField label={t('products.form.expiryLeadDaysDefault', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} htmlFor="product-expiry-lead-days">
+              <Input id="product-expiry-lead-days" type="number" min="0" value={values.expiryLeadDaysDefault} onChange={(event) => setValues((current) => ({ ...current, expiryLeadDaysDefault: event.target.value }))} placeholder={t('products.form.expiryLeadDaysDefaultPlaceholder', 'Optional')} />
+            </FormField>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
               <FormField label={t('products.form.code', 'รหัสสินค้า')} htmlFor="product-code">

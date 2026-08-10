@@ -20,6 +20,7 @@ interface BorrowOrderDto {
   purpose: string | null;
   needByDate: string;
   returnByDate: string;
+  dueDateLeadDays: number | null;
   requiresApproval: boolean;
   status: string;
   approvedBy: string | null;
@@ -53,6 +54,7 @@ export interface CreateBorrowOrderInput {
   purpose?: string | null;
   needByDate: string | Date;
   returnByDate: string | Date;
+  dueDateLeadDays?: number | null;
   lines: BorrowLineInput[];
 }
 
@@ -97,6 +99,7 @@ function toBorrowOrder(dto: BorrowOrderDto): BorrowOrder {
     purpose: dto.purpose ?? undefined,
     needByDate: dto.needByDate,
     returnByDate: dto.returnByDate,
+    dueDateLeadDays: dto.dueDateLeadDays ?? undefined,
     requiresApproval: dto.requiresApproval,
     status: dto.status,
     approvedBy: dto.approvedBy ?? undefined,
@@ -135,6 +138,7 @@ export async function createBorrowOrder(wsId: string, input: CreateBorrowOrderIn
     purpose: input.purpose ?? null,
     needByDate: input.needByDate instanceof Date ? input.needByDate.toISOString() : input.needByDate,
     returnByDate: input.returnByDate instanceof Date ? input.returnByDate.toISOString() : input.returnByDate,
+    dueDateLeadDays: input.dueDateLeadDays ?? null,
     lines: input.lines.map((line) => ({
       assetId: line.assetId ?? null,
       productId: line.productId ?? null,

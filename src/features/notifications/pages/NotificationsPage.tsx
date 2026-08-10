@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Popconfirm } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { BellIcon } from '@/components/ui/icons';
 import { useI18n } from '@/hooks/useI18n';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/features/notifications/hooks/useNotifications';
+import { ROUTES } from '@/constants/routes';
 
 export function NotificationsPage() {
   const { wsId = '' } = useParams();
@@ -17,6 +18,15 @@ export function NotificationsPage() {
   const notifications = notificationsQuery.data?.items ?? [];
   const markOne = useMarkNotificationRead(wsId);
   const markAll = useMarkAllNotificationsRead(wsId);
+  const sourceLink = (type?: string | null, id?: string | null) => {
+    if (!type || !id) return null;
+    if (type === 'Product') return ROUTES.workspaceProductDetail(wsId, id);
+    if (type === 'Asset') return ROUTES.workspaceAssetDetail(wsId, id);
+    if (type === 'StockEntry') return ROUTES.workspaceStockDetail(wsId, id);
+    if (type === 'BorrowOrder') return ROUTES.workspaceBorrowOrderDetail(wsId, id);
+    return null;
+  };
+  const typeLabel = (type: string) => ({ low_stock: 'Stock ต่ำ', expiring_soon: 'ใกล้หมดอายุ', expired: 'หมดอายุแล้ว', due_soon: 'ใกล้ครบกำหนด', overdue: 'เกินกำหนด' }[type] ?? type);
 
   return (
     <PageShell
@@ -54,6 +64,8 @@ export function NotificationsPage() {
                   <div className="min-w-0 space-y-1">
                     <CardTitle className="text-base">{notification.title}</CardTitle>
                     <CardDescription>{notification.message}</CardDescription>
+                    <p className="text-xs text-muted-foreground">{typeLabel(notification.type)}</p>
+                    {sourceLink(notification.sourceType, notification.sourceId) ? <Link className="text-sm font-medium text-primary hover:underline" to={sourceLink(notification.sourceType, notification.sourceId)!}>{t('common.open', 'เปิดรายการ')}</Link> : null}
                   </div>
                   <Button
                     variant="outline"

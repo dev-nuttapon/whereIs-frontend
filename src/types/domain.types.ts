@@ -106,6 +106,7 @@ export interface Product {
   sku?: string | null;
   trackingType: string;
   minStockAlert?: number | null;
+  expiryLeadDaysDefault?: number | null;
   imageUrl?: string | null;
   isActive: boolean;
   assetCount: number;
@@ -227,6 +228,7 @@ export interface BorrowOrder {
   purpose?: string | null;
   needByDate: string;
   returnByDate: string;
+  dueDateLeadDays?: number | null;
   requiresApproval: boolean;
   status: string;
   approvedBy?: string | null;
@@ -289,6 +291,8 @@ export interface Notification {
   title: string;
   message: string;
   itemId?: string;
+  sourceType?: string | null;
+  sourceId?: string | null;
   memberId?: string;
   readAt?: string | null;
   dueAt?: string | null;

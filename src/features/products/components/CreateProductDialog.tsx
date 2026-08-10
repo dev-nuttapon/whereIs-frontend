@@ -31,6 +31,7 @@ export function CreateProductDialog({ wsId, open, onOpenChange, categories }: Cr
           sku: values.sku || null,
           trackingType: values.trackingType,
           minStockAlert: values.minStockAlert ? Number(values.minStockAlert) : null,
+          expiryLeadDaysDefault: values.expiryLeadDaysDefault ? Number(values.expiryLeadDaysDefault) : null,
           imageUrl: values.imageUrl || null,
           description: values.description || null,
         });

@@ -75,6 +75,7 @@ export function CreateBorrowOrderDialog({
   const [purpose, setPurpose] = useState('');
   const [needByDate, setNeedByDate] = useState('');
   const [returnByDate, setReturnByDate] = useState('');
+  const [dueDateLeadDays, setDueDateLeadDays] = useState('3');
   const [lines, setLines] = useState<BorrowLineDraft[]>([]);
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export function CreateBorrowOrderDialog({
     setPurpose('');
     setNeedByDate('');
     setReturnByDate('');
+    setDueDateLeadDays('3');
     setLines(createDraftFromDefaults({ initialAssetId, initialProductId, initialStockEntryId }));
   }, [initialAssetId, initialProductId, initialStockEntryId, open]);
 
@@ -132,6 +134,9 @@ export function CreateBorrowOrderDialog({
               <Input id="borrow-return" type="date" value={returnByDate} onChange={(event) => setReturnByDate(event.target.value)} />
             </FormField>
           </div>
+          <FormField label={t('borrowOrders.dueDateLeadDays', 'แจ้งเตือนก่อนครบกำหนด (วัน)')} htmlFor="borrow-due-lead-days">
+            <Input id="borrow-due-lead-days" type="number" min="0" value={dueDateLeadDays} onChange={(event) => setDueDateLeadDays(event.target.value)} placeholder={t('borrowOrders.dueDateLeadDaysPlaceholder', 'ค่าเริ่มต้น 3 วัน')} />
+          </FormField>
 
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={addAssetLine}>
@@ -280,6 +285,7 @@ export function CreateBorrowOrderDialog({
                 purpose: purpose.trim() || null,
                 needByDate: new Date(needByDate),
                 returnByDate: new Date(returnByDate),
+                dueDateLeadDays: dueDateLeadDays ? Number(dueDateLeadDays) : null,
                 lines: lines.map((line) =>
                   line.kind === 'asset'
                     ? { assetId: line.assetId, productId: null, stockEntryId: null, quantity: null }

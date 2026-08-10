@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { PageShell } from '@/components/common/PageShell';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -9,6 +9,7 @@ import { ActivityIcon } from '@/components/ui/icons';
 import { Tag } from 'antd';
 import { useI18n } from '@/hooks/useI18n';
 import { useActivity } from '@/features/activity/hooks/useActivity';
+import { ROUTES } from '@/constants/routes';
 
 export function ActivityPage() {
   const { wsId = '' } = useParams();
@@ -22,11 +23,21 @@ export function ActivityPage() {
       moved: 'ย้ายตำแหน่ง',
       borrowed: 'เบิก/ยืม',
       returned: 'คืนรายการ',
-      stock_adjusted: 'ปรับ stock',
+      stockadjusted: 'ปรับ stock',
+      checkedout: 'เบิกออก',
       received: 'รับเข้า',
       disposed: 'จำหน่าย',
     };
     return labels[type.toLowerCase()] ?? type;
+  };
+  const sourceLink = (sourceType: string, sourceId: string) => {
+    if (sourceType === 'Product') return ROUTES.workspaceProductDetail(wsId, sourceId);
+    if (sourceType === 'Asset') return ROUTES.workspaceAssetDetail(wsId, sourceId);
+    if (sourceType === 'StockEntry') return ROUTES.workspaceStockDetail(wsId, sourceId);
+    if (sourceType === 'Container') return ROUTES.workspaceContainerDetail(wsId, sourceId);
+    if (sourceType === 'BorrowOrder') return ROUTES.workspaceBorrowOrderDetail(wsId, sourceId);
+    if (sourceType === 'Category') return ROUTES.workspaceMasterData(wsId);
+    return null;
   };
 
   return (
@@ -54,15 +65,16 @@ export function ActivityPage() {
             <Card key={event.id}>
               <CardContent className="space-y-1 p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-base">{eventLabel(event.type)}</CardTitle>
-                <Tag>{event.type}</Tag>
+                <CardTitle className="text-base">{eventLabel(event.eventType)}</CardTitle>
+                <Tag>{event.sourceType}</Tag>
               </div>
               <CardDescription>
-                  {event.actor.name} · {event.itemId} · {new Date(event.createdAt).toLocaleString()}
+                  {event.actor.name} · {new Date(event.createdAt).toLocaleString()}
               </CardDescription>
-              {event.payload ? (
-                <p className="text-xs text-muted-foreground">{Object.entries(event.payload).map(([key, value]) => `${key}: ${String(value)}`).join(' · ')}</p>
+              {event.metadata ? (
+                <p className="text-xs text-muted-foreground">{Object.entries(event.metadata).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`).join(' · ')}</p>
               ) : null}
+              {sourceLink(event.sourceType, event.sourceId) ? <Link className="text-sm font-medium text-primary hover:underline" to={sourceLink(event.sourceType, event.sourceId)!}>{t('common.open', 'เปิดรายการ')}</Link> : null}
               </CardContent>
             </Card>
           ))}

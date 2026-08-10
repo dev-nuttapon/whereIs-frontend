@@ -36,11 +36,11 @@ main
 
 # Current Sprint
 
-Sprint 0
+Frontend contract alignment and flow completion
 
 Sprint Goal
 
-Define and prepare MVP Phase 1 for the new workspace-based asset tracking design.
+Keep the frontend screens and API adapters aligned with the Product/Asset/Stock/BorrowOrder backend contract.
 
 ---
 
@@ -52,15 +52,13 @@ MVP Definition
 
 # Current Feature
 
-Requirement Reset
+Product / Asset / Stock / BorrowOrder flow
 
 ---
 
 # Current Task
 
-Split the new system into MVP phases and align the current frontend context to MVP Phase 1.
-
-No business feature should be implemented in this task.
+Verify and maintain frontend alignment with the backend contract while completing the UI flows.
 
 ---
 
@@ -68,106 +66,56 @@ No business feature should be implemented in this task.
 
 The current objectives are:
 
-* Define MVP Phase 1 scope
-* Separate single-item core flow from stock flow
-* Align docs and architecture terms to the new domain model
-* Keep the frontend foundation ready for the redesigned structure
-
-No real API integration should be implemented yet.
-
-No real authentication should be implemented yet.
-
-No business pages should be fully implemented yet.
+* Keep Product, Asset, Stock and BorrowOrder as the primary vocabulary
+* Keep workspace role and permission behavior consistent
+* Keep expiry, lot, notification and activity contracts synchronized
+* Validate frontend with typecheck, build and browser/integration checks where available
 
 ---
 
 # Feature Progress
 
-Authentication
-
-Status
-
-Not Started
+Authentication — Implemented
 
 ---
 
-Workspace
-
-Status
-
-Not Started
+Workspace — Implemented
 
 ---
 
-Dashboard
-
-Status
-
-Not Started
+Dashboard — Implemented
 
 ---
 
-Container
-
-Status
-
-Not Started
+Container — Implemented
 
 ---
 
-Item
-
-Status
-
-Not Started
+Product / Asset — Implemented
 
 ---
 
-Stock Item
-
-Status
-
-Not Started
+Stock / Lot — Implemented in frontend; backend migration must be applied for runtime verification
 
 ---
 
-Search
-
-Status
-
-Not Started
+Search — Implemented
 
 ---
 
-Member
-
-Status
-
-Not Started
+Member / Invitation — Implemented
 
 ---
 
-Permission
-
-Status
-
-Not Started
+Permission — Implemented with route guards and UI guards
 
 ---
 
-Activity
-
-Status
-
-Not Started
+Activity / History — Implemented against the new activity response shape
 
 ---
 
-Settings
-
-Status
-
-Not Started
+Settings / Alerts — Implemented; persistence is currently local browser state
 
 ---
 
@@ -175,34 +123,19 @@ Not Started
 
 This task is complete only if:
 
-* MVP Phase 1 scope is clearly defined
-* Single-item core flow is separated from stock flow
-* Requirement summary reference exists
-* Project context and docs use the new domain model consistently
-* Project build/status remains aligned with the current foundation
+* Product/Asset/Stock/BorrowOrder screens and API adapters use the same contract
+* Permission-aware workspace flows remain consistent
+* Expiry, lot, notification and activity fields remain aligned
+* `npm run typecheck` and `npm run build` pass
+* Runtime verification limitations are recorded honestly
 
 ---
 
 # Out of Scope
 
-Do NOT implement:
+Backend database migration execution, backend code changes, and production deployment remain outside this frontend repository task.
 
-* Real Login
-* Real Register
-* Real API Integration
-* Workspace CRUD
-* Container Detail
-* Item Search
-* Item Detail
-* Member Management
-* Permission Override
-* Activity Log
-* QR Code
-* Barcode
-* File Upload
-* Stock restock / consume flows
-
-Only define the MVP and keep the frontend foundation ready.
+Legacy Item compatibility components may remain in the repository, but new UI work must use Product, Asset, Stock and BorrowOrder.
 
 ---
 

@@ -25,6 +25,7 @@ interface ProductDto {
   sku: string | null;
   trackingType: string;
   minStockAlert: number | null;
+  expiryLeadDaysDefault: number | null;
   imageUrl: string | null;
   isActive: boolean;
   assetCount: number;
@@ -41,6 +42,7 @@ export interface CreateProductInput {
   sku?: string | null;
   trackingType: 'Asset' | 'Stock' | string;
   minStockAlert?: number | null;
+  expiryLeadDaysDefault?: number | null;
   imageUrl?: string | null;
 }
 
@@ -52,6 +54,7 @@ export interface UpdateProductInput {
   code?: string | null;
   sku?: string | null;
   minStockAlert?: number | null;
+  expiryLeadDaysDefault?: number | null;
   imageUrl?: string | null;
   isActive?: boolean | null;
 }
@@ -69,6 +72,7 @@ function toProduct(dto: ProductDto): Product {
     sku: dto.sku,
     trackingType: dto.trackingType,
     minStockAlert: dto.minStockAlert,
+    expiryLeadDaysDefault: dto.expiryLeadDaysDefault,
     imageUrl: dto.imageUrl,
     isActive: dto.isActive,
     assetCount: dto.assetCount,
@@ -99,6 +103,7 @@ export async function createProduct(wsId: string, input: CreateProductInput): Pr
     sku: input.sku ?? null,
     trackingType: input.trackingType,
     minStockAlert: input.minStockAlert ?? null,
+    expiryLeadDaysDefault: input.expiryLeadDaysDefault ?? null,
     imageUrl: input.imageUrl ?? null,
   });
   return toProduct(response.data.data);
@@ -113,6 +118,7 @@ export async function updateProduct(wsId: string, id: string, input: UpdateProdu
     code: input.code ?? null,
     sku: input.sku ?? null,
     minStockAlert: input.minStockAlert ?? null,
+    expiryLeadDaysDefault: input.expiryLeadDaysDefault ?? null,
     imageUrl: input.imageUrl ?? null,
     isActive: input.isActive ?? null,
   });
