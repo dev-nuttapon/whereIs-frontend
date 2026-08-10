@@ -144,7 +144,7 @@ export function ContainerFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="component-stack px-5 pb-5 sm:px-6">
+          <div className="component-stack dialog-form-body">
             <FormField label={t('containers.create.location', 'สถานที่')} htmlFor="container-location">
               <Select
                 id="container-location"

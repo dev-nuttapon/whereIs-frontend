@@ -114,7 +114,7 @@ export function CreateBorrowOrderDialog({
   );
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
+    <Dialog size="wide" open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[56rem]">
         <DialogHeader>
           <DialogTitle>{t('borrowOrders.createTitle', 'Create borrow order')}</DialogTitle>

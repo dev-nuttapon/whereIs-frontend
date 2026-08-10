@@ -116,7 +116,7 @@ export function ProductFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="component-stack px-5 pb-5 sm:px-6">
+          <div className="component-stack dialog-form-body">
             <FormField label={t('products.form.name', 'ชื่อสินค้า')} htmlFor="product-name">
               <Input
                 id="product-name"

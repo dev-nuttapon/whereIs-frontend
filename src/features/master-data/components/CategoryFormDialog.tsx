@@ -87,7 +87,7 @@ export function CategoryFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="component-stack px-5 pb-5 sm:px-6">
+          <div className="component-stack dialog-form-body">
             <FormField label={t('categories.form.name', 'ชื่อหมวดหมู่')} htmlFor="category-name">
               <Input
                 id="category-name"

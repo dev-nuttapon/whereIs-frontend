@@ -13,7 +13,7 @@ export interface PageShellProps {
 
 export function PageShell({ title, description, children, actions, className, compact = false }: PageShellProps) {
   return (
-    <div className={cn('component-stack', className)}>
+    <div className={cn('app-page-shell component-stack', className)}>
       <section className={cn(
         'relative overflow-hidden rounded-[1.25rem] border border-border/70 bg-card/90 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_18px_40px_-34px_rgba(2,6,23,0.6)] sm:rounded-[1.5rem]',
         compact ? 'px-4 py-3 sm:px-5 sm:py-4' : 'px-4 py-4 sm:px-6 sm:py-6',

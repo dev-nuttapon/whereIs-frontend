@@ -126,7 +126,7 @@ export function ItemFormDialog({
   const canSubmit = Boolean(!isSubmitting && containerOptions.length >= 0);
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
+    <Dialog size="wide" open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[52rem]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

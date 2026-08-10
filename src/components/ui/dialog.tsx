@@ -6,9 +6,16 @@ export interface DialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children: ReactNode;
+  size?: 'compact' | 'form' | 'wide';
 }
 
-export function Dialog({ open = false, onOpenChange, children }: DialogProps) {
+export function Dialog({ open = false, onOpenChange, children, size = 'form' }: DialogProps) {
+  const width = size === 'compact'
+    ? 'min(32rem, calc(100vw - 2rem))'
+    : size === 'wide'
+      ? 'min(60rem, calc(100vw - 2rem))'
+      : 'min(46rem, calc(100vw - 2rem))';
+
   return (
     <AntModal
       open={open}
@@ -16,9 +23,9 @@ export function Dialog({ open = false, onOpenChange, children }: DialogProps) {
       footer={null}
       centered
       destroyOnHidden
-      width="min(32rem, calc(100vw - 2rem))"
+      width={width}
       styles={{
-        body: { padding: 0 },
+        body: { maxHeight: 'min(78vh, 48rem)', overflowY: 'auto', padding: 0 },
         mask: { backdropFilter: 'blur(4px)' },
       }}
     >
@@ -33,7 +40,7 @@ export function DialogContent({ className, ...props }: HTMLAttributes<HTMLDivEle
       role="dialog"
       aria-modal="true"
       className={cn(
-        'w-full rounded-2xl border border-border/70 bg-card/95 p-5 shadow-none backdrop-blur-xl sm:rounded-3xl sm:p-6',
+        'w-full rounded-2xl border border-border/70 bg-card/95 p-5 shadow-[0_24px_70px_-48px_rgb(15_23_42_/_0.7)] backdrop-blur-xl sm:rounded-3xl sm:p-6',
         className,
       )}
       {...props}

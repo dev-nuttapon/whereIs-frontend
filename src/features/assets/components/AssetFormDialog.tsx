@@ -170,7 +170,7 @@ export function AssetFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
+    <Dialog size="wide" open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[56rem]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -178,7 +178,7 @@ export function AssetFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="component-stack px-5 pb-5 sm:px-6">
+          <div className="component-stack dialog-form-body">
             <div className="grid gap-[18px] sm:grid-cols-2">
               <FormField label={t('assets.form.product', 'Product')} htmlFor="asset-product">
                 <Select

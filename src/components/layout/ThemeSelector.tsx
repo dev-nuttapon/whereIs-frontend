@@ -25,11 +25,11 @@ export function ThemeSelector({ onSelect, compact = false }: ThemeSelectorProps)
 
   return (
     <Segmented
-      className={compact ? 'shrink-0' : 'w-full'}
+      className={compact ? 'theme-selector shrink-0' : 'theme-selector w-full'}
       value={theme}
       options={OPTIONS.map(({ value, icon: Icon, labelKey }) => ({
         label: compact ? (
-          <span className="inline-flex items-center" title={t(labelKey)} aria-label={t(labelKey)}>
+          <span className="inline-flex h-7 w-7 items-center justify-center" title={t(labelKey)} aria-label={t(labelKey)}>
             <Icon className="h-4 w-4" />
           </span>
         ) : (
