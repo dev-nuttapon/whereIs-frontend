@@ -14,7 +14,7 @@ export function Topbar() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
   const notificationsQuery = useNotifications(wsId);
-  const unreadCount = (notificationsQuery.data?.items ?? []).filter((notification) => !notification.readAt).length;
+  const unreadCount = notificationsQuery.data?.unreadCount ?? 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/92 px-3 py-2.5 backdrop-blur-xl sm:px-5 lg:px-8">

@@ -92,10 +92,12 @@ export function MembersPage() {
   const containersQuery = useContainers(wsId);
   const currentUser = authStore((state) => state.user);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [invitationFilter, setInvitationFilter] = useState('all');
   const [revokingInvitationId, setRevokingInvitationId] = useState<string | null>(null);
   const revokeInvitation = useRevokeInvitation(wsId);
   const { t } = useI18n();
-  const pendingInvitations = (invitationsQuery.data ?? []).filter((invitation) => invitation.status.toLowerCase() === 'pending');
+  const invitations = invitationsQuery.data ?? [];
+  const filteredInvitations = invitations.filter((invitation) => invitationFilter === 'all' || invitation.status.toLowerCase() === invitationFilter);
   const containerNameById = new Map((containersQuery.data ?? []).map((container) => [container.id, container.name]));
 
   return (
@@ -122,23 +124,42 @@ export function MembersPage() {
           <MemberRow key={member.id} wsId={wsId} member={member} isCurrentUser={currentUser?.id === member.user.id} />
         ))}
       </div>
-      {pendingInvitations.length > 0 ? (
+      {invitations.length > 0 ? (
         <section className="rounded-2xl border border-border/70 bg-card/70 p-4 sm:p-5">
-          <div className="mb-4 space-y-1">
-            <Typography.Title level={5} className="!mb-0 !mt-0">
-              {t('members.pendingInvitations', 'คำเชิญที่รอตอบรับ')}
-            </Typography.Title>
-            <Typography.Paragraph className="!mb-0 text-muted-foreground">
-              {t('members.pendingInvitationsDescription', 'ส่งลิงก์ตอบรับให้ผู้ถูกเชิญเพื่อเข้าร่วม workspace')}
-            </Typography.Paragraph>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1">
+              <Typography.Title level={5} className="!mb-0 !mt-0">
+                {t('members.sentInvitations', 'คำเชิญที่ส่งออกไป')}
+              </Typography.Title>
+              <Typography.Paragraph className="!mb-0 text-muted-foreground">
+                {t('members.sentInvitationsDescription', 'ดูสถานะคำเชิญที่ส่งให้ผู้ใช้งานใน workspace นี้')}
+              </Typography.Paragraph>
+            </div>
+            <Select
+              className="w-full sm:w-48"
+              value={invitationFilter}
+              onChange={(event) => setInvitationFilter(event.target.value)}
+              aria-label={t('members.invitationFilter', 'กรองสถานะคำเชิญ')}
+            >
+              <option value="all">{t('members.invitationFilterAll', 'ทั้งหมด')}</option>
+              <option value="pending">{t('members.invitationStatus.pending', 'รอตอบรับ')}</option>
+              <option value="accepted">{t('members.invitationStatus.accepted', 'ตอบรับแล้ว')}</option>
+              <option value="expired">{t('members.invitationStatus.expired', 'หมดอายุ')}</option>
+              <option value="revoked">{t('members.invitationStatus.revoked', 'ยกเลิกแล้ว')}</option>
+              <option value="rejected">{t('members.invitationStatus.rejected', 'ปฏิเสธ')}</option>
+            </Select>
           </div>
-          <div className="component-stack">
-            {pendingInvitations.map((invitation) => (
+          {filteredInvitations.length > 0 ? (
+            <div className="component-stack">
+            {filteredInvitations.map((invitation) => (
               <div key={invitation.id} className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/70 p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <Typography.Text strong className="flex items-center gap-2">
+                  <Typography.Text strong className="flex flex-wrap items-center gap-2">
                     <MailIcon className="h-4 w-4" />
                     {invitation.email}
+                    <Tag color={invitation.status.toLowerCase() === 'pending' ? 'processing' : 'default'}>
+                      {t(`members.invitationStatus.${invitation.status.toLowerCase()}`, invitation.status)}
+                    </Tag>
                   </Typography.Text>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {t('members.invitationRole', 'บทบาท')}: {t(`members.role.${invitation.roleCode}`)}
@@ -167,7 +188,7 @@ export function MembersPage() {
                   ) : null}
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  {invitation.token ? (
+                  {invitation.status.toLowerCase() === 'pending' && invitation.token ? (
                     <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                       <Link to={ROUTES.invitationAccept(invitation.token)}>
                         <OpenIcon className="h-4 w-4" />
@@ -175,7 +196,7 @@ export function MembersPage() {
                       </Link>
                     </Button>
                   ) : null}
-                  <Popconfirm
+                  {invitation.status.toLowerCase() === 'pending' ? <Popconfirm
                     title={t('members.revokeInvitationConfirmTitle', 'ยกเลิกคำเชิญนี้?')}
                     description={t('members.revokeInvitationConfirmDescription', 'ผู้รับจะไม่สามารถใช้ลิงก์นี้ตอบรับคำเชิญได้อีก')}
                     okText={t('members.revokeInvitation', 'ยกเลิกคำเชิญ')}
@@ -199,11 +220,16 @@ export function MembersPage() {
                         ? t('members.revokingInvitation', 'กำลังยกเลิก...')
                         : t('members.revokeInvitation', 'ยกเลิกคำเชิญ')}
                     </Button>
-                  </Popconfirm>
+                  </Popconfirm> : null}
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          ) : (
+            <p className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
+              {t('members.noFilteredInvitations', 'ไม่พบคำเชิญตามสถานะที่เลือก')}
+            </p>
+          )}
         </section>
       ) : null}
       <InviteMemberDialog wsId={wsId} open={inviteOpen} onOpenChange={setInviteOpen} />

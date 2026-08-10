@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
-import { BellIcon } from '@/components/ui/icons';
+import { BellIcon, MailIcon } from '@/components/ui/icons';
 import { useI18n } from '@/hooks/useI18n';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/features/notifications/hooks/useNotifications';
 import { ROUTES } from '@/constants/routes';
@@ -26,7 +26,14 @@ export function NotificationsPage() {
     if (type === 'BorrowOrder') return ROUTES.workspaceBorrowOrderDetail(wsId, id);
     return null;
   };
-  const typeLabel = (type: string) => ({ low_stock: 'Stock ต่ำ', expiring_soon: 'ใกล้หมดอายุ', expired: 'หมดอายุแล้ว', due_soon: 'ใกล้ครบกำหนด', overdue: 'เกินกำหนด' }[type] ?? type);
+  const typeLabel = (type: string) => ({
+    low_stock: 'Stock ต่ำ',
+    expiring_soon: 'ใกล้หมดอายุ',
+    expired: 'หมดอายุแล้ว',
+    due_soon: 'ใกล้ครบกำหนด',
+    overdue: 'เกินกำหนด',
+    workspace_invite: 'คำเชิญเข้าร่วม workspace',
+  }[type] ?? type);
 
   return (
     <PageShell
@@ -64,7 +71,10 @@ export function NotificationsPage() {
                   <div className="min-w-0 space-y-1">
                     <CardTitle className="text-base">{notification.title}</CardTitle>
                     <CardDescription>{notification.message}</CardDescription>
-                    <p className="text-xs text-muted-foreground">{typeLabel(notification.type)}</p>
+                    <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      {notification.type === 'workspace_invite' ? <MailIcon className="h-3.5 w-3.5" /> : <BellIcon className="h-3.5 w-3.5" />}
+                      {typeLabel(notification.type)}
+                    </p>
                     {sourceLink(notification.sourceType, notification.sourceId) ? <Link className="text-sm font-medium text-primary hover:underline" to={sourceLink(notification.sourceType, notification.sourceId)!}>{t('common.open', 'เปิดรายการ')}</Link> : null}
                   </div>
                   <Button

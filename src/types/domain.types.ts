@@ -287,15 +287,14 @@ export interface ItemEvent {
 export interface Notification {
   id: string;
   workspaceId: string;
+  recipientUserId: string;
   type: string;
   title: string;
   message: string;
-  itemId?: string;
-  sourceType?: string | null;
-  sourceId?: string | null;
-  memberId?: string;
-  readAt?: string | null;
-  dueAt?: string | null;
+  readAt: string | null;
+  dueAt: string | null;
+  sourceType: string | null;
+  sourceId: string | null;
   createdAt: string;
 }
 

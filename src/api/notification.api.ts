@@ -6,11 +6,12 @@ interface ApiResponse<T> {
   data: T;
 }
 
-export interface PagedResult<T> {
-  items: T[];
+export interface NotificationListResult {
+  items: Notification[];
   page: number;
   limit: number;
   total: number;
+  unreadCount: number;
 }
 
 export interface NotificationParams {
@@ -18,8 +19,8 @@ export interface NotificationParams {
   limit?: number;
 }
 
-export async function listNotifications(wsId: string, params: NotificationParams = {}): Promise<PagedResult<Notification>> {
-  const response = await client.get<ApiResponse<PagedResult<Notification>>>(`/workspaces/${encodeURIComponent(wsId)}/notifications`, {
+export async function listNotifications(wsId: string, params: NotificationParams = {}): Promise<NotificationListResult> {
+  const response = await client.get<ApiResponse<NotificationListResult>>(`/workspaces/${encodeURIComponent(wsId)}/notifications`, {
     params: {
       page: params.page ?? 1,
       limit: params.limit ?? 20,
