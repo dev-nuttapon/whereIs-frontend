@@ -134,11 +134,12 @@ export function UserMenu({ workspaceId }: UserMenuProps) {
       <Button
         variant="outline"
         size="sm"
-        className="h-10 w-10 rounded-full border-border/70 bg-background shadow-none backdrop-blur transition-colors hover:bg-card"
+        className="h-10 rounded-full border-border/70 bg-background px-3 shadow-none backdrop-blur transition-colors hover:bg-card"
         aria-label={t('common.menu')}
         title={t('common.menu')}
       >
-        <MenuIcon className="h-4 w-4" />
+        <MenuIcon className="h-4 w-4 text-teal-700" />
+        <span className="text-sm font-medium text-foreground">{t('common.menu')}</span>
       </Button>
     </Dropdown>
   );

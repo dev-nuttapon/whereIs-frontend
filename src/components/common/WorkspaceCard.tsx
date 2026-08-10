@@ -15,20 +15,13 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const setWorkspace = workspaceStore((state) => state.setWorkspace);
-  const accentIndex = workspace.id.length % 4;
-  const accentClassNames = [
-    'from-slate-900 via-slate-700 to-slate-500',
-    'from-cyan-900 via-cyan-700 to-sky-500',
-    'from-emerald-900 via-emerald-700 to-teal-500',
-    'from-amber-900 via-orange-700 to-rose-500',
-  ];
-  const accentClassName = accentClassNames[accentIndex];
-
+  const currentWorkspaceId = workspaceStore((state) => state.currentWorkspaceId);
+  const isCurrentWorkspace = currentWorkspaceId === workspace.id;
   return (
     <Card className="responsive-card-body group h-full overflow-hidden border-border/70 bg-card/92 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:bg-card hover:shadow-[0_22px_55px_-38px_rgba(15,23,42,0.5)]" styles={{ body: { padding: 20 } }}>
       <div className="flex h-full flex-col gap-[18px]">
         <div className="flex items-start gap-[18px]">
-          <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(15,23,42,0.8)]', accentClassName)}>
+          <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-sm font-semibold text-teal-700 ring-1 ring-teal-100')}>
             {workspace.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
@@ -39,6 +32,11 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
               <Tag className="m-0 shrink-0 rounded-full border-primary/10 bg-primary/8 px-2 py-0 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-primary">
                 {workspace.myRole}
               </Tag>
+              {isCurrentWorkspace ? (
+                <Tag color="cyan" className="m-0 rounded-full px-2 py-0 text-[0.62rem] font-medium">
+                  {t('workspace.card.current', 'Current')}
+                </Tag>
+              ) : null}
             </div>
             <Typography.Paragraph className="!mb-0 line-clamp-2 text-sm leading-6 text-muted-foreground">
               {workspace.description ?? t('workspace.card.fallback')}
