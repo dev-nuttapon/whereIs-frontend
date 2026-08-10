@@ -15,6 +15,24 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <Card className="w-full shadow-[0_24px_65px_-44px_rgba(15,23,42,0.35)]" styles={{ body: { padding: 24 } }}>
           <div className="space-y-4">
             <div className="space-y-1.5 text-center">
+              <div className="mb-3 flex justify-center" aria-label="WhereIs logo">
+                <svg
+                  className="h-12 w-12 text-teal-600"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  role="img"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M24 42s13-12.1 13-23A13 13 0 1 0 11 19c0 10.9 13 23 13 23Z"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="24" cy="19" r="4" stroke="currentColor" strokeWidth="3" />
+                </svg>
+              </div>
               <Typography.Title level={2} className="!mb-0 !mt-0 text-2xl sm:text-3xl">
                 {t('app.name')}
               </Typography.Title>
