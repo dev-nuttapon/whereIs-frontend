@@ -15,19 +15,26 @@ const OPTIONS: Array<{
 
 export interface ThemeSelectorProps {
   onSelect?: (theme: Theme) => void;
+  compact?: boolean;
 }
 
-export function ThemeSelector({ onSelect }: ThemeSelectorProps) {
+export function ThemeSelector({ onSelect, compact = false }: ThemeSelectorProps) {
   const theme = uiStore((state) => state.theme);
   const setTheme = uiStore((state) => state.setTheme);
   const { t } = useI18n();
 
   return (
     <Segmented
-      className="w-full"
+      className={compact ? 'shrink-0' : 'w-full'}
       value={theme}
       options={OPTIONS.map(({ value, icon: Icon, labelKey }) => ({
-        label: <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4" />{t(labelKey)}</span>,
+        label: compact ? (
+          <span className="inline-flex items-center" title={t(labelKey)} aria-label={t(labelKey)}>
+            <Icon className="h-4 w-4" />
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4" />{t(labelKey)}</span>
+        ),
         value,
       }))}
       onChange={(value) => {

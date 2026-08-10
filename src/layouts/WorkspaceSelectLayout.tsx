@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Tag, Typography } from 'antd';
 import { useI18n } from '@/hooks/useI18n';
 import { UserMenu } from '@/components/layout/UserMenu';
+import { ThemeSelector } from '@/components/layout/ThemeSelector';
 
 export interface WorkspaceSelectLayoutProps {
   children?: ReactNode;
@@ -38,7 +39,10 @@ export function WorkspaceSelectLayout({ children }: WorkspaceSelectLayoutProps) 
               {t('app.workspaceSelect')}
             </Tag>
           </div>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <ThemeSelector compact />
+            <UserMenu />
+          </div>
         </header>
         {children}
       </div>
