@@ -99,6 +99,9 @@ export function AppRoutes() {
               </WorkspaceSelectLayout>
             }
           />
+          <Route path={ROUTES.notifications} element={<AppLayout />}>
+            <Route index element={<NotificationsPage global />} />
+          </Route>
           <Route
             path="/invitations/:token"
             element={

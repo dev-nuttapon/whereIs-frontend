@@ -8,22 +8,39 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { BellIcon, MailIcon } from '@/components/ui/icons';
 import { useI18n } from '@/hooks/useI18n';
-import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/features/notifications/hooks/useNotifications';
+import {
+  useMarkAllMyNotificationsRead,
+  useMarkAllNotificationsRead,
+  useMarkMyNotificationRead,
+  useMarkNotificationRead,
+  useMyNotifications,
+  useNotifications,
+} from '@/features/notifications/hooks/useNotifications';
 import { ROUTES } from '@/constants/routes';
 
-export function NotificationsPage() {
+export interface NotificationsPageProps {
+  global?: boolean;
+}
+
+export function NotificationsPage({ global = false }: NotificationsPageProps) {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
-  const notificationsQuery = useNotifications(wsId);
+  const workspaceNotificationsQuery = useNotifications(wsId, {}, !global);
+  const globalNotificationsQuery = useMyNotifications({}, global);
+  const notificationsQuery = global ? globalNotificationsQuery : workspaceNotificationsQuery;
   const notifications = notificationsQuery.data?.items ?? [];
-  const markOne = useMarkNotificationRead(wsId);
-  const markAll = useMarkAllNotificationsRead(wsId);
-  const sourceLink = (type?: string | null, id?: string | null) => {
+  const markWorkspaceOne = useMarkNotificationRead(wsId);
+  const markGlobalOne = useMarkMyNotificationRead();
+  const markOne = global ? markGlobalOne : markWorkspaceOne;
+  const markWorkspaceAll = useMarkAllNotificationsRead(wsId);
+  const markGlobalAll = useMarkAllMyNotificationsRead();
+  const markAll = global ? markGlobalAll : markWorkspaceAll;
+  const sourceLink = (workspaceId: string, type?: string | null, id?: string | null) => {
     if (!type || !id) return null;
-    if (type === 'Product') return ROUTES.workspaceProductDetail(wsId, id);
-    if (type === 'Asset') return ROUTES.workspaceAssetDetail(wsId, id);
-    if (type === 'StockEntry') return ROUTES.workspaceStockDetail(wsId, id);
-    if (type === 'BorrowOrder') return ROUTES.workspaceBorrowOrderDetail(wsId, id);
+    if (type === 'Product') return ROUTES.workspaceProductDetail(workspaceId, id);
+    if (type === 'Asset') return ROUTES.workspaceAssetDetail(workspaceId, id);
+    if (type === 'StockEntry') return ROUTES.workspaceStockDetail(workspaceId, id);
+    if (type === 'BorrowOrder') return ROUTES.workspaceBorrowOrderDetail(workspaceId, id);
     return null;
   };
   const typeLabel = (type: string) => ({
@@ -38,11 +55,11 @@ export function NotificationsPage() {
   return (
     <PageShell
       title={t('notifications.title', 'Notifications')}
-      description={t('notifications.description', 'Reminders, workflow alerts, and important dates.')}
+      description={global ? 'การแจ้งเตือนจากทุก workspace ของคุณ' : t('notifications.description', 'Reminders, workflow alerts, and important dates.')}
       actions={(
         <Popconfirm
           title={t('notifications.markAllConfirmTitle', 'Mark all notifications as read?')}
-          description={t('notifications.markAllConfirmDescription', 'This will clear the unread state for the current workspace.')}
+          description={global ? 'การทำงานนี้จะล้างสถานะยังไม่อ่านของทุก workspace' : t('notifications.markAllConfirmDescription', 'This will clear the unread state for the current workspace.')}
           okText={t('common.confirm', 'Confirm')}
           cancelText={t('common.cancel', 'Cancel')}
           onConfirm={() => markAll.mutate()}
@@ -75,7 +92,8 @@ export function NotificationsPage() {
                       {notification.type === 'workspace_invite' ? <MailIcon className="h-3.5 w-3.5" /> : <BellIcon className="h-3.5 w-3.5" />}
                       {typeLabel(notification.type)}
                     </p>
-                    {sourceLink(notification.sourceType, notification.sourceId) ? <Link className="text-sm font-medium text-primary hover:underline" to={sourceLink(notification.sourceType, notification.sourceId)!}>{t('common.open', 'เปิดรายการ')}</Link> : null}
+                    {notification.type === 'workspace_invite' ? <Link className="text-sm font-medium text-primary hover:underline" to={ROUTES.invitationsInbox}>{t('members.myInvitations', 'ไปยังคำเชิญของฉัน')}</Link> : null}
+                    {sourceLink(notification.workspaceId, notification.sourceType, notification.sourceId) ? <Link className="text-sm font-medium text-primary hover:underline" to={sourceLink(notification.workspaceId, notification.sourceType, notification.sourceId)!}>{t('common.open', 'เปิดรายการ')}</Link> : null}
                   </div>
                   <Button
                     variant="outline"

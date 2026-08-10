@@ -4,6 +4,7 @@ export const ROUTES = {
   register: '/register',
   invitationsInbox: '/invitations',
   invitationAccept: (token: string) => `/invitations/${encodeURIComponent(token)}`,
+  notifications: '/notifications',
   settings: '/settings',
   workspaces: '/workspaces',
   workspaceNew: '/workspaces/new',

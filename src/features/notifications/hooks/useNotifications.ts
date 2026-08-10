@@ -10,18 +10,19 @@ import {
 } from '@/api/notification.api';
 import { queryKeys } from '@/lib/queryKeys';
 
-export function useNotifications(wsId: string, params: NotificationParams = {}) {
+export function useNotifications(wsId: string, params: NotificationParams = {}, enabled = true) {
   return useQuery({
     queryKey: queryKeys.notifications(wsId),
     queryFn: () => listNotifications(wsId, params),
-    enabled: Boolean(wsId),
+    enabled: Boolean(wsId) && enabled,
   });
 }
 
-export function useMyNotifications(params: NotificationParams = {}) {
+export function useMyNotifications(params: NotificationParams = {}, enabled = true) {
   return useQuery({
     queryKey: queryKeys.myNotifications(),
     queryFn: () => getMyNotifications(params),
+    enabled,
   });
 }
 
