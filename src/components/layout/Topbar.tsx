@@ -6,14 +6,14 @@ import { UserMenu } from '@/components/layout/UserMenu';
 import { Button } from '@/components/ui/button';
 import { BellIcon, MenuIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
-import { useNotifications } from '@/features/notifications/hooks/useNotifications';
+import { useMyNotifications } from '@/features/notifications/hooks/useNotifications';
 import { useI18n } from '@/hooks/useI18n';
 
 export function Topbar() {
   const setSidebarOpen = uiStore((state) => state.setSidebarOpen);
   const { wsId = '' } = useParams();
   const { t } = useI18n();
-  const notificationsQuery = useNotifications(wsId);
+  const notificationsQuery = useMyNotifications();
   const unreadCount = notificationsQuery.data?.unreadCount ?? 0;
 
   return (

@@ -29,6 +29,16 @@ export async function listNotifications(wsId: string, params: NotificationParams
   return response.data.data;
 }
 
+export async function getMyNotifications(params: NotificationParams = {}): Promise<NotificationListResult> {
+  const response = await client.get<ApiResponse<NotificationListResult>>('/notifications/me', {
+    params: {
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+    },
+  });
+  return response.data.data;
+}
+
 export async function markNotificationRead(wsId: string, notificationId: string): Promise<Notification> {
   const response = await client.post<ApiResponse<Notification>>(`/workspaces/${encodeURIComponent(wsId)}/notifications/${encodeURIComponent(notificationId)}/read`);
   return response.data.data;
@@ -36,5 +46,15 @@ export async function markNotificationRead(wsId: string, notificationId: string)
 
 export async function markAllNotificationsRead(wsId: string): Promise<{ success: true }> {
   await client.post(`/workspaces/${encodeURIComponent(wsId)}/notifications/read-all`);
+  return { success: true };
+}
+
+export async function markMyNotificationRead(notificationId: string): Promise<Notification> {
+  const response = await client.post<ApiResponse<Notification>>(`/notifications/me/${encodeURIComponent(notificationId)}/read`);
+  return response.data.data;
+}
+
+export async function markAllMyNotificationsRead(): Promise<{ success: true }> {
+  await client.post('/notifications/me/read-all');
   return { success: true };
 }

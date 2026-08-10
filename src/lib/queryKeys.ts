@@ -39,6 +39,7 @@ export const queryKeys = {
   activity: (wsId: string) => ['ws', wsId, 'activity'] as const,
   reports: (wsId: string) => ['ws', wsId, 'reports'] as const,
   notifications: (wsId: string) => ['ws', wsId, 'notifications'] as const,
+  myNotifications: () => ['notifications', 'me'] as const,
   containers: {
     all: (wsId: string) => ['ws', wsId, 'containers'] as const,
     tree: (wsId: string) => ['ws', wsId, 'containers', 'tree'] as const,
