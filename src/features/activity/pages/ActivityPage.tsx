@@ -6,6 +6,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { ActivityIcon } from '@/components/ui/icons';
+import { Tag } from 'antd';
 import { useI18n } from '@/hooks/useI18n';
 import { useActivity } from '@/features/activity/hooks/useActivity';
 
@@ -14,6 +15,19 @@ export function ActivityPage() {
   const { t } = useI18n();
   const activityQuery = useActivity(wsId, { limit: 20 });
   const events = activityQuery.data?.items ?? [];
+  const eventLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      created: 'สร้างรายการ',
+      updated: 'แก้ไขข้อมูล',
+      moved: 'ย้ายตำแหน่ง',
+      borrowed: 'เบิก/ยืม',
+      returned: 'คืนรายการ',
+      stock_adjusted: 'ปรับ stock',
+      received: 'รับเข้า',
+      disposed: 'จำหน่าย',
+    };
+    return labels[type.toLowerCase()] ?? type;
+  };
 
   return (
     <PageShell title={t('activity.title', 'Activity')} description={t('activity.description', 'All workspace actions in one feed.')}>
@@ -39,10 +53,16 @@ export function ActivityPage() {
           {events.map((event) => (
             <Card key={event.id}>
               <CardContent className="space-y-1 p-4 sm:p-5">
-                <CardTitle className="text-base">{event.type}</CardTitle>
-                <CardDescription>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-base">{eventLabel(event.type)}</CardTitle>
+                <Tag>{event.type}</Tag>
+              </div>
+              <CardDescription>
                   {event.actor.name} · {event.itemId} · {new Date(event.createdAt).toLocaleString()}
-                </CardDescription>
+              </CardDescription>
+              {event.payload ? (
+                <p className="text-xs text-muted-foreground">{Object.entries(event.payload).map(([key, value]) => `${key}: ${String(value)}`).join(' · ')}</p>
+              ) : null}
               </CardContent>
             </Card>
           ))}

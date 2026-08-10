@@ -17,6 +17,7 @@ import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/Cre
 import { BorrowOrderReturnDialog } from '@/features/borrow-orders/components/BorrowOrderReturnDialog';
 import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { EditIcon, OpenIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
+import { PermissionGuard } from '@/components/common/PermissionGuard';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -191,13 +192,17 @@ export function AssetDetailPage() {
                       <div>{t('assets.detail.serialNumber', 'หมายเลขซีเรียล')}: {asset.serialNumber ?? '-'}</div>
                       <div>{t('assets.detail.barcode', 'บาร์โค้ด')}: {asset.barcode ?? '-'}</div>
                       <div>{t('assets.detail.acquiredDate', 'วันที่ได้มา')}: {asset.acquiredDate ? new Date(asset.acquiredDate).toLocaleDateString() : '-'}</div>
+                      <div>{t('assets.detail.expiryDate', 'วันหมดอายุ')}: {asset.expiryDate ? new Date(asset.expiryDate).toLocaleDateString() : '-'}</div>
+                      <div>{t('assets.detail.alertLeadDays', 'แจ้งเตือนล่วงหน้า')}: {asset.alertLeadDays ?? '-'} {t('common.days', 'วัน')}</div>
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">{asset.notes?.trim() ? asset.notes : t('assets.detail.noNotes', 'ไม่มีหมายเหตุ')}</p>
                 </CardContent>
               </Card>
 
-              <AssetPhotoManager wsId={wsId} assetId={asset.id} photos={asset.photos ?? []} />
+              <PermissionGuard perm="asset.manage">
+                <AssetPhotoManager wsId={wsId} assetId={asset.id} photos={asset.photos ?? []} />
+              </PermissionGuard>
 
               <Card>
                 <CardContent className="space-y-4 p-5 sm:p-6">

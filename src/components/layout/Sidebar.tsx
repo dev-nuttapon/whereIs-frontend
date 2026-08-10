@@ -1,6 +1,7 @@
 import { NavLink, useLocation, useParams } from 'react-router-dom';
 import { Menu } from 'antd';
 import { useMemo } from 'react';
+import { ROUTES } from '@/constants/routes';
 import { WORKSPACE_NAV_ITEMS, type NavItem } from '@/constants/navigation';
 import { useI18n } from '@/hooks/useI18n';
 import { workspaceStore } from '@/stores/workspace.store';
@@ -107,6 +108,18 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         <p className="mt-1 text-xs text-muted-foreground">{currentWorkspace?.myRole ?? t('members.role.viewer', 'ผู้ดู')}</p>
       </div>
       <Menu mode="inline" selectable inlineIndent={16} selectedKeys={[selectedKey]} items={menuItems} />
+      <div className="mt-auto border-t border-border/60 p-3">
+        <NavLink
+          to={ROUTES.settings}
+          onClick={onNavigate}
+          className={({ isActive }) => `flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${isActive ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-foreground">
+            <SettingsIcon className="h-3.5 w-3.5" />
+          </span>
+          <span>{t('nav.settings', 'Settings')}</span>
+        </NavLink>
+      </div>
     </aside>
   );
 }
