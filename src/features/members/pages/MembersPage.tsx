@@ -7,7 +7,7 @@ import { Select } from '@/components/ui/select';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
-import { useInvitations, useMembers, useRevokeInvitation, useUpdateMemberRole } from '@/features/members/hooks/useMembers';
+import { useInvitations, useMembers, useRemoveMember, useRevokeInvitation, useUpdateMemberRole } from '@/features/members/hooks/useMembers';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useWorkspace } from '@/features/workspaces/hooks/useWorkspace';
 import { authStore } from '@/stores/auth.store';
@@ -28,6 +28,7 @@ interface MemberRowProps {
 function MemberRow({ wsId, member, isCurrentUser }: MemberRowProps) {
   const { t } = useI18n();
   const updateRole = useUpdateMemberRole(wsId, member.id);
+  const removeMember = useRemoveMember(wsId, member.id);
   const canEditRole = member.role !== 'owner';
 
   return (
@@ -64,6 +65,20 @@ function MemberRow({ wsId, member, isCurrentUser }: MemberRowProps) {
             {t('members.manageAccess', 'Manage access')}
           </Link>
         </Button>
+        {member.role !== 'owner' && !isCurrentUser ? (
+          <Popconfirm
+            title={t('members.removeConfirmTitle', 'ถอดสมาชิกคนนี้ออกจาก workspace?')}
+            description={t('members.removeConfirmDescription', 'สมาชิกจะไม่สามารถเข้าถึง workspace นี้ได้อีก')}
+            okText={t('members.remove', 'ถอดสมาชิก')}
+            cancelText={t('common.cancel', 'ยกเลิก')}
+            okButtonProps={{ danger: true }}
+            onConfirm={() => removeMember.mutate()}
+          >
+            <Button variant="destructive" size="sm" className="w-full sm:w-auto" disabled={removeMember.isPending}>
+              {removeMember.isPending ? t('members.removing', 'กำลังถอด...') : t('members.remove', 'ถอดสมาชิก')}
+            </Button>
+          </Popconfirm>
+        ) : null}
       </div>
     </div>
   );

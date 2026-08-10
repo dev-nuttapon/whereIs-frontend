@@ -9,6 +9,7 @@ import { WorkspaceRoute } from '@/routes/workspace-route';
 import { authStore } from '@/stores/auth.store';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
+import { PermissionGuard } from '@/components/common/PermissionGuard';
 
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
@@ -110,24 +111,24 @@ export function AppRoutes() {
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="search" element={<SearchPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="products/:productId" element={<ProductDetailPage />} />
+              <Route path="products" element={<PermissionGuard perm="product.view"><ProductsPage /></PermissionGuard>} />
+              <Route path="products/:productId" element={<PermissionGuard perm="product.view"><ProductDetailPage /></PermissionGuard>} />
               <Route path="items" element={<LegacyItemsRedirect />} />
               <Route path="items/:itemId" element={<LegacyItemsRedirect />} />
-              <Route path="assets" element={<AssetsPage />} />
-              <Route path="assets/:assetId" element={<AssetDetailPage />} />
-              <Route path="stock" element={<StockPage />} />
-              <Route path="stock/:stockEntryId" element={<StockDetailPage />} />
-              <Route path="containers" element={<ContainersPage />} />
+              <Route path="assets" element={<PermissionGuard perm="asset.view"><AssetsPage /></PermissionGuard>} />
+              <Route path="assets/:assetId" element={<PermissionGuard perm="asset.view"><AssetDetailPage /></PermissionGuard>} />
+              <Route path="stock" element={<PermissionGuard perm="stock.view"><StockPage /></PermissionGuard>} />
+              <Route path="stock/:stockEntryId" element={<PermissionGuard perm="stock.view"><StockDetailPage /></PermissionGuard>} />
+              <Route path="containers" element={<PermissionGuard perm="container.view"><ContainersPage /></PermissionGuard>} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="borrow-orders" element={<BorrowOrdersPage />} />
-              <Route path="borrow-orders/:orderId" element={<BorrowOrderDetailPage />} />
-              <Route path="master-data" element={<MasterDataPage />} />
-              <Route path="containers/:containerId" element={<ContainerDetailPage />} />
-              <Route path="members" element={<MembersPage />} />
-              <Route path="members/:memberId" element={<MemberDetailPage />} />
+              <Route path="borrow-orders" element={<PermissionGuard perm="borrow.view"><BorrowOrdersPage /></PermissionGuard>} />
+              <Route path="borrow-orders/:orderId" element={<PermissionGuard perm="borrow.view"><BorrowOrderDetailPage /></PermissionGuard>} />
+              <Route path="master-data" element={<PermissionGuard perm="category.manage"><MasterDataPage /></PermissionGuard>} />
+              <Route path="containers/:containerId" element={<PermissionGuard perm="container.view"><ContainerDetailPage /></PermissionGuard>} />
+              <Route path="members" element={<PermissionGuard perm="member.view"><MembersPage /></PermissionGuard>} />
+              <Route path="members/:memberId" element={<PermissionGuard perm="member.view"><MemberDetailPage /></PermissionGuard>} />
               <Route path="profile" element={<ProfilePage />} />
             </Route>
           </Route>

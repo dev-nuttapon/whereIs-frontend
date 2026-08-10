@@ -22,6 +22,8 @@ export interface AssetFormValues {
   condition: string;
   notes: string;
   acquiredDate: string;
+  expiryDate: string;
+  alertLeadDays: string;
   status: string;
 }
 
@@ -35,6 +37,8 @@ const EMPTY_VALUES: AssetFormValues = {
   condition: 'Good',
   notes: '',
   acquiredDate: '',
+  expiryDate: '',
+  alertLeadDays: '',
   status: 'Available',
 };
 
@@ -126,6 +130,8 @@ export function AssetFormDialog({
       condition: initialValues?.condition ?? 'Good',
       notes: initialValues?.notes ?? '',
       acquiredDate: initialValues?.acquiredDate ?? '',
+      expiryDate: initialValues?.expiryDate ?? '',
+      alertLeadDays: initialValues?.alertLeadDays?.toString() ?? '',
       status: initialValues?.status ?? 'Available',
     });
   }, [initialValues, locations, open, sites]);
@@ -157,6 +163,8 @@ export function AssetFormDialog({
       condition: values.condition,
       notes: values.notes.trim(),
       acquiredDate: values.acquiredDate.trim(),
+      expiryDate: values.expiryDate.trim(),
+      alertLeadDays: values.alertLeadDays.trim(),
       status: values.status,
     });
   };
@@ -208,6 +216,15 @@ export function AssetFormDialog({
                     </option>
                   ))}
                 </Select>
+              </FormField>
+            </div>
+
+            <div className="grid gap-[18px] sm:grid-cols-2">
+              <FormField label={t('assets.form.expiryDate', 'วันหมดอายุ')} htmlFor="asset-expiry">
+                <Input id="asset-expiry" type="date" value={values.expiryDate} onChange={(event) => setValues((current) => ({ ...current, expiryDate: event.target.value }))} />
+              </FormField>
+              <FormField label={t('assets.form.alertLeadDays', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} htmlFor="asset-alert-days">
+                <Input id="asset-alert-days" type="number" min="0" value={values.alertLeadDays} onChange={(event) => setValues((current) => ({ ...current, alertLeadDays: event.target.value }))} placeholder={t('assets.form.alertLeadDaysPlaceholder', 'ใช้ค่า default ได้')} />
               </FormField>
             </div>
 

@@ -24,6 +24,9 @@ interface StockEntryDto {
   containerId: string | null;
   containerName: string | null;
   quantity: number;
+  lotCode: string | null;
+  expiryDate: string | null;
+  alertLeadDays: number | null;
   createdAt: string;
 }
 
@@ -33,6 +36,9 @@ export interface AdjustStockInput {
   containerId?: string | null;
   delta: number;
   reason?: string | null;
+  lotCode?: string | null;
+  expiryDate?: string | null;
+  alertLeadDays?: number | null;
 }
 
 function toStockEntry(dto: StockEntryDto): StockEntry {
@@ -47,6 +53,9 @@ function toStockEntry(dto: StockEntryDto): StockEntry {
     containerId: dto.containerId ?? undefined,
     containerName: dto.containerName ?? undefined,
     quantity: dto.quantity,
+    lotCode: dto.lotCode ?? undefined,
+    expiryDate: dto.expiryDate ?? undefined,
+    alertLeadDays: dto.alertLeadDays ?? undefined,
     createdAt: dto.createdAt,
   };
 }
@@ -76,6 +85,9 @@ export async function adjustStock(wsId: string, input: AdjustStockInput): Promis
     containerId: input.containerId ?? null,
     delta: input.delta,
     reason: input.reason ?? null,
+    lotCode: input.lotCode ?? null,
+    expiryDate: input.expiryDate ?? null,
+    alertLeadDays: input.alertLeadDays ?? null,
   });
   return toStockEntry(response.data.data);
 }

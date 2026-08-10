@@ -199,6 +199,8 @@ export interface Asset {
   condition: string;
   notes?: string | null;
   acquiredDate?: string | null;
+  expiryDate?: string | null;
+  alertLeadDays?: number | null;
   currentHolderUserId?: string | null;
   photos?: AssetPhoto[];
   photoUrls?: string[];
@@ -252,6 +254,9 @@ export interface StockEntry {
   containerId?: string | null;
   containerName?: string | null;
   quantity: number;
+  lotCode?: string | null;
+  expiryDate?: string | null;
+  alertLeadDays?: number | null;
   createdAt: string;
 }
 

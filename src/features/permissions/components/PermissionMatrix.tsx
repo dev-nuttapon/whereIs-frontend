@@ -13,19 +13,11 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
   {
     title: 'permissions.group.items',
     permissions: [
-      'item.view',
-      'item.create',
-      'item.update',
-      'item.delete',
-      'item.move',
-      'item.borrow',
-      'item.return',
-      'item.withdraw',
-      'item.reserve',
-      'item.mark_missing',
-      'item.mark_found',
-      'item.repair',
-      'item.dispose',
+      'product.view',
+      'product.manage',
+      'asset.view',
+      'asset.manage',
+      'category.manage',
     ],
   },
   {
@@ -42,7 +34,11 @@ const PERMISSION_GROUPS: Array<{ title: string; permissions: PermissionKey[] }> 
   },
   {
     title: 'permissions.group.stock',
-    permissions: ['stock.view', 'stock.consume', 'stock.restock', 'stock.count', 'stock.adjust'],
+    permissions: ['stock.view', 'stock.manage'],
+  },
+  {
+    title: 'permissions.group.borrow',
+    permissions: ['borrow.view', 'borrow.create', 'borrow.approve', 'borrow.checkout', 'borrow.return', 'borrow.cancel'],
   },
   {
     title: 'permissions.group.roles',
@@ -94,8 +90,8 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
   const toggle = (key: PermissionKey) => {
     setOverrides((current) => {
       const next = { ...current, [key]: !current[key] };
-      if (key === 'item.create' && next[key]) {
-        next['item.view'] = true;
+      if (key === 'asset.manage' && next[key]) {
+        next['asset.view'] = true;
       }
       return next;
     });
@@ -221,7 +217,7 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
             {t('permissions.resetDefault')}
           </Button>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Checkbox checked={overrides['item.create'] ? true : false} disabled />
+            <Checkbox checked={overrides['asset.manage'] ? true : false} disabled />
             {t('permissions.implication')}
           </label>
           {permissionsQuery.data?.primaryRole === 'owner' ? (

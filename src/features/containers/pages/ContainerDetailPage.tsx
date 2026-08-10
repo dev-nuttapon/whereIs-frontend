@@ -11,8 +11,8 @@ import { EditIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { useContainer, useContainers, useDeleteContainer, useMoveContainer, useUpdateContainer } from '@/features/containers/hooks/useContainers';
 import { ContainerFormDialog } from '@/features/containers/components/ContainerFormDialog';
-import { CreateItemDialog } from '@/features/items/components/CreateItemDialog';
-import { PlusIcon } from '@/components/ui/icons';
+import { CreateAssetDialog } from '@/features/assets/components/CreateAssetDialog';
+import { PlusIcon, StockIcon } from '@/components/ui/icons';
 import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
@@ -37,7 +37,7 @@ export function ContainerDetailPage() {
     [containersQuery.data],
   );
   const [editOpen, setEditOpen] = useState(false);
-  const [createItemOpen, setCreateItemOpen] = useState(false);
+  const [createAssetOpen, setCreateAssetOpen] = useState(false);
   const updateContainer = useUpdateContainer(wsId, resolvedContainerId);
   const moveContainer = useMoveContainer(wsId, resolvedContainerId);
   const deleteContainer = useDeleteContainer(wsId, resolvedContainerId);
@@ -58,9 +58,13 @@ export function ContainerDetailPage() {
                   <CardDescription>{formatContainerTypeLabel(container?.typeLabel, t('container.detail.itemlist'))}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => setCreateItemOpen(true)} disabled={!container}>
+                  <Button size="sm" onClick={() => setCreateAssetOpen(true)} disabled={!container}>
                     <PlusIcon className="h-4 w-4" />
-                    {t('items.list.create', 'เพิ่มของ')}
+                    {t('assets.create.action', 'เพิ่ม Asset')}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => navigate(`${ROUTES.workspaceStock(wsId)}?containerId=${encodeURIComponent(resolvedContainerId)}`)} disabled={!container}>
+                    <StockIcon className="h-4 w-4" />
+                    {t('stock.adjust.open', 'เพิ่ม Stock')}
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} disabled={!container}>
                     <EditIcon className="h-4 w-4" />
@@ -160,10 +164,10 @@ export function ContainerDetailPage() {
         isSubmitting={updateContainer.isPending || moveContainer.isPending}
       />
 
-      <CreateItemDialog
+      <CreateAssetDialog
         wsId={wsId}
-        open={createItemOpen}
-        onOpenChange={setCreateItemOpen}
+        open={createAssetOpen}
+        onOpenChange={setCreateAssetOpen}
         initialValues={{
           containerId: container?.id ?? undefined,
         }}

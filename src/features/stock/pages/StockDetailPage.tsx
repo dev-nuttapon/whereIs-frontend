@@ -109,6 +109,11 @@ export function StockDetailPage() {
               <StatCard label={t('stock.quantity', 'Quantity')} value={entry.quantity} />
               <StatCard label={t('stock.location', 'Location')} value={entry.locationName ?? entry.containerName ?? '-'} />
               <StatCard label={t('stock.detail.relatedOrders', 'Related orders')} value={relatedOrders.length} />
+              <StatCard label={t('stock.detail.lot', 'Lot / batch')} value={entry.lotCode ?? '-'} />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {t('stock.detail.expiry', 'วันหมดอายุ')}: {entry.expiryDate ? new Date(entry.expiryDate).toLocaleDateString() : '-'}
+              {' · '}{t('stock.detail.alertLeadDays', 'แจ้งเตือนล่วงหน้า')}: {entry.alertLeadDays ?? '-'} {t('common.days', 'วัน')}
             </div>
 
             <div className="flex flex-wrap gap-2">

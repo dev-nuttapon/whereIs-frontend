@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
@@ -16,6 +16,7 @@ import { useProduct } from '@/features/products/hooks/useProducts';
 import { useAssets } from '@/features/assets/hooks/useAssets';
 import { useStockEntries } from '@/features/stock/hooks/useStock';
 import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders';
+import { CreateAssetDialog } from '@/features/assets/components/CreateAssetDialog';
 
 export function ProductDetailPage() {
   const { wsId = '', productId = '' } = useParams();
@@ -27,6 +28,7 @@ export function ProductDetailPage() {
   const borrowOrdersQuery = useBorrowOrders(wsId, { pageSize: 100 });
   const product = productQuery.data ?? null;
   const categories = categoriesQuery.data ?? [];
+  const [createAssetOpen, setCreateAssetOpen] = useState(false);
 
   const categoryNameById = useMemo(
     () => new Map(categories.map((category) => [category.id, category.name] as const)),
@@ -63,6 +65,18 @@ export function ProductDetailPage() {
                     <Tag color={product.trackingType.toLowerCase() === 'stock' ? 'blue' : 'geekblue'}>{product.trackingType}</Tag>
                     <Tag color={product.isActive ? 'green' : 'default'}>{product.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag>
                     <Tag>{categoryNameById.get(product.categoryId ?? '') ?? t('products.noCategory', 'ไม่มีหมวดหมู่')}</Tag>
+                    {product.trackingType.toLowerCase() === 'asset' ? (
+                      <Button size="sm" onClick={() => setCreateAssetOpen(true)}>
+                        {t('assets.create.action', 'เพิ่ม Asset')}
+                      </Button>
+                    ) : null}
+                    {product.trackingType.toLowerCase() === 'stock' ? (
+                      <Button asChild size="sm">
+                        <Link to={`${ROUTES.workspaceStock(wsId)}?productId=${encodeURIComponent(product.id)}`}>
+                          {t('stock.adjust.open', 'เพิ่ม Stock')}
+                        </Link>
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -174,6 +188,13 @@ export function ProductDetailPage() {
           </>
         ) : null}
       </div>
+
+      <CreateAssetDialog
+        wsId={wsId}
+        open={createAssetOpen}
+        onOpenChange={setCreateAssetOpen}
+        initialValues={{ productId }}
+      />
 
     </PageShell>
   );

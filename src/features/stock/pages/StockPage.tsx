@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,10 +34,14 @@ function AdjustStockDialog({
   wsId,
   open,
   onOpenChange,
+  initialContainerId = '',
+  initialProductId = '',
 }: {
   wsId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialContainerId?: string;
+  initialProductId?: string;
 }) {
   const { t } = useI18n();
   const productsQuery = useProducts(wsId);
@@ -44,10 +49,13 @@ function AdjustStockDialog({
   const containersQuery = useContainers(wsId);
   const [siteId, setSiteId] = useState('');
   const [locationId, setLocationId] = useState('');
-  const [containerId, setContainerId] = useState('');
-  const [productId, setProductId] = useState('');
+  const [containerId, setContainerId] = useState(initialContainerId);
+  const [productId, setProductId] = useState(initialProductId);
   const [delta, setDelta] = useState('1');
   const [reason, setReason] = useState('');
+  const [lotCode, setLotCode] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [alertLeadDays, setAlertLeadDays] = useState('');
   const adjust = useAdjustStock(wsId);
 
   const locationQuery = useLocations(wsId, siteId);
@@ -63,6 +71,9 @@ function AdjustStockDialog({
     setProductId('');
     setDelta('1');
     setReason('');
+    setLotCode('');
+    setExpiryDate('');
+    setAlertLeadDays('');
     onOpenChange(false);
   };
 
@@ -123,6 +134,18 @@ function AdjustStockDialog({
             </FormField>
           </div>
 
+          <div className="grid gap-[18px] sm:grid-cols-3">
+            <FormField label={t('stock.adjust.lotCode', 'Lot / batch')} htmlFor="stock-lot-code">
+              <Input id="stock-lot-code" value={lotCode} onChange={(event) => setLotCode(event.target.value)} placeholder={t('stock.adjust.lotCodePlaceholder', 'Optional')} />
+            </FormField>
+            <FormField label={t('stock.adjust.expiryDate', 'วันหมดอายุ')} htmlFor="stock-expiry-date">
+              <Input id="stock-expiry-date" type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} />
+            </FormField>
+            <FormField label={t('stock.adjust.alertLeadDays', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} htmlFor="stock-alert-days">
+              <Input id="stock-alert-days" type="number" min="0" value={alertLeadDays} onChange={(event) => setAlertLeadDays(event.target.value)} />
+            </FormField>
+          </div>
+
           <FormField label={t('stock.adjust.container', 'Container')} htmlFor="stock-container">
             <Select
               id="stock-container"
@@ -162,6 +185,9 @@ function AdjustStockDialog({
                 containerId: containerId || null,
                 delta: Number(delta),
                 reason: reason || null,
+                lotCode: lotCode || null,
+                expiryDate: expiryDate ? new Date(expiryDate).toISOString() : null,
+                alertLeadDays: alertLeadDays ? Number(alertLeadDays) : null,
               });
               resetAndClose();
             }}
@@ -177,8 +203,11 @@ function AdjustStockDialog({
 
 export function StockPage() {
   const { wsId = '' } = useParams();
+  const [searchParams] = useSearchParams();
   const { t } = useI18n();
-  const [adjustOpen, setAdjustOpen] = useState(false);
+  const initialContainerId = searchParams.get('containerId') ?? '';
+  const initialProductId = searchParams.get('productId') ?? '';
+  const [adjustOpen, setAdjustOpen] = useState(Boolean(initialContainerId || initialProductId));
   const [borrowOpen, setBorrowOpen] = useState(false);
   const [borrowDefaults, setBorrowDefaults] = useState<{ productId?: string | null; stockEntryId?: string | null } | null>(null);
   const productsQuery = useProducts(wsId);
@@ -267,7 +296,7 @@ export function StockPage() {
         </div>
       )}
 
-      <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} />
+      <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} initialContainerId={initialContainerId} initialProductId={initialProductId} />
       <CreateBorrowOrderDialog
         wsId={wsId}
         open={borrowOpen}

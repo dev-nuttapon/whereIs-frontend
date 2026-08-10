@@ -23,6 +23,8 @@ function toFormValues(asset: Asset): Partial<AssetFormValues> {
     condition: asset.condition,
     notes: asset.notes ?? '',
     acquiredDate: asset.acquiredDate ? asset.acquiredDate.slice(0, 10) : '',
+    expiryDate: asset.expiryDate ? asset.expiryDate.slice(0, 10) : '',
+    alertLeadDays: asset.alertLeadDays?.toString() ?? '',
     status: asset.status,
   };
 }
@@ -52,6 +54,8 @@ export function UpdateAssetDialog({ wsId, asset, open, onOpenChange }: UpdateAss
           condition: values.condition || null,
           notes: values.notes || null,
           acquiredDate: values.acquiredDate ? new Date(values.acquiredDate).toISOString() : null,
+          expiryDate: values.expiryDate ? new Date(values.expiryDate).toISOString() : null,
+          alertLeadDays: values.alertLeadDays ? Number(values.alertLeadDays) : null,
         });
         onOpenChange(false);
       }}

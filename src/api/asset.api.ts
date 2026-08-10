@@ -28,6 +28,8 @@ interface AssetDto {
   condition: string;
   notes: string | null;
   acquiredDate: string | null;
+  expiryDate: string | null;
+  alertLeadDays: number | null;
   currentHolderUserId: string | null;
   photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
   createdAt: string;
@@ -42,6 +44,8 @@ export interface CreateAssetInput {
   condition?: string | null;
   notes?: string | null;
   acquiredDate?: string | null;
+  expiryDate?: string | null;
+  alertLeadDays?: number | null;
 }
 
 export interface UpdateAssetInput {
@@ -53,6 +57,8 @@ export interface UpdateAssetInput {
   condition?: string | null;
   notes?: string | null;
   acquiredDate?: string | null;
+  expiryDate?: string | null;
+  alertLeadDays?: number | null;
 }
 
 function toAsset(dto: AssetDto): Asset {
@@ -78,6 +84,8 @@ function toAsset(dto: AssetDto): Asset {
     condition: dto.condition,
     notes: dto.notes ?? undefined,
     acquiredDate: dto.acquiredDate ?? undefined,
+    expiryDate: dto.expiryDate ?? undefined,
+    alertLeadDays: dto.alertLeadDays ?? undefined,
     currentHolderUserId: dto.currentHolderUserId ?? undefined,
     photos,
     photoUrls: photos.map((photo) => photo.url),
@@ -118,6 +126,8 @@ export async function createAsset(wsId: string, input: CreateAssetInput): Promis
     condition: input.condition ?? 'Good',
     notes: input.notes ?? null,
     acquiredDate: input.acquiredDate ?? null,
+    expiryDate: input.expiryDate ?? null,
+    alertLeadDays: input.alertLeadDays ?? null,
   });
   return toAsset(response.data.data);
 }
@@ -132,6 +142,8 @@ export async function updateAsset(wsId: string, id: string, input: UpdateAssetIn
     condition: input.condition ?? null,
     notes: input.notes ?? null,
     acquiredDate: input.acquiredDate ?? null,
+    expiryDate: input.expiryDate ?? null,
+    alertLeadDays: input.alertLeadDays ?? null,
   });
   return toAsset(response.data.data);
 }
