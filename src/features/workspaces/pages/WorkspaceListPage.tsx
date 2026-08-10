@@ -10,6 +10,7 @@ import { useWorkspaces } from '@/features/workspaces/hooks/useWorkspaces';
 import { useMyInvitations } from '@/features/members/hooks/useMembers';
 import { useI18n } from '@/hooks/useI18n';
 import { DashboardIcon, MailIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
+import { WorkspaceSelectPageShell } from '@/components/common/WorkspaceSelectPageShell';
 
 export function WorkspaceListPage() {
   const workspacesQuery = useWorkspaces();
@@ -20,7 +21,7 @@ export function WorkspaceListPage() {
   const pendingInvitations = (invitationsQuery.data ?? []).filter((invitation) => invitation.status.toLowerCase() === 'pending');
 
   return (
-    <div className="component-stack-lg">
+    <WorkspaceSelectPageShell>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
           <p className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t('workspace.list.title')}</p>
@@ -104,6 +105,6 @@ export function WorkspaceListPage() {
           </div>
         </section>
       ) : null}
-    </div>
+    </WorkspaceSelectPageShell>
   );
 }

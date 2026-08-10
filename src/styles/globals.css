@@ -164,6 +164,33 @@
     gap: 18px;
   }
 
+  .workspace-select-frame {
+    width: 100%;
+  }
+
+  .workspace-select-content {
+    padding-block: 0.5rem 1rem;
+  }
+
+  .workspace-select-content > .flex.flex-col.gap-4 {
+    gap: 1rem;
+  }
+
+  .workspace-form-card {
+    border-color: hsl(var(--border) / 0.7);
+    border-radius: 1.5rem;
+    background: hsl(var(--card) / 0.92);
+    box-shadow: 0 22px 55px -44px rgb(15 23 42 / 0.55);
+  }
+
+  .workspace-form {
+    max-width: 40rem;
+  }
+
+  .workspace-form .form-actions {
+    margin-top: 0.25rem;
+  }
+
   .component-cluster {
     display: flex;
     flex-wrap: wrap;

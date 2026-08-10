@@ -44,7 +44,7 @@ export function WorkspaceSelectLayout({ children }: WorkspaceSelectLayoutProps) 
             <UserMenu />
           </div>
         </header>
-        {children}
+        <div className="workspace-select-frame">{children}</div>
       </div>
     </div>
   );

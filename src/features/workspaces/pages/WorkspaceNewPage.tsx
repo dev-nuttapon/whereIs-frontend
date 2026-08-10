@@ -11,6 +11,7 @@ import { useCreateWorkspace } from '@/features/workspaces/hooks/useCreateWorkspa
 import { useI18n } from '@/hooks/useI18n';
 import { PlusIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
+import { WorkspaceSelectPageShell } from '@/components/common/WorkspaceSelectPageShell';
 
 export function WorkspaceNewPage() {
   const createWorkspaceMutation = useCreateWorkspace();
@@ -32,14 +33,14 @@ export function WorkspaceNewPage() {
   });
 
   return (
-    <div className="component-stack">
-      <Card>
-        <CardContent className="component-stack p-5 sm:p-7">
-          <div className="space-y-1.5">
+    <WorkspaceSelectPageShell className="mx-auto w-full max-w-2xl">
+      <Card className="workspace-form-card">
+        <CardContent className="component-stack p-5 sm:p-7 lg:p-8">
+          <div className="space-y-2">
             <CardTitle className="text-xl tracking-tight">{t('workspace.new.title')}</CardTitle>
             <CardDescription>{t('workspace.new.description')}</CardDescription>
           </div>
-          <form className="component-stack" onSubmit={onSubmit}>
+            <form className="component-stack workspace-form" onSubmit={onSubmit}>
             <FormField label={t('workspace.new.label')} htmlFor="name" error={errors.name?.message}>
               <Controller
                 name="name"
@@ -68,6 +69,6 @@ export function WorkspaceNewPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </WorkspaceSelectPageShell>
   );
 }
