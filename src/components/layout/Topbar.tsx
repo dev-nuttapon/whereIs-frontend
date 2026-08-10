@@ -1,12 +1,20 @@
+import { Link, useParams } from 'react-router-dom';
 import { uiStore } from '@/stores/ui.store';
 import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
 import { GlobalSearchBar } from '@/components/layout/GlobalSearchBar';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { Button } from '@/components/ui/button';
-import { MenuIcon } from '@/components/ui/icons';
+import { BellIcon, MenuIcon } from '@/components/ui/icons';
+import { ROUTES } from '@/constants/routes';
+import { useNotifications } from '@/features/notifications/hooks/useNotifications';
+import { useI18n } from '@/hooks/useI18n';
 
 export function Topbar() {
   const setSidebarOpen = uiStore((state) => state.setSidebarOpen);
+  const { wsId = '' } = useParams();
+  const { t } = useI18n();
+  const notificationsQuery = useNotifications(wsId);
+  const unreadCount = (notificationsQuery.data?.items ?? []).filter((notification) => !notification.readAt).length;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/92 px-3 py-2.5 backdrop-blur-xl sm:px-5 lg:px-8">
@@ -31,6 +39,21 @@ export function Topbar() {
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="relative h-10 w-10 rounded-full border-border/70 bg-background p-0 shadow-none"
+          >
+            <Link to={ROUTES.workspaceNotifications(wsId)} aria-label={t('notifications.title', 'Notifications')} title={t('notifications.title', 'Notifications')}>
+              <BellIcon className="h-4 w-4 text-teal-700" />
+              {unreadCount > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-600 px-1 text-[0.65rem] font-semibold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : null}
+            </Link>
+          </Button>
           <UserMenu />
         </div>
       </div>
