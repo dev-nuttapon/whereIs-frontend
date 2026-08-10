@@ -145,15 +145,15 @@ export function ContainerFormDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="component-stack px-5 pb-5 sm:px-6">
-            <FormField label={t('containers.create.location', 'Location')} htmlFor="container-location">
+            <FormField label={t('containers.create.location', 'สถานที่')} htmlFor="container-location">
               <Select
                 id="container-location"
                 value={values.locationId}
                 onChange={(event) => setValues((current) => ({ ...current, locationId: event.target.value }))}
                 className="w-full"
-                placeholder={t('containers.create.locationPlaceholder', 'Select location (optional)')}
+                placeholder={t('containers.create.locationPlaceholder', 'เลือกสถานที่ (ไม่บังคับ)')}
               >
-                <option value="">{t('containers.create.locationPlaceholder', 'Select location (optional)')}</option>
+                <option value="">{t('containers.create.locationPlaceholder', 'เลือกสถานที่ (ไม่บังคับ)')}</option>
                 {locationOptions.map((location) => (
                   <option key={location.value} value={location.value}>
                     {location.label}
@@ -182,18 +182,18 @@ export function ContainerFormDialog({
             </FormField>
             {showParentSelector ? (
               <FormField
-                label={t('containers.create.parent', 'Parent container')}
+                label={t('containers.create.parent', 'คอนเทนเนอร์แม่')}
                 htmlFor="container-parent"
-                description={t('containers.create.parentHelp', 'Leave blank to create a top-level container.')}
+                description={t('containers.create.parentHelp', 'ปล่อยว่างเพื่อสร้างคอนเทนเนอร์ระดับบนสุด')}
               >
                 <Select
                   id="container-parent"
                   value={values.parentContainerId}
                   onChange={(event) => setValues((current) => ({ ...current, parentContainerId: event.target.value }))}
                   className="w-full"
-                  placeholder={t('containers.create.parentPlaceholder', 'Select parent container (optional)')}
+                  placeholder={t('containers.create.parentPlaceholder', 'เลือกคอนเทนเนอร์แม่ (ไม่บังคับ)')}
                 >
-                  <option value="">{t('containers.create.parentRoot', 'Top-level container')}</option>
+                  <option value="">{t('containers.create.parentRoot', 'คอนเทนเนอร์ระดับบนสุด')}</option>
                   {containerOptions.map((container) => (
                     <option key={container.value} value={container.value}>
                       {container.label}
@@ -223,7 +223,7 @@ export function ContainerFormDialog({
               </FormField>
             </div>
 
-            <FormField label={t('containers.create.photoUrl', 'Photo URL')} htmlFor="container-photo">
+            <FormField label={t('containers.create.photoUrl', 'URL รูปภาพ')} htmlFor="container-photo">
               <Input
                 id="container-photo"
                 value={values.photoUrl}

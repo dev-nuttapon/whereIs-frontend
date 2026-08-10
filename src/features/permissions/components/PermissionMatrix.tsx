@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { useMemberPermissions, useUpdatePermissions } from '@/features/permissions/hooks/usePermissions';
 import { useContainers } from '@/features/containers/hooks/useContainers';
+import { formatContainerTypeLabel } from '@/features/containers/utils/containerLabels';
 import { useI18n } from '@/hooks/useI18n';
 import type { PermissionKey } from '@/types/permission.types';
 
@@ -203,7 +204,7 @@ export function PermissionMatrix({ wsId, memberId }: PermissionMatrixProps) {
                       />
                       <span className="min-w-0">
                         <span className="block truncate font-medium">{container.name}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{container.typeLabel}</span>
+                        <span className="block truncate text-xs text-muted-foreground">{formatContainerTypeLabel(container.typeLabel)}</span>
                       </span>
                     </label>
                   ))}

@@ -41,7 +41,7 @@ export function LoginPage() {
       });
       navigate(ROUTES.workspaces, { replace: true });
     } catch {
-      setError(t('auth.login.errorDescription', 'Check your email and password, then try again.'));
+      setError(t('auth.login.errorDescription', 'ตรวจสอบอีเมลและรหัสผ่านแล้วลองอีกครั้ง'));
     } finally {
       setSubmitting(false);
     }

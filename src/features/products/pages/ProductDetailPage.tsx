@@ -42,13 +42,13 @@ export function ProductDetailPage() {
 
   return (
     <PageShell
-      title={t('products.detail.title', 'Product detail')}
-      description={t('products.detail.description', 'View the product master record and its downstream usage in assets, stock, and borrow flows.')}
+      title={t('products.detail.title', 'รายละเอียดสินค้า')}
+      description={t('products.detail.description', 'ดูข้อมูลสินค้าหลักและการใช้งานในทรัพย์สิน สต็อก และรายการยืม')}
     >
       <div className="component-stack">
         {productQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-        {productQuery.isError ? <ErrorState message={t('products.detail.error', 'Unable to load product.')} onRetry={() => productQuery.refetch()} /> : null}
-        {categoriesQuery.isError ? <ErrorState message={t('products.categoriesLoadError', 'Unable to load categories.')} onRetry={() => categoriesQuery.refetch()} /> : null}
+        {productQuery.isError ? <ErrorState message={t('products.detail.error', 'ไม่สามารถโหลดสินค้าได้')} onRetry={() => productQuery.refetch()} /> : null}
+        {categoriesQuery.isError ? <ErrorState message={t('products.categoriesLoadError', 'ไม่สามารถโหลดหมวดหมู่ได้')} onRetry={() => categoriesQuery.refetch()} /> : null}
 
         {product ? (
           <>
@@ -61,8 +61,8 @@ export function ProductDetailPage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Tag color={product.trackingType.toLowerCase() === 'stock' ? 'blue' : 'geekblue'}>{product.trackingType}</Tag>
-                    <Tag color={product.isActive ? 'green' : 'default'}>{product.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Tag>
-                    <Tag>{categoryNameById.get(product.categoryId ?? '') ?? t('products.noCategory', 'No category')}</Tag>
+                    <Tag color={product.isActive ? 'green' : 'default'}>{product.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag>
+                    <Tag>{categoryNameById.get(product.categoryId ?? '') ?? t('products.noCategory', 'ไม่มีหมวดหมู่')}</Tag>
                   </div>
                 </div>
 
@@ -73,25 +73,25 @@ export function ProductDetailPage() {
                 ) : null}
 
                 <div className="grid gap-[18px] md:grid-cols-3">
-                  <StatCard label={t('products.stats.asset', 'Assets')} value={assetCount} />
-                  <StatCard label={t('products.stats.stock', 'Stock')} value={stockCount} />
-                  <StatCard label={t('products.detail.minStockAlert', 'Min alert')} value={product.minStockAlert ?? '-'} />
+                  <StatCard label={t('products.stats.asset', 'ทรัพย์สิน')} value={assetCount} />
+                  <StatCard label={t('products.stats.stock', 'สต็อก')} value={stockCount} />
+                  <StatCard label={t('products.detail.minStockAlert', 'แจ้งเตือนขั้นต่ำ')} value={product.minStockAlert ?? '-'} />
                 </div>
 
                 <div className="grid gap-[18px] md:grid-cols-2">
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('products.detail.metadata', 'Metadata')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('products.detail.unitCode', 'Unit')}: {product.unitCode ?? '-'}</p>
-                      <p className="text-sm text-muted-foreground">{t('products.detail.code', 'Code')}: {product.code ?? '-'}</p>
+                      <CardTitle className="text-sm">{t('products.detail.metadata', 'ข้อมูลประกอบ')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('products.detail.unitCode', 'หน่วย')}: {product.unitCode ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('products.detail.code', 'รหัส')}: {product.code ?? '-'}</p>
                       <p className="text-sm text-muted-foreground">{t('products.detail.sku', 'SKU')}: {product.sku ?? '-'}</p>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('products.detail.description', 'Description')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{product.description?.trim() ? product.description : t('products.detail.noDescription', 'No description')}</p>
-                      <p className="text-sm text-muted-foreground">{t('products.detail.category', 'Category')}: {categoryNameById.get(product.categoryId ?? '') ?? t('products.noCategory', 'No category')}</p>
+                      <CardTitle className="text-sm">{t('products.detail.description', 'คำอธิบาย')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{product.description?.trim() ? product.description : t('products.detail.noDescription', 'ไม่มีคำอธิบาย')}</p>
+                      <p className="text-sm text-muted-foreground">{t('products.detail.category', 'หมวดหมู่')}: {categoryNameById.get(product.categoryId ?? '') ?? t('products.noCategory', 'ไม่มีหมวดหมู่')}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -100,40 +100,40 @@ export function ProductDetailPage() {
 
             <Card>
               <CardContent className="space-y-3 p-5 sm:p-6">
-                <CardTitle className="text-base">{t('products.detail.downstream', 'Downstream usage')}</CardTitle>
+                <CardTitle className="text-base">{t('products.detail.downstream', 'การใช้งานต่อเนื่อง')}</CardTitle>
                 <div className="grid gap-[18px] md:grid-cols-3">
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('products.detail.assetUsage', 'Assets')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('products.detail.assetUsageDescription', 'Assets linked to this product can be managed from the Assets page.')}</p>
+                      <CardTitle className="text-sm">{t('products.detail.assetUsage', 'ทรัพย์สิน')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('products.detail.assetUsageDescription', 'จัดการทรัพย์สินที่เชื่อมโยงกับสินค้านี้ได้จากหน้า Assets')}</p>
                       <Button asChild variant="outline" size="sm" className="mt-2 rounded-full">
                         <Link to={ROUTES.workspaceAssets(wsId)}>
                           <OpenIcon className="h-4 w-4" />
-                          {t('assets.title', 'Assets')}
+                          {t('assets.title', 'ทรัพย์สิน')}
                         </Link>
                       </Button>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('products.detail.stockUsage', 'Stock')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('products.detail.stockUsageDescription', 'Stock entries linked to this product can be adjusted from the Stock page.')}</p>
+                      <CardTitle className="text-sm">{t('products.detail.stockUsage', 'สต็อก')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('products.detail.stockUsageDescription', 'ปรับรายการสต็อกที่เชื่อมโยงกับสินค้านี้ได้จากหน้า Stock')}</p>
                       <Button asChild variant="outline" size="sm" className="mt-2 rounded-full">
                         <Link to={ROUTES.workspaceStock(wsId)}>
                           <OpenIcon className="h-4 w-4" />
-                          {t('stock.title', 'Stock')}
+                          {t('stock.title', 'สต็อก')}
                         </Link>
                       </Button>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('products.detail.borrowUsage', 'Borrow')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('products.detail.borrowUsageDescription', 'Borrow orders that reference this product appear in the borrow flow.')}</p>
+                      <CardTitle className="text-sm">{t('products.detail.borrowUsage', 'การยืม')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('products.detail.borrowUsageDescription', 'รายการยืมที่อ้างอิงสินค้านี้จะแสดงในขั้นตอนการยืม')}</p>
                       <Button asChild variant="outline" size="sm" className="mt-2 rounded-full">
                         <Link to={ROUTES.workspaceBorrowOrders(wsId)}>
                           <OpenIcon className="h-4 w-4" />
-                          {t('borrowOrders.title', 'Borrow orders')}
+                          {t('borrowOrders.title', 'รายการยืม')}
                         </Link>
                       </Button>
                     </CardContent>
@@ -141,11 +141,11 @@ export function ProductDetailPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <CardTitle className="text-sm">{t('products.detail.borrowOrders', 'Borrow orders')}</CardTitle>
+                  <CardTitle className="text-sm">{t('products.detail.borrowOrders', 'รายการยืม')}</CardTitle>
                   {linkedBorrowOrders.length === 0 ? (
                     <EmptyState
-                      title={t('products.detail.noBorrowOrdersTitle', 'No borrow orders yet')}
-                      description={t('products.detail.noBorrowOrdersDescription', 'Borrow orders that use this product will appear here after the first request.')}
+                      title={t('products.detail.noBorrowOrdersTitle', 'ยังไม่มีรายการยืม')}
+                      description={t('products.detail.noBorrowOrdersDescription', 'รายการยืมที่ใช้สินค้านี้จะแสดงที่นี่หลังจากมีคำขอแรก')}
                       icon={<ItemIcon className="h-5 w-5" />}
                     />
                   ) : (
@@ -160,7 +160,7 @@ export function ProductDetailPage() {
                             <Button asChild variant="outline" size="sm" className="rounded-full">
                               <Link to={ROUTES.workspaceBorrowOrderDetail(wsId, order.id)}>
                                 <OpenIcon className="h-4 w-4" />
-                                {t('common.open', 'Open')}
+                                {t('common.open', 'เปิด')}
                               </Link>
                             </Button>
                           </div>

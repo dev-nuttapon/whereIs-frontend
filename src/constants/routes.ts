@@ -27,7 +27,6 @@ export const ROUTES = {
   workspaceMemberDetail: (wsId: string, memberId: string) => `/w/${wsId}/members/${memberId}`,
   workspaceContainerDetail: (wsId: string, containerId: string) => `/w/${wsId}/containers/${containerId}`,
   workspaceMembers: (wsId: string) => `/w/${wsId}/members`,
-  workspaceSettings: (wsId: string) => `/w/${wsId}/settings`,
   workspaceItemDetail: (wsId: string, itemId: string) => `/w/${wsId}/items/${encodeURIComponent(itemId)}`,
   notFound: '*',
 } as const;

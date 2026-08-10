@@ -77,17 +77,17 @@ export function BorrowOrderDetailPage() {
 
   return (
     <PageShell
-      title={t('borrowOrders.detail.title', 'Borrow order detail')}
-      description={t('borrowOrders.detail.description', 'View the order, review each line, and continue the workflow here.')}
+      title={t('borrowOrders.detail.title', 'รายละเอียดรายการยืม')}
+      description={t('borrowOrders.detail.description', 'ดูรายการ ตรวจสอบแต่ละบรรทัด และดำเนิน workflow ต่อได้ในหน้านี้')}
       actions={order ? (
         <Button variant="outline" onClick={() => navigate(ROUTES.workspaceBorrowOrders(wsId))}>
           <OpenIcon className="h-4 w-4" />
-          {t('borrowOrders.detail.back', 'Back to list')}
+          {t('borrowOrders.detail.back', 'กลับไปที่รายการ')}
         </Button>
       ) : undefined}
     >
       {orderQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-      {orderQuery.isError ? <ErrorState message={t('borrowOrders.detail.loadError', 'Unable to load borrow order.')} onRetry={() => orderQuery.refetch()} /> : null}
+      {orderQuery.isError ? <ErrorState message={t('borrowOrders.detail.loadError', 'ไม่สามารถโหลดรายการยืมได้')} onRetry={() => orderQuery.refetch()} /> : null}
 
       {order ? (
         <div className="component-stack">
@@ -95,7 +95,7 @@ export function BorrowOrderDetailPage() {
             <CardContent className="space-y-4 p-5 sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'Borrow order')}</CardTitle>
+                  <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'รายการยืม')}</CardTitle>
                   <CardDescription>{order.id}</CardDescription>
                 </div>
                 <Tag color={statusColor(order.status)}>{order.status}</Tag>
@@ -104,37 +104,37 @@ export function BorrowOrderDetailPage() {
               <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('borrowOrders.requestedBy', 'Requested by')}</CardTitle>
+                    <CardTitle className="text-sm">{t('borrowOrders.requestedBy', 'ผู้ขอ')}</CardTitle>
                     <p className="text-sm text-muted-foreground">{order.requestedBy}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('borrowOrders.needByDate', 'Need by')}</CardTitle>
+                    <CardTitle className="text-sm">{t('borrowOrders.needByDate', 'ต้องการใช้ภายใน')}</CardTitle>
                     <p className="text-sm text-muted-foreground">{formatDate(order.needByDate)}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('borrowOrders.returnByDate', 'Return by')}</CardTitle>
+                    <CardTitle className="text-sm">{t('borrowOrders.returnByDate', 'กำหนดคืน')}</CardTitle>
                     <p className="text-sm text-muted-foreground">{formatDate(order.returnByDate)}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('borrowOrders.requiresApproval', 'Requires approval')}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{order.requiresApproval ? t('common.yes', 'Yes') : t('common.no', 'No')}</p>
+                    <CardTitle className="text-sm">{t('borrowOrders.requiresApproval', 'ต้องอนุมัติ')}</CardTitle>
+                    <p className="text-sm text-muted-foreground">{order.requiresApproval ? t('common.yes', 'ใช่') : t('common.no', 'ไม่ใช่')}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('borrowOrders.approvedBy', 'Approved by')}</CardTitle>
+                    <CardTitle className="text-sm">{t('borrowOrders.approvedBy', 'ผู้อนุมัติ')}</CardTitle>
                     <p className="text-sm text-muted-foreground">{order.approvedBy ?? '-'}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('borrowOrders.reviewNote', 'Review note')}</CardTitle>
+                    <CardTitle className="text-sm">{t('borrowOrders.reviewNote', 'หมายเหตุการตรวจสอบ')}</CardTitle>
                     <p className="text-sm text-muted-foreground">{order.reviewNote ?? '-'}</p>
                   </CardContent>
                 </Card>
@@ -145,31 +145,31 @@ export function BorrowOrderDetailPage() {
           <Card>
             <CardContent className="space-y-4 p-5 sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle className="text-base">{t('borrowOrders.linesTitle', 'Lines')}</CardTitle>
+                <CardTitle className="text-base">{t('borrowOrders.linesTitle', 'รายการย่อย')}</CardTitle>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Input
                     value={lineSearch}
                     onChange={(event) => setLineSearch(event.target.value)}
-                    placeholder={t('borrowOrders.detail.lineSearchPlaceholder', 'Search line')}
+                    placeholder={t('borrowOrders.detail.lineSearchPlaceholder', 'ค้นหารายการ')}
                     className="rounded-full"
                   />
                   <Select value={lineKind} onChange={(event) => setLineKind(event.target.value as 'all' | 'asset' | 'stock')} className="w-full">
-                    <option value="all">{t('borrowOrders.detail.allLines', 'All lines')}</option>
-                    <option value="asset">{t('borrowOrders.assetLine', 'Asset line')}</option>
-                    <option value="stock">{t('borrowOrders.stockLine', 'Stock line')}</option>
+                    <option value="all">{t('borrowOrders.detail.allLines', 'ทั้งหมด')}</option>
+                    <option value="asset">{t('borrowOrders.assetLine', 'รายการทรัพย์สิน')}</option>
+                    <option value="stock">{t('borrowOrders.stockLine', 'รายการสต็อก')}</option>
                   </Select>
                 </div>
               </div>
 
               {lines.length === 0 ? (
                 <EmptyState
-                  title={t('borrowOrders.emptyLinesTitle', 'No lines')}
-                  description={t('borrowOrders.emptyLinesDescription', 'This order does not contain any borrow lines.')}
+                  title={t('borrowOrders.emptyLinesTitle', 'ยังไม่มีรายการย่อย')}
+                  description={t('borrowOrders.emptyLinesDescription', 'รายการนี้ยังไม่มี borrow line')}
                 />
               ) : filteredLines.length === 0 ? (
                 <EmptyState
-                  title={t('borrowOrders.detail.noFilteredLinesTitle', 'No matching lines')}
-                  description={t('borrowOrders.detail.noFilteredLinesDescription', 'Try a different search term or line type filter.')}
+                  title={t('borrowOrders.detail.noFilteredLinesTitle', 'ไม่พบรายการที่ตรงกัน')}
+                  description={t('borrowOrders.detail.noFilteredLinesDescription', 'ลองเปลี่ยนคำค้นหรือชนิด line')}
                 />
               ) : (
                 <div className="component-stack">
@@ -179,18 +179,18 @@ export function BorrowOrderDetailPage() {
                         <div className="space-y-1">
                           <p className="text-sm font-medium">{formatLineLabel(line)}</p>
                           <p className="text-xs text-muted-foreground">
-                            {line.assetId ? t('borrowOrders.assetLine', 'Asset line') : t('borrowOrders.stockLine', 'Stock line')}
+                            {line.assetId ? t('borrowOrders.assetLine', 'รายการทรัพย์สิน') : t('borrowOrders.stockLine', 'รายการสต็อก')}
                           </p>
                         </div>
                         <Tag color={statusColor(line.status)}>{line.status}</Tag>
                       </div>
                       <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 xl:grid-cols-3">
-                        <p>{t('borrowOrders.line.assetId', 'Asset ID')}: {line.assetId ?? '-'}</p>
-                        <p>{t('borrowOrders.line.productId', 'Product ID')}: {line.productId ?? '-'}</p>
-                        <p>{t('borrowOrders.line.stockEntryId', 'Stock entry ID')}: {line.stockEntryId ?? '-'}</p>
-                        <p>{t('borrowOrders.line.quantity', 'Quantity')}: {line.quantity ?? '-'}</p>
-                        <p>{t('borrowOrders.line.returnedQuantity', 'Returned')}: {line.returnedQuantity ?? 0}</p>
-                        <p>{t('borrowOrders.line.returnedAt', 'Returned at')}: {line.returnedAt ? formatDate(line.returnedAt) : '-'}</p>
+                        <p>{t('borrowOrders.line.assetId', 'รหัสทรัพย์สิน')}: {line.assetId ?? '-'}</p>
+                        <p>{t('borrowOrders.line.productId', 'รหัสสินค้า')}: {line.productId ?? '-'}</p>
+                        <p>{t('borrowOrders.line.stockEntryId', 'รหัส stock entry')}: {line.stockEntryId ?? '-'}</p>
+                        <p>{t('borrowOrders.line.quantity', 'จำนวน')}: {line.quantity ?? '-'}</p>
+                        <p>{t('borrowOrders.line.returnedQuantity', 'คืนแล้ว')}: {line.returnedQuantity ?? 0}</p>
+                        <p>{t('borrowOrders.line.returnedAt', 'คืนเมื่อ')}: {line.returnedAt ? formatDate(line.returnedAt) : '-'}</p>
                       </div>
                     </div>
                   ))}
@@ -201,36 +201,36 @@ export function BorrowOrderDetailPage() {
 
           <Card>
             <CardContent className="space-y-4 p-5 sm:p-6">
-              <CardTitle className="text-base">{t('borrowOrders.actionsTitle', 'Actions')}</CardTitle>
+              <CardTitle className="text-base">{t('borrowOrders.actionsTitle', 'การดำเนินการ')}</CardTitle>
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {isPendingApproval ? (
                   <>
                     <Popconfirm
-                      title={t('borrowOrders.approveConfirmTitle', 'Approve this borrow order?')}
-                      description={t('borrowOrders.approveConfirmDescription', 'Approved orders can be checked out next.')}
-                      okText={t('borrowOrders.approve', 'Approve')}
-                      cancelText={t('common.cancel', 'Cancel')}
+                      title={t('borrowOrders.approveConfirmTitle', 'อนุมัติรายการยืมนี้?')}
+                      description={t('borrowOrders.approveConfirmDescription', 'รายการที่อนุมัติแล้วจะดำเนินเช็คเอาต์ต่อได้')}
+                      okText={t('borrowOrders.approve', 'อนุมัติ')}
+                      cancelText={t('common.cancel', 'ยกเลิก')}
                       onConfirm={async () => {
                         await approve.mutateAsync({});
                       }}
                     >
                       <Button className="rounded-full" disabled={approve.isPending}>
                         <TakeOutIcon className="h-4 w-4" />
-                        {approve.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.approve', 'Approve')}
+                        {approve.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.approve', 'อนุมัติ')}
                       </Button>
                     </Popconfirm>
                     <Popconfirm
-                      title={t('borrowOrders.rejectConfirmTitle', 'Reject this borrow order?')}
-                      description={t('borrowOrders.rejectConfirmDescription', 'Rejected orders will not be checked out.')}
-                      okText={t('borrowOrders.reject', 'Reject')}
-                      cancelText={t('common.cancel', 'Cancel')}
+                      title={t('borrowOrders.rejectConfirmTitle', 'ปฏิเสธรายการยืมนี้?')}
+                      description={t('borrowOrders.rejectConfirmDescription', 'รายการที่ปฏิเสธจะไม่ถูกเช็คเอาต์')}
+                      okText={t('borrowOrders.reject', 'ปฏิเสธ')}
+                      cancelText={t('common.cancel', 'ยกเลิก')}
                       okButtonProps={{ danger: true }}
                       onConfirm={async () => {
                         await reject.mutateAsync({});
                       }}
                     >
                       <Button variant="outline" className="rounded-full" disabled={reject.isPending}>
-                        {reject.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.reject', 'Reject')}
+                        {reject.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.reject', 'ปฏิเสธ')}
                       </Button>
                     </Popconfirm>
                   </>
@@ -238,16 +238,16 @@ export function BorrowOrderDetailPage() {
 
                 {isApproved ? (
                   <Popconfirm
-                    title={t('borrowOrders.checkoutConfirmTitle', 'Check out this borrow order?')}
-                    description={t('borrowOrders.checkoutConfirmDescription', 'Stock and asset status will be updated.')}
-                    okText={t('borrowOrders.checkout', 'Check out')}
-                    cancelText={t('common.cancel', 'Cancel')}
+                    title={t('borrowOrders.checkoutConfirmTitle', 'เช็คเอาต์รายการยืมนี้?')}
+                    description={t('borrowOrders.checkoutConfirmDescription', 'สถานะ stock และทรัพย์สินจะถูกอัปเดต')}
+                    okText={t('borrowOrders.checkout', 'เช็คเอาต์')}
+                    cancelText={t('common.cancel', 'ยกเลิก')}
                     onConfirm={async () => {
                       await checkout.mutateAsync();
                     }}
                   >
                     <Button className="rounded-full" disabled={checkout.isPending}>
-                      {checkout.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.checkout', 'Check out')}
+                      {checkout.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.checkout', 'เช็คเอาต์')}
                     </Button>
                   </Popconfirm>
                 ) : null}
@@ -255,23 +255,23 @@ export function BorrowOrderDetailPage() {
                 {isActive ? (
                   <Button variant="outline" className="rounded-full" onClick={() => setReturnOpen(true)}>
                     <ReturnIcon className="h-4 w-4" />
-                    {t('borrowOrders.return', 'Return')}
+                    {t('borrowOrders.return', 'คืน')}
                   </Button>
                 ) : null}
 
                 {isPendingApproval || isApproved || isActive ? (
                   <Popconfirm
-                    title={t('borrowOrders.cancelConfirmTitle', 'Cancel this borrow order?')}
-                    description={t('borrowOrders.cancelConfirmDescription', 'This will stop the order and release any checked-out assets or stock.')}
-                    okText={t('borrowOrders.cancel', 'Cancel order')}
-                    cancelText={t('common.cancel', 'Cancel')}
+                    title={t('borrowOrders.cancelConfirmTitle', 'ยกเลิกรายการยืมนี้?')}
+                    description={t('borrowOrders.cancelConfirmDescription', 'การทำเช่นนี้จะหยุดรายการและปล่อย asset หรือ stock ที่เบิกไป')}
+                    okText={t('borrowOrders.cancel', 'ยกเลิกรายการ')}
+                    cancelText={t('common.cancel', 'ยกเลิก')}
                     okButtonProps={{ danger: true }}
                     onConfirm={async () => {
                       await cancel.mutateAsync({});
                     }}
                   >
                     <Button variant="destructive" className="rounded-full" disabled={cancel.isPending}>
-                      {cancel.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.cancel', 'Cancel order')}
+                      {cancel.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.cancel', 'ยกเลิกรายการ')}
                     </Button>
                   </Popconfirm>
                 ) : null}

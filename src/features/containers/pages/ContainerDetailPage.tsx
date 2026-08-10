@@ -16,6 +16,7 @@ import { PlusIcon } from '@/components/ui/icons';
 import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
+import { formatContainerTypeLabel, isGenericContainerTypeLabel } from '@/features/containers/utils/containerLabels';
 
 export function ContainerDetailPage() {
   const { wsId = '', containerId } = useParams();
@@ -54,7 +55,7 @@ export function ContainerDetailPage() {
                   <CardTitle className="text-base">
                     {t('container.detail.containerLabel')} {container?.name ?? containerId}
                   </CardTitle>
-                  <CardDescription>{container?.typeLabel ?? t('container.detail.itemlist')}</CardDescription>
+                  <CardDescription>{formatContainerTypeLabel(container?.typeLabel, t('container.detail.itemlist'))}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" onClick={() => setCreateItemOpen(true)} disabled={!container}>
@@ -113,7 +114,7 @@ export function ContainerDetailPage() {
         submitLabel={t('common.save', 'บันทึก')}
         initialValues={container ? {
           name: container.name,
-          type: container.typeLabel === 'Container' ? '' : container.typeLabel,
+          type: isGenericContainerTypeLabel(container.typeLabel) ? '' : container.typeLabel,
           code: container.code ?? '',
           qrCode: container.qrCode ?? '',
           photoUrl: container.photoUrl ?? '',
@@ -130,7 +131,7 @@ export function ContainerDetailPage() {
           const nextPhotoUrl = values.photoUrl.trim() || null;
           const shouldUpdateMeta =
             nextName !== container?.name ||
-            nextType !== (container?.typeLabel === 'Container' ? null : container?.typeLabel ?? null) ||
+            nextType !== (isGenericContainerTypeLabel(container?.typeLabel) ? null : container?.typeLabel ?? null) ||
             nextCode !== (container?.code ?? null) ||
             nextQrCode !== (container?.qrCode ?? null) ||
             nextPhotoUrl !== (container?.photoUrl ?? null);

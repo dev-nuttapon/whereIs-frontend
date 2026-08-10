@@ -16,6 +16,7 @@ import { CreateContainerDialog } from '@/features/containers/components/CreateCo
 import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
+import { formatContainerTypeLabel } from '@/features/containers/utils/containerLabels';
 import type { Container } from '@/types/domain.types';
 
 function groupContainersByParent(containers: Container[]) {
@@ -54,7 +55,7 @@ function ContainerTreeCard({
           ) : null}
           <div className="space-y-1">
             <CardTitle className="text-lg">{container.name}</CardTitle>
-            <CardDescription>{container.typeLabel}</CardDescription>
+            <CardDescription>{formatContainerTypeLabel(container.typeLabel)}</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Tag>{container.parentId ? container.parentId : t('containers.list.root', 'Root container')}</Tag>
@@ -65,7 +66,7 @@ function ContainerTreeCard({
           <Button asChild variant="outline" size="sm" className="w-full rounded-full sm:w-auto">
             <Link to={ROUTES.workspaceContainerDetail(wsId, container.id)}>
               <OpenIcon className="h-4 w-4" />
-              Open detail
+              {t('containers.list.open')}
             </Link>
           </Button>
         </CardContent>

@@ -43,7 +43,7 @@ export function RegisterPage() {
       });
       navigate(ROUTES.workspaces, { replace: true });
     } catch {
-      setError(t('auth.register.errorDescription', 'Check the details and try again. If you already have an account, sign in instead.'));
+      setError(t('auth.register.errorDescription', 'ตรวจสอบข้อมูลที่กรอกแล้วลองอีกครั้ง'));
     } finally {
       setSubmitting(false);
     }

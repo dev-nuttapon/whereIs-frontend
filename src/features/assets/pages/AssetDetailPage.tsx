@@ -56,17 +56,17 @@ export function AssetDetailPage() {
 
   return (
     <PageShell
-      title={t('assets.detail.title', 'Asset detail')}
-      description={t('assets.detail.description', 'View the asset, update storage data, and manage photos.')}
+      title={t('assets.detail.title', 'รายละเอียดทรัพย์สิน')}
+      description={t('assets.detail.description', 'ดูข้อมูลทรัพย์สิน อัปเดตการจัดเก็บ และจัดการรูปภาพ')}
       actions={(
         <Button variant="outline" onClick={() => navigate(ROUTES.workspaceAssets(wsId))}>
           <OpenIcon className="h-4 w-4" />
-          {t('assets.detail.back', 'Back to list')}
+          {t('assets.detail.back', 'กลับไปที่รายการ')}
         </Button>
       )}
     >
       {assetQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-      {assetQuery.isError ? <ErrorState message={t('assets.detail.error', 'Unable to load asset.')} onRetry={() => assetQuery.refetch()} /> : null}
+      {assetQuery.isError ? <ErrorState message={t('assets.detail.error', 'ไม่สามารถโหลดทรัพย์สินได้')} onRetry={() => assetQuery.refetch()} /> : null}
 
       {asset ? (
         <div className="component-stack">
@@ -84,19 +84,19 @@ export function AssetDetailPage() {
               </div>
 
               <div className="grid gap-[18px] md:grid-cols-3">
-                <StatCard label={t('assets.detail.photoCount', 'Photos')} value={photoCount} />
-                <StatCard label={t('assets.detail.location', 'Location')} value={asset.locationName ?? '-'} />
-                <StatCard label={t('assets.detail.container', 'Container')} value={asset.containerName ?? '-'} />
+                <StatCard label={t('assets.detail.photoCount', 'รูปภาพ')} value={photoCount} />
+                <StatCard label={t('assets.detail.location', 'สถานที่')} value={asset.locationName ?? '-'} />
+                <StatCard label={t('assets.detail.container', 'คอนเทนเนอร์')} value={asset.containerName ?? '-'} />
               </div>
 
               <div className="grid gap-[18px] md:grid-cols-2">
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('assets.detail.borrowState', 'Borrow state')}</CardTitle>
+                    <CardTitle className="text-sm">{t('assets.detail.borrowState', 'สถานะการยืม')}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {asset.status.toLowerCase() === 'borrowed'
-                        ? t('assets.detail.borrowedNow', 'Currently checked out')
-                        : t('assets.detail.availableNow', 'Available for borrowing')}
+                        ? t('assets.detail.borrowedNow', 'กำลังถูกเบิกใช้งาน')
+                        : t('assets.detail.availableNow', 'พร้อมให้ยืม')}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {activeBorrowOrder ? (
@@ -104,13 +104,13 @@ export function AssetDetailPage() {
                           <Button asChild variant="outline" size="sm" className="rounded-full">
                             <Link to={ROUTES.workspaceBorrowOrderDetail(wsId, activeBorrowOrder.id)}>
                               <OpenIcon className="h-4 w-4" />
-                              {t('assets.detail.openBorrowOrder', 'Open borrow order')}
+                              {t('assets.detail.openBorrowOrder', 'เปิดรายการยืม')}
                             </Link>
                           </Button>
                           {asset.status.toLowerCase() === 'borrowed' ? (
                             <Button size="sm" className="rounded-full" onClick={() => setReturnOpen(true)}>
                               <ReturnIcon className="h-4 w-4" />
-                              {t('assets.detail.returnAsset', 'Return asset')}
+                              {t('assets.detail.returnAsset', 'คืนทรัพย์สิน')}
                             </Button>
                           ) : null}
                         </>
@@ -120,11 +120,11 @@ export function AssetDetailPage() {
                 </Card>
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
-                    <CardTitle className="text-sm">{t('assets.detail.borrowHistory', 'Borrow history')}</CardTitle>
+                    <CardTitle className="text-sm">{t('assets.detail.borrowHistory', 'ประวัติการยืม')}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {relatedBorrowOrders.length > 0
-                        ? t('assets.detail.borrowHistoryCount', '{count} related orders', { count: relatedBorrowOrders.length })
-                        : t('assets.detail.noBorrowHistory', 'No borrow orders yet')}
+                        ? t('assets.detail.borrowHistoryCount', 'มีรายการที่เกี่ยวข้อง {count} รายการ', { count: relatedBorrowOrders.length })
+                        : t('assets.detail.noBorrowHistory', 'ยังไม่มีรายการยืม')}
                     </p>
                   </CardContent>
                 </Card>
@@ -133,17 +133,17 @@ export function AssetDetailPage() {
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setBorrowOpen(true)} disabled={asset.status.toLowerCase() !== 'available'}>
                   <TakeOutIcon className="h-4 w-4" />
-                  {t('assets.detail.borrow', 'Create borrow order')}
+                  {t('assets.detail.borrow', 'สร้างรายการยืม')}
                 </Button>
                 <Button variant="outline" onClick={() => setEditOpen(true)}>
                   <EditIcon className="h-4 w-4" />
                   {t('common.edit', 'แก้ไข')}
                 </Button>
                 <Popconfirm
-                  title={t('assets.deleteConfirmTitle', 'Delete this asset?')}
-                  description={t('assets.deleteConfirmDescription', 'This will remove the asset from the workspace.')}
-                  okText={t('common.delete', 'Delete')}
-                  cancelText={t('common.cancel', 'Cancel')}
+                  title={t('assets.deleteConfirmTitle', 'ลบทรัพย์สินนี้?')}
+                  description={t('assets.deleteConfirmDescription', 'การดำเนินการนี้จะลบทรัพย์สินออกจาก workspace')}
+                  okText={t('common.delete', 'ลบ')}
+                  cancelText={t('common.cancel', 'ยกเลิก')}
                   okButtonProps={{ danger: true }}
                   onConfirm={async () => {
                     await deleteAsset.mutateAsync();
@@ -151,7 +151,7 @@ export function AssetDetailPage() {
                   }}
                 >
                   <Button variant="destructive" disabled={deleteAsset.isPending}>
-                    {deleteAsset.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
+                    {deleteAsset.isPending ? t('common.deleting', 'กำลังลบ...') : t('common.delete', 'ลบ')}
                   </Button>
                 </Popconfirm>
               </div>
@@ -161,17 +161,17 @@ export function AssetDetailPage() {
           <div className="grid gap-[18px] lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
             <Card className="overflow-hidden">
               <CardContent className="space-y-3 p-5 sm:p-6">
-                <CardTitle className="text-base">{t('assets.detail.preview', 'Preview')}</CardTitle>
+                <CardTitle className="text-base">{t('assets.detail.preview', 'ภาพตัวอย่าง')}</CardTitle>
                 {mainPhoto ? (
                     <img
                       src={mainPhoto.url}
-                    alt={t('assets.photo.alt', 'Asset photo')}
+                    alt={t('assets.photo.alt', 'รูปทรัพย์สิน')}
                       className="h-72 w-full rounded-2xl object-cover"
                     />
                 ) : (
                   <EmptyState
-                    title={t('assets.detail.noPhotoTitle', 'No photos yet')}
-                    description={t('assets.detail.noPhotoDescription', 'Upload the first photo from the photo manager below.')}
+                    title={t('assets.detail.noPhotoTitle', 'ยังไม่มีรูป')}
+                    description={t('assets.detail.noPhotoDescription', 'อัปโหลดรูปแรกจากตัวจัดการรูปภาพด้านล่าง')}
                   />
                 )}
               </CardContent>
@@ -180,20 +180,20 @@ export function AssetDetailPage() {
             <div className="component-stack">
               <Card>
                 <CardContent className="space-y-3 p-5 sm:p-6">
-                  <CardTitle className="text-base">{t('assets.detail.metadata', 'Metadata')}</CardTitle>
+                  <CardTitle className="text-base">{t('assets.detail.metadata', 'ข้อมูลประกอบ')}</CardTitle>
                   <div className="grid gap-[18px] md:grid-cols-2">
                     <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>{t('assets.detail.product', 'Product')}: {asset.productName}</div>
-                      <div>{t('assets.detail.location', 'Location')}: {asset.locationName ?? '-'}</div>
-                      <div>{t('assets.detail.container', 'Container')}: {asset.containerName ?? '-'}</div>
+                      <div>{t('assets.detail.product', 'สินค้า')}: {asset.productName}</div>
+                      <div>{t('assets.detail.location', 'สถานที่')}: {asset.locationName ?? '-'}</div>
+                      <div>{t('assets.detail.container', 'คอนเทนเนอร์')}: {asset.containerName ?? '-'}</div>
                     </div>
                     <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>{t('assets.detail.serialNumber', 'Serial number')}: {asset.serialNumber ?? '-'}</div>
-                      <div>{t('assets.detail.barcode', 'Barcode')}: {asset.barcode ?? '-'}</div>
-                      <div>{t('assets.detail.acquiredDate', 'Acquired date')}: {asset.acquiredDate ? new Date(asset.acquiredDate).toLocaleDateString() : '-'}</div>
+                      <div>{t('assets.detail.serialNumber', 'หมายเลขซีเรียล')}: {asset.serialNumber ?? '-'}</div>
+                      <div>{t('assets.detail.barcode', 'บาร์โค้ด')}: {asset.barcode ?? '-'}</div>
+                      <div>{t('assets.detail.acquiredDate', 'วันที่ได้มา')}: {asset.acquiredDate ? new Date(asset.acquiredDate).toLocaleDateString() : '-'}</div>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">{asset.notes?.trim() ? asset.notes : t('assets.detail.noNotes', 'No notes')}</p>
+                  <p className="text-sm text-muted-foreground">{asset.notes?.trim() ? asset.notes : t('assets.detail.noNotes', 'ไม่มีหมายเหตุ')}</p>
                 </CardContent>
               </Card>
 
@@ -201,11 +201,11 @@ export function AssetDetailPage() {
 
               <Card>
                 <CardContent className="space-y-4 p-5 sm:p-6">
-                  <CardTitle className="text-base">{t('assets.detail.relatedBorrowOrders', 'Related borrow orders')}</CardTitle>
+                  <CardTitle className="text-base">{t('assets.detail.relatedBorrowOrders', 'รายการยืมที่เกี่ยวข้อง')}</CardTitle>
                   {relatedBorrowOrders.length === 0 ? (
                     <EmptyState
-                      title={t('assets.detail.noBorrowHistory', 'No borrow orders yet')}
-                      description={t('assets.detail.noBorrowHistoryDescription', 'Borrow history for this asset will appear here once it has been requested.')}
+                      title={t('assets.detail.noBorrowHistory', 'ยังไม่มีรายการยืม')}
+                      description={t('assets.detail.noBorrowHistoryDescription', 'ประวัติการยืมของทรัพย์สินนี้จะแสดงที่นี่เมื่อมีการขอใช้งาน')}
                     />
                   ) : (
                     <div className="component-stack">
@@ -214,9 +214,9 @@ export function AssetDetailPage() {
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div className="space-y-1">
                               <p className="text-sm font-medium">{order.purpose ?? order.id}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {t('borrowOrders.requestedBy', 'Requested by')}: {order.requestedBy}
-                              </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('borrowOrders.requestedBy', 'ผู้ขอ')}: {order.requestedBy}
+                        </p>
                             </div>
                             <Tag color={statusColor(order.status)}>{order.status}</Tag>
                           </div>
@@ -224,7 +224,7 @@ export function AssetDetailPage() {
                             <Button asChild variant="outline" size="sm" className="rounded-full">
                               <Link to={ROUTES.workspaceBorrowOrderDetail(wsId, order.id)}>
                                 <OpenIcon className="h-4 w-4" />
-                                {t('common.open', 'Open')}
+                                {t('common.open', 'เปิด')}
                               </Link>
                             </Button>
                           </div>

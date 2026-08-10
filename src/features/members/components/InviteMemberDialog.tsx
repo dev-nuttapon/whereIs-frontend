@@ -12,6 +12,7 @@ import { createInviteMemberSchema, type InviteMemberValues } from '@/features/me
 import { useInviteMember } from '@/features/members/hooks/useMembers';
 import { useWorkspaces } from '@/features/workspaces/hooks/useWorkspaces';
 import { useContainers } from '@/features/containers/hooks/useContainers';
+import { formatContainerTypeLabel } from '@/features/containers/utils/containerLabels';
 import { usePermissionsCatalog } from '@/features/permissions/hooks/usePermissions';
 import { useI18n } from '@/hooks/useI18n';
 import { usePermission } from '@/hooks/usePermission';
@@ -69,7 +70,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
     if (!term) {
       return true;
     }
-    return [container.name, container.typeLabel, container.code ?? '']
+    return [container.name, formatContainerTypeLabel(container.typeLabel), container.code ?? '']
       .join(' ')
       .toLowerCase()
       .includes(term);
@@ -284,7 +285,7 @@ export function InviteMemberDialog({ wsId, open, onOpenChange }: InviteMemberDia
                               />
                               <span className="min-w-0">
                                 <span className="block truncate font-medium">{container.name}</span>
-                                <span className="block truncate text-xs text-muted-foreground">{container.typeLabel}</span>
+                                <span className="block truncate text-xs text-muted-foreground">{formatContainerTypeLabel(container.typeLabel)}</span>
                               </span>
                             </label>
                           ))}

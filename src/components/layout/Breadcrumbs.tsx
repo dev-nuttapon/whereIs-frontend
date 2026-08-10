@@ -48,27 +48,27 @@ export function Breadcrumbs() {
     };
 
     if (location.pathname.endsWith('/containers')) {
-      return [{ label: 'Containers', to: ROUTES.workspaceContainers(wsId) }];
+      return [{ label: t('nav.containers', 'Containers'), to: ROUTES.workspaceContainers(wsId) }];
     }
 
     if (location.pathname.endsWith('/search')) {
-      return [{ label: 'Search', to: ROUTES.workspaceSearch(wsId) }];
+      return [{ label: t('nav.search', 'Search'), to: ROUTES.workspaceSearch(wsId) }];
     }
 
     if (location.pathname.endsWith('/activity')) {
-      return [{ label: 'Activity', to: ROUTES.workspaceActivity(wsId) }];
+      return [{ label: t('nav.activity', 'Activity'), to: ROUTES.workspaceActivity(wsId) }];
     }
 
     if (location.pathname.endsWith('/reports')) {
-      return [{ label: 'Reports', to: ROUTES.workspaceReports(wsId) }];
+      return [{ label: t('nav.reports', 'Reports'), to: ROUTES.workspaceReports(wsId) }];
     }
 
     if (location.pathname.endsWith('/notifications')) {
-      return [{ label: 'Notifications', to: ROUTES.workspaceNotifications(wsId) }];
+      return [{ label: t('nav.notifications', 'Notifications'), to: ROUTES.workspaceNotifications(wsId) }];
     }
 
     if (location.pathname.endsWith('/stock')) {
-      return [{ label: 'Stock', to: ROUTES.workspaceStock(wsId) }];
+      return [{ label: t('nav.stock', 'Stock'), to: ROUTES.workspaceStock(wsId) }];
     }
 
     if (location.pathname.endsWith('/products')) {
@@ -86,40 +86,36 @@ export function Breadcrumbs() {
       const containerId = location.pathname.split('/containers/')[1];
       const container = containers.find((entry) => entry.id === containerId);
       return [
-        { label: 'Containers', to: ROUTES.workspaceContainers(wsId) },
+        { label: t('nav.containers', 'Containers'), to: ROUTES.workspaceContainers(wsId) },
         ...containerPath(container?.id ?? null),
       ];
     }
 
     if (location.pathname.endsWith('/members')) {
-      return [{ label: 'Members', to: ROUTES.workspaceMembers(wsId) }];
+      return [{ label: t('nav.members', 'Members'), to: ROUTES.workspaceMembers(wsId) }];
     }
 
     if (location.pathname.includes('/members/')) {
       const memberId = location.pathname.split('/members/')[1];
       const member = members.find((entry) => entry.id === memberId);
       return [
-        { label: 'Members', to: ROUTES.workspaceMembers(wsId) },
-        { label: member?.user.name ?? 'Member' },
+        { label: t('nav.members', 'Members'), to: ROUTES.workspaceMembers(wsId) },
+        { label: member?.user.name ?? t('members.detail.title', 'Member detail') },
       ];
     }
 
-    if (location.pathname.endsWith('/settings')) {
-      return [{ label: 'Workspace settings', to: ROUTES.workspaceSettings(wsId) }];
-    }
-
     if (location.pathname.endsWith('/borrow-orders')) {
-      return [{ label: 'Borrow orders', to: ROUTES.workspaceBorrowOrders(wsId) }];
+      return [{ label: t('nav.borrowOrders', 'Borrow orders'), to: ROUTES.workspaceBorrowOrders(wsId) }];
     }
 
     if (location.pathname.includes('/borrow-orders/')) {
       return [
-        { label: 'Borrow orders', to: ROUTES.workspaceBorrowOrders(wsId) },
-        { label: borrowOrderQuery.data?.purpose ?? borrowOrderQuery.data?.id ?? 'Borrow order' },
+        { label: t('nav.borrowOrders', 'Borrow orders'), to: ROUTES.workspaceBorrowOrders(wsId) },
+        { label: borrowOrderQuery.data?.purpose ?? borrowOrderQuery.data?.id ?? t('nav.borrowOrders', 'Borrow order') },
       ];
     }
 
-    return [{ label: currentWorkspace?.name ?? 'Workspace', to: ROUTES.workspaceDashboard(wsId) }];
+    return [{ label: currentWorkspace?.name ?? t('common.workspace', 'พื้นที่ทำงาน'), to: ROUTES.workspaceDashboard(wsId) }];
   }, [borrowOrderQuery.data?.id, borrowOrderQuery.data?.purpose, containers, currentWorkspace?.name, location.pathname, members, productQuery.data?.name, t, wsId]);
 
   if (crumbs.length === 0) {

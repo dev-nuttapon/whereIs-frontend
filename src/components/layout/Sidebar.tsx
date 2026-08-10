@@ -41,7 +41,7 @@ export interface SidebarProps {
 const SECTIONS: Array<{ titleKey: string; titleFallback: string; items: Array<NavItem['labelKey']> }> = [
   { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard', 'nav.search', 'nav.activity'] },
   { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.products', 'nav.assets', 'nav.stock', 'nav.containers', 'nav.borrowOrders'] },
-  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.reports', 'nav.notifications', 'nav.members', 'nav.workspaceSettings'] },
+  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.reports', 'nav.notifications', 'nav.members'] },
 ] as const;
 
 export function Sidebar({ onNavigate }: SidebarProps) {
@@ -103,8 +103,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     <aside className="flex h-full min-h-0 flex-col overflow-auto bg-card">
       <div className="border-b border-border/60 px-4 py-4">
         <p className="text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">WhereIs</p>
-        <p className="mt-1 truncate text-sm font-semibold leading-tight">{currentWorkspace?.name ?? 'Workspace'}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{currentWorkspace?.myRole ?? 'viewer'}</p>
+        <p className="mt-1 truncate text-sm font-semibold leading-tight">{currentWorkspace?.name ?? t('common.workspace', 'พื้นที่ทำงาน')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{currentWorkspace?.myRole ?? t('members.role.viewer', 'ผู้ดู')}</p>
       </div>
       <Menu mode="inline" selectable inlineIndent={16} selectedKeys={[selectedKey]} items={menuItems} />
     </aside>

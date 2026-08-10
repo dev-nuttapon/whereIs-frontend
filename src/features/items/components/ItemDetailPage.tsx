@@ -44,13 +44,13 @@ export function ItemDetailPage() {
     () => new Map((containersQuery.data ?? []).map((container) => [container.id, container.name])),
     [containersQuery.data],
   );
-  const containerLabel = item?.containerId ? (containerNameById.get(item.containerId) ?? item.containerId) : t('items.detail.noContainer', 'No container');
+  const containerLabel = item?.containerId ? (containerNameById.get(item.containerId) ?? item.containerId) : t('items.detail.noContainer', 'ไม่มี container');
 
   return (
-    <PageShell title={t('items.detail.title', 'Item detail')} description={t('items.detail.pageDescription', 'View item state, metadata, and history.')}>
+    <PageShell title={t('items.detail.title', 'รายละเอียดรายการ')} description={t('items.detail.pageDescription', 'ดูสถานะ ข้อมูลประกอบ และประวัติของรายการนี้')}>
       <div className="component-stack">
         {itemQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-        {itemQuery.isError ? <ErrorState message={t('items.detail.loadError', 'Unable to load item.')} onRetry={() => itemQuery.refetch()} /> : null}
+        {itemQuery.isError ? <ErrorState message={t('items.detail.loadError', 'ไม่สามารถโหลดรายการได้')} onRetry={() => itemQuery.refetch()} /> : null}
 
         {item ? (
           <>
@@ -65,18 +65,18 @@ export function ItemDetailPage() {
                     {item.kind === 'stock' ? (
                       <Button variant="outline" size="sm" onClick={() => setBorrowOpen(true)} disabled={!item}>
                         <TakeOutIcon className="h-4 w-4" />
-                        {t('items.detail.borrow', 'Create borrow order')}
+                        {t('items.detail.borrow', 'สร้างรายการยืม')}
                       </Button>
                     ) : null}
                     <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} disabled={!item}>
                       <EditIcon className="h-4 w-4" />
-                      {t('items.detail.edit', 'Edit item')}
+                      {t('items.detail.edit', 'แก้ไขรายการ')}
                     </Button>
                     <Popconfirm
-                      title={t('items.detail.deleteConfirmTitle', 'Delete this item?')}
-                      description={t('items.detail.deleteConfirmDescription', 'This will remove the item from the workspace.')}
-                      okText={t('common.delete', 'Delete')}
-                      cancelText={t('common.cancel', 'Cancel')}
+                      title={t('items.detail.deleteConfirmTitle', 'ลบรายการนี้?')}
+                      description={t('items.detail.deleteConfirmDescription', 'การลบจะนำของชิ้นนี้ออกจาก workspace')}
+                      okText={t('common.delete', 'ลบ')}
+                      cancelText={t('common.cancel', 'ยกเลิก')}
                       okButtonProps={{ danger: true }}
                       onConfirm={async () => {
                         await deleteItem.mutateAsync();
@@ -84,22 +84,22 @@ export function ItemDetailPage() {
                       }}
                     >
                       <Button variant="destructive" size="sm" disabled={deleteItem.isPending}>
-                        {deleteItem.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
+                        {deleteItem.isPending ? t('common.deleting', 'กำลังลบ...') : t('common.delete', 'ลบ')}
                       </Button>
                     </Popconfirm>
                   </div>
                 </div>
 
                 <div className="grid gap-[18px] md:grid-cols-3">
-                  <StatCard label={t('items.detail.kind', 'Type')} value={item.kind === 'stock' ? t('items.kind.stock', 'Quantity Item') : t('items.kind.single', 'Individual Item')} />
-                  <StatCard label={t('items.detail.status', 'Status')} value={item.status} />
-                  <StatCard label={t('items.detail.containerPrefix', 'Container')} value={containerLabel} />
+                  <StatCard label={t('items.detail.kind', 'ประเภท')} value={item.kind === 'stock' ? t('items.kind.stock', 'แบบจำนวน') : t('items.kind.single', 'แบบชิ้นเดียว')} />
+                  <StatCard label={t('items.detail.status', 'สถานะ')} value={item.status} />
+                  <StatCard label={t('items.detail.containerPrefix', 'คอนเทนเนอร์')} value={containerLabel} />
                 </div>
 
                 <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-3 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.photo', 'Photo')}</CardTitle>
+                      <CardTitle className="text-sm">{t('items.detail.photo', 'รูปภาพ')}</CardTitle>
                       {item.photoUrl ? (
                         <img
                           src={item.photoUrl}
@@ -108,8 +108,8 @@ export function ItemDetailPage() {
                         />
                       ) : (
                         <EmptyState
-                          title={t('items.detail.noPhotoTitle', 'No photo yet')}
-                          description={t('items.detail.noPhotoDescription', 'Add a photo URL from the edit form to show the item image here.')}
+                          title={t('items.detail.noPhotoTitle', 'ยังไม่มีรูป')}
+                          description={t('items.detail.noPhotoDescription', 'เพิ่ม URL รูปภาพจากหน้าต่างแก้ไขเพื่อแสดงรูปของรายการนี้')}
                           icon={<ItemIcon className="h-5 w-5" />}
                         />
                       )}
@@ -117,10 +117,10 @@ export function ItemDetailPage() {
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.storage', 'Storage')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.container', 'Container')}: {containerLabel}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.holderPrefix', 'Holder')}: {item.currentHolderId ?? '-'}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.stockCount', 'Quantity')}: {item.quantity ?? '-'}</p>
+                      <CardTitle className="text-sm">{t('items.detail.storage', 'ที่จัดเก็บ')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.container', 'คอนเทนเนอร์')}: {containerLabel}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.holderPrefix', 'ผู้ถือครอง')}: {item.currentHolderId ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.stockCount', 'จำนวน')}: {item.quantity ?? '-'}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -128,28 +128,28 @@ export function ItemDetailPage() {
                 <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.currentState', 'Current state')}</CardTitle>
+                      <CardTitle className="text-sm">{t('items.detail.currentState', 'สถานะปัจจุบัน')}</CardTitle>
                       <Tag color={statusColor(item.status)}>{item.status}</Tag>
                       <p className="text-sm text-muted-foreground">{item.usageType}</p>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.lifecycle', 'Lifecycle')}</CardTitle>
+                      <CardTitle className="text-sm">{t('items.detail.lifecycle', 'วงจรชีวิต')}</CardTitle>
                       <p className="text-sm text-muted-foreground">
                         {item.kind === 'stock'
-                          ? t('items.detail.stockLifecycle', 'Tracked by quantity')
-                          : t('items.detail.singleLifecycle', 'Tracked as individual unit')}
+                          ? t('items.detail.stockLifecycle', 'ติดตามตามจำนวน')
+                          : t('items.detail.singleLifecycle', 'ติดตามแบบชิ้นเดียว')}
                       </p>
-                      <p className="text-sm text-muted-foreground">{item.currentHolderId ? `${t('items.detail.holderPrefix', 'Holder')}: ${item.currentHolderId}` : t('items.detail.noHolder', 'No holder')}</p>
+                      <p className="text-sm text-muted-foreground">{item.currentHolderId ? `${t('items.detail.holderPrefix', 'ผู้ถือครอง')}: ${item.currentHolderId}` : t('items.detail.noHolder', 'ไม่มีผู้ถือครอง')}</p>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.dates', 'Dates')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.receivedDate', 'Received')}: {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString() : '-'}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.expiryDate', 'Expiry')}: {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.warrantyEndDate', 'Warranty')}: {item.warrantyEndDate ? new Date(item.warrantyEndDate).toLocaleDateString() : '-'}</p>
+                      <CardTitle className="text-sm">{t('items.detail.dates', 'วันที่')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.receivedDate', 'รับเข้า')}: {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString() : '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.expiryDate', 'หมดอายุ')}: {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.warrantyEndDate', 'ประกันสิ้นสุด')}: {item.warrantyEndDate ? new Date(item.warrantyEndDate).toLocaleDateString() : '-'}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -157,19 +157,19 @@ export function ItemDetailPage() {
                 <div className="grid gap-[18px] md:grid-cols-2">
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.identification', 'Identification')}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.code', 'Code')}: {item.code ?? '-'}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.lotCode', 'Lot')}: {item.lotCode ?? '-'}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.reorderPoint', 'Reorder point')}: {item.reorderPoint ?? '-'}</p>
+                      <CardTitle className="text-sm">{t('items.detail.identification', 'ข้อมูลระบุ')}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.code', 'รหัส')}: {item.code ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.lotCode', 'ล็อต')}: {item.lotCode ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.reorderPoint', 'จุดสั่งเพิ่ม')}: {item.reorderPoint ?? '-'}</p>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">
                     <CardContent className="space-y-2 p-4">
-                      <CardTitle className="text-sm">{t('items.detail.description', 'Description')}</CardTitle>
+                      <CardTitle className="text-sm">{t('items.detail.description', 'คำอธิบาย')}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {item.description?.trim() ? item.description : t('items.detail.noDescription', 'No description')}
+                        {item.description?.trim() ? item.description : t('items.detail.noDescription', 'ไม่มีคำอธิบาย')}
                       </p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.container', 'Container')}: {containerLabel}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.container', 'คอนเทนเนอร์')}: {containerLabel}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -178,13 +178,13 @@ export function ItemDetailPage() {
 
             <Card>
               <CardContent className="space-y-3 p-5 sm:p-6">
-                <CardTitle className="text-base">{t('items.detail.activity', 'Activity')}</CardTitle>
+                <CardTitle className="text-base">{t('items.detail.activity', 'กิจกรรม')}</CardTitle>
                 {eventsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-                {eventsQuery.isError ? <ErrorState message={t('items.detail.activityError', 'Unable to load item history.')} onRetry={() => eventsQuery.refetch()} /> : null}
+                {eventsQuery.isError ? <ErrorState message={t('items.detail.activityError', 'ไม่สามารถโหลดประวัติรายการได้')} onRetry={() => eventsQuery.refetch()} /> : null}
                 {(eventsQuery.data ?? []).length === 0 ? (
                   <EmptyState
-                    title={t('items.detail.noActivityTitle', 'No activity yet')}
-                    description={t('items.detail.noActivityDescription', 'Item events will appear here after create/update or workflow actions.')}
+                    title={t('items.detail.noActivityTitle', 'ยังไม่มีกิจกรรม')}
+                    description={t('items.detail.noActivityDescription', 'การกระทำกับของชิ้นนี้จะแสดงที่นี่')}
                     icon={<ItemIcon className="h-5 w-5" />}
                   />
                 ) : (

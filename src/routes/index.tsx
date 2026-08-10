@@ -106,14 +106,6 @@ export function AppRoutes() {
               </WorkspaceSelectLayout>
             }
           />
-          <Route
-            path={ROUTES.settings}
-            element={
-              <WorkspaceSelectLayout>
-                <SettingsPage />
-              </WorkspaceSelectLayout>
-            }
-          />
           <Route path="/w/:wsId" element={<WorkspaceRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
@@ -137,9 +129,16 @@ export function AppRoutes() {
               <Route path="members" element={<MembersPage />} />
               <Route path="members/:memberId" element={<MemberDetailPage />} />
               <Route path="profile" element={<ProfilePage />} />
-              <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
+          <Route
+            path={ROUTES.settings}
+            element={
+              <WorkspaceSelectLayout>
+                <SettingsPage />
+              </WorkspaceSelectLayout>
+            }
+          />
         </Route>
         <Route path={ROUTES.notFound} element={<NotFoundPage />} />
       </Routes>
