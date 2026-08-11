@@ -186,9 +186,9 @@ export function AssetFormDialog({
                   value={values.productId}
                   onChange={(event) => setValues((current) => ({ ...current, productId: event.target.value }))}
                   className="w-full"
-                  placeholder={t('assets.form.productPlaceholder', 'Select product')}
+                  placeholder={t('assets.form.productPlaceholder', 'เลือกสินค้า')}
                 >
-                  <option value="">{t('assets.form.productPlaceholder', 'Select product')}</option>
+                  <option value="">{t('assets.form.productPlaceholder', 'เลือกสินค้า')}</option>
                   {products.map((product: Product) => (
                     <option key={product.id} value={product.id}>
                       {product.name}
@@ -207,9 +207,9 @@ export function AssetFormDialog({
                     setValues((current) => ({ ...current, siteId, locationId: '' }));
                   }}
                   className="w-full"
-                  placeholder={t('assets.form.sitePlaceholder', 'Select site')}
+                  placeholder={t('assets.form.sitePlaceholder', 'เลือกสถานที่')}
                 >
-                  <option value="">{t('assets.form.sitePlaceholder', 'Select site')}</option>
+                  <option value="">{t('assets.form.sitePlaceholder', 'เลือกสถานที่')}</option>
                   {sites.map((site: Site) => (
                     <option key={site.id} value={site.id}>
                       {site.name}
@@ -236,9 +236,9 @@ export function AssetFormDialog({
                   onChange={(event) => setValues((current) => ({ ...current, locationId: event.target.value }))}
                   className="w-full"
                   disabled={!selectedSiteId}
-                  placeholder={t('assets.form.locationPlaceholder', 'Select location')}
+                  placeholder={t('assets.form.locationPlaceholder', 'เลือกตำแหน่งจัดเก็บ')}
                 >
-                  <option value="">{t('assets.form.locationPlaceholder', 'Select location')}</option>
+                  <option value="">{t('assets.form.locationPlaceholder', 'เลือกตำแหน่งจัดเก็บ')}</option>
                   {selectedSiteLocations.map((locationOption) => (
                     <option key={locationOption.value} value={locationOption.value}>
                       {locationOption.label}
@@ -253,9 +253,9 @@ export function AssetFormDialog({
                   value={values.containerId}
                   onChange={(event) => setValues((current) => ({ ...current, containerId: event.target.value }))}
                   className="w-full"
-                  placeholder={t('assets.form.containerPlaceholder', 'Optional')}
+                  placeholder={t('assets.form.containerPlaceholder', 'ไม่บังคับ')}
                 >
-                  <option value="">{t('assets.form.containerPlaceholder', 'Optional')}</option>
+                  <option value="">{t('assets.form.containerPlaceholder', 'ไม่บังคับ')}</option>
                   {containerOptions.map((container) => (
                     <option key={container.value} value={container.value}>
                       {container.label}
@@ -271,7 +271,7 @@ export function AssetFormDialog({
                   id="asset-serial"
                   value={values.serialNumber}
                   onChange={(event) => setValues((current) => ({ ...current, serialNumber: event.target.value }))}
-                  placeholder={t('assets.form.serialPlaceholder', 'Optional')}
+                  placeholder={t('assets.form.serialPlaceholder', 'ไม่บังคับ')}
                 />
               </FormField>
               <FormField label={t('assets.form.barcode', 'Barcode')} htmlFor="asset-barcode">
@@ -279,7 +279,7 @@ export function AssetFormDialog({
                   id="asset-barcode"
                   value={values.barcode}
                   onChange={(event) => setValues((current) => ({ ...current, barcode: event.target.value }))}
-                  placeholder={t('assets.form.barcodePlaceholder', 'Optional')}
+                  placeholder={t('assets.form.barcodePlaceholder', 'ไม่บังคับ')}
                 />
               </FormField>
             </div>
@@ -330,7 +330,7 @@ export function AssetFormDialog({
                 rows={4}
                 value={values.notes}
                 onChange={(event) => setValues((current) => ({ ...current, notes: event.target.value }))}
-                placeholder={t('assets.form.notesPlaceholder', 'Optional notes')}
+                placeholder={t('assets.form.notesPlaceholder', 'หมายเหตุเพิ่มเติม (ไม่บังคับ)')}
               />
             </FormField>
           </div>

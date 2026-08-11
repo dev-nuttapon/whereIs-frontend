@@ -164,7 +164,7 @@ export function BorrowOrderDetailPage() {
               {lines.length === 0 ? (
                 <EmptyState
                   title={t('borrowOrders.emptyLinesTitle', 'ยังไม่มีรายการย่อย')}
-                  description={t('borrowOrders.emptyLinesDescription', 'รายการนี้ยังไม่มี borrow line')}
+                  description={t('borrowOrders.emptyLinesDescription', 'รายการนี้ยังไม่มีรายการย่อย')}
                 />
               ) : filteredLines.length === 0 ? (
                 <EmptyState

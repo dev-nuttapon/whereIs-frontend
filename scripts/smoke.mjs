@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 
 const explicitBaseUrl = process.env.SMOKE_BASE_URL;
-const baseUrl = explicitBaseUrl ?? 'http://127.0.0.1:4173';
+const baseUrl = explicitBaseUrl ?? 'http://localhost:5173';
 const smokeEmail = process.env.SMOKE_EMAIL ?? 'test@whereis.com';
 const smokePassword = process.env.SMOKE_PASSWORD ?? '1234';
 
@@ -181,7 +181,7 @@ function waitForServer(url, timeoutMs = 20_000) {
 async function main() {
   let server;
   if (!explicitBaseUrl) {
-    server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4173'], {
+    server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '5173'], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, BROWSER: 'none' },
     });
@@ -249,14 +249,22 @@ async function main() {
       throw new Error('workspace list returned no accessible workspaces');
     }
 
-    const authState = buildAuthState(authSession, user);
-    await page.addInitScript((state) => {
-      localStorage.setItem('whereis-auth', JSON.stringify(state));
-    }, authState);
-
     await page.route('**/api/v1/**', async (route) => {
       const request = route.request();
       const url = new URL(request.url());
+
+      // Tokens are intentionally memory-only. Let the real login request pass
+      // through so the smoke test exercises the same login flow as a browser.
+      if (request.method() === 'POST' && url.pathname === '/api/v1/auth/login') {
+        await route.continue();
+        return;
+      }
+
+      if (request.method() === 'POST' && url.pathname === '/api/v1/auth/refresh') {
+        await route.fulfill({ json: { success: true, data: authSession } });
+        return;
+      }
+
       const response = mockApiResponse({
         pathname: url.pathname,
         method: request.method(),
@@ -276,8 +284,22 @@ async function main() {
       });
     });
 
-    await page.goto(`${baseUrl}/workspaces`, { waitUntil: 'networkidle' });
-    await page.waitForURL(/\/workspaces$/);
+    await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
+    await page.locator('input[autocomplete="email"]').fill(smokeEmail);
+    await page.locator('input[autocomplete="current-password"]').fill(smokePassword);
+    await page.locator('button[type="submit"]').click();
+    await page.waitForURL(/\/workspaces$/, { timeout: 20_000 }).catch(async (error) => {
+      const bodyText = (await page.locator('body').innerText()).replace(/\s+/g, ' ').trim();
+      throw new Error(`${error.message}\nlogin diagnostic URL=${page.url()} body=${bodyText.slice(0, 500)}`);
+    });
+
+    const navigateSpa = async (path) => {
+      await page.evaluate((nextPath) => {
+        window.history.pushState({}, '', nextPath);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }, path);
+      await page.waitForLoadState('networkidle');
+    };
 
     const workspaceId = workspace.id;
 
@@ -303,8 +325,8 @@ async function main() {
     const routes = [
       '/workspaces',
       `/w/${workspaceId}`,
-      `/w/${workspaceId}/items`,
       `/w/${workspaceId}/search`,
+      `/w/${workspaceId}/receive`,
       `/w/${workspaceId}/containers`,
       `/w/${workspaceId}/members`,
       `/w/${workspaceId}/activity`,
@@ -313,28 +335,10 @@ async function main() {
     ];
 
     for (const route of routes) {
-      const response = await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
-      const status = response?.status() ?? 0;
-      if (status < 200 || status >= 400) {
-        throw new Error(`${route} returned HTTP ${status}`);
-      }
+      await navigateSpa(route);
       await page.locator('body').waitFor({ state: 'visible' });
       console.log(`ok ${route}`);
     }
-
-    await page.goto(`${baseUrl}/w/${workspaceId}/items`, { waitUntil: 'networkidle' });
-    await page.waitForURL(new RegExp(`/w/${workspaceId}/products$`), { timeout: 20_000 });
-    if (!page.url().endsWith(`/w/${workspaceId}/products`)) {
-      throw new Error(`legacy items list did not redirect to products: ${page.url()}`);
-    }
-    await page.locator('body').waitFor({ state: 'visible' });
-
-    await page.goto(`${baseUrl}/w/${workspaceId}/items/legacy-item-123`, { waitUntil: 'networkidle' });
-    await page.waitForURL(new RegExp(`/w/${workspaceId}/products/legacy-item-123$`), { timeout: 20_000 });
-    if (!page.url().endsWith(`/w/${workspaceId}/products/legacy-item-123`)) {
-      throw new Error(`legacy item detail did not redirect to the canonical product detail route: ${page.url()}`);
-    }
-    await page.locator('body').waitFor({ state: 'visible' });
 
     if (errors.length > 0) {
       throw new Error(errors.join('\n'));

@@ -137,7 +137,7 @@ export function ItemsPage() {
             <Input
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder={t('items.list.searchPlaceholder', 'Search item name or code')}
+              placeholder={t('items.list.searchPlaceholder', 'ค้นหาชื่อหรือรหัสของ')}
               allowClear
               className="rounded-full"
             />
@@ -146,7 +146,7 @@ export function ItemsPage() {
               className="w-full"
               value={filters.kind || undefined}
               onChange={(event) => setFilters((current) => ({ ...current, kind: event.target.value }))}
-              placeholder={t('items.list.allKinds', 'All kinds')}
+              placeholder={t('items.list.allKinds', 'ทุกประเภทของ')}
             >
               <option value="single">{t('items.kind.single', 'Individual Item')}</option>
               <option value="stock">{t('items.kind.stock', 'Quantity Item')}</option>
@@ -156,7 +156,7 @@ export function ItemsPage() {
               className="w-full"
               value={filters.status || undefined}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
-              placeholder={t('items.list.allStatuses', 'All statuses')}
+              placeholder={t('items.list.allStatuses', 'ทุกสถานะ')}
             >
               <option value="stored">{t('items.status.stored', 'Stored')}</option>
               <option value="taken_out">{t('items.status.taken_out', 'Taken out')}</option>
@@ -170,9 +170,9 @@ export function ItemsPage() {
               className="w-full"
               value={filters.containerId || undefined}
               onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
-              placeholder={t('items.list.allContainers', 'All containers')}
+              placeholder={t('items.list.allContainers', 'ทุกจุดจัดเก็บ')}
             >
-              <option value="">{t('items.list.allContainers', 'All containers')}</option>
+              <option value="">{t('items.list.allContainers', 'ทุกจุดจัดเก็บ')}</option>
               {containerOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}

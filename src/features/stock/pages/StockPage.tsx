@@ -89,7 +89,7 @@ function AdjustStockDialog({
         <div className="component-stack px-5 pb-5 sm:px-6">
           <FormField label={t('stock.adjust.product', 'Product')} htmlFor="stock-product">
             <Select id="stock-product" value={productId} onChange={(event) => setProductId(event.target.value)} className="w-full">
-              <option value="">{t('stock.adjust.productPlaceholder', 'Select product')}</option>
+              <option value="">{t('stock.adjust.productPlaceholder', 'เลือกสินค้า')}</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name}
@@ -109,7 +109,7 @@ function AdjustStockDialog({
                 }}
                 className="w-full"
               >
-                <option value="">{t('stock.adjust.sitePlaceholder', 'Select site')}</option>
+                <option value="">{t('stock.adjust.sitePlaceholder', 'เลือกสถานที่')}</option>
                 {sites.map((site) => (
                   <option key={site.id} value={site.id}>
                     {site.name}
@@ -125,7 +125,7 @@ function AdjustStockDialog({
                 className="w-full"
                 disabled={!siteId}
               >
-                <option value="">{t('stock.adjust.locationPlaceholder', 'Optional')}</option>
+                <option value="">{t('stock.adjust.locationPlaceholder', 'ไม่บังคับ')}</option>
                 {locations.map((location) => (
                   <option key={location.id} value={location.id}>
                     {location.name}
@@ -137,7 +137,7 @@ function AdjustStockDialog({
 
           <div className="grid gap-[18px] sm:grid-cols-3">
             <FormField label={t('stock.adjust.lotCode', 'Lot / batch')} htmlFor="stock-lot-code">
-              <Input id="stock-lot-code" value={lotCode} onChange={(event) => setLotCode(event.target.value)} placeholder={t('stock.adjust.lotCodePlaceholder', 'Optional')} />
+              <Input id="stock-lot-code" value={lotCode} onChange={(event) => setLotCode(event.target.value)} placeholder={t('stock.adjust.lotCodePlaceholder', 'ไม่บังคับ')} />
             </FormField>
             <FormField label={t('stock.adjust.expiryDate', 'วันหมดอายุ')} htmlFor="stock-expiry-date">
               <Input id="stock-expiry-date" type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} />
@@ -154,7 +154,7 @@ function AdjustStockDialog({
               onChange={(event) => setContainerId(event.target.value)}
               className="w-full"
             >
-              <option value="">{t('stock.adjust.containerPlaceholder', 'Optional')}</option>
+                <option value="">{t('stock.adjust.containerPlaceholder', 'ไม่บังคับ')}</option>
               {containers.map((container) => (
                 <option key={container.id} value={container.id}>
                   {container.name}

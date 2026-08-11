@@ -4,11 +4,9 @@ import { ROUTES } from '@/constants/routes';
 import { authStore } from '@/stores/auth.store';
 import { isSessionExpired } from '@/lib/session';
 export function ProtectedRoute() {
-  const { isAuthenticated, expiresAt, markUnauthenticated } = authStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
-    expiresAt: state.expiresAt,
-    markUnauthenticated: state.markUnauthenticated,
-  }));
+  const isAuthenticated = authStore((state) => state.isAuthenticated);
+  const expiresAt = authStore((state) => state.expiresAt);
+  const markUnauthenticated = authStore((state) => state.markUnauthenticated);
 
   const isExpired = isSessionExpired(expiresAt);
 

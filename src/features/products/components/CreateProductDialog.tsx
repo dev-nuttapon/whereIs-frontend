@@ -19,7 +19,7 @@ export function CreateProductDialog({ wsId, open, onOpenChange, categories, onCr
     <ProductFormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t('products.create.title', 'Create product')}
+      title={t('products.create.title', 'เพิ่มสินค้า')}
       description={t('products.create.description', 'Add a product that assets and stock entries can reference.')}
       submitLabel={t('products.create.action', 'Create product')}
       categories={categories}

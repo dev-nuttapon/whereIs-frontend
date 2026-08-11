@@ -158,7 +158,7 @@ export function ProductFormDialog({
               </FormField>
             </div>
             <FormField label={t('products.form.expiryLeadDaysDefault', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} htmlFor="product-expiry-lead-days">
-              <Input id="product-expiry-lead-days" type="number" min="0" value={values.expiryLeadDaysDefault} onChange={(event) => setValues((current) => ({ ...current, expiryLeadDaysDefault: event.target.value }))} placeholder={t('products.form.expiryLeadDaysDefaultPlaceholder', 'Optional')} />
+              <Input id="product-expiry-lead-days" type="number" min="0" value={values.expiryLeadDaysDefault} onChange={(event) => setValues((current) => ({ ...current, expiryLeadDaysDefault: event.target.value }))} placeholder={t('products.form.expiryLeadDaysDefaultPlaceholder', 'ไม่บังคับ')} />
             </FormField>
 
             <div className="grid gap-[18px] sm:grid-cols-2">

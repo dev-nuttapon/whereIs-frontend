@@ -198,7 +198,7 @@ export function ItemFormDialog({
                       id="item-code"
                       value={field.value ?? ''}
                       onChange={(event) => field.onChange(event.target.value)}
-                      placeholder={t('items.form.codePlaceholder', 'Optional code')}
+                      placeholder={t('items.form.codePlaceholder', 'ไม่บังคับ เช่น IT-001')}
                     />
                   )}
                 />
@@ -229,9 +229,9 @@ export function ItemFormDialog({
                       value={field.value}
                       onChange={(event) => field.onChange(event.target.value)}
                       className="w-full"
-                      placeholder={t('items.form.containerPlaceholder', 'Select container')}
+                      placeholder={t('items.form.containerPlaceholder', 'เลือกจุดจัดเก็บ')}
                     >
-                      <option value="">{t('items.form.containerPlaceholder', 'Select container')}</option>
+                      <option value="">{t('items.form.containerPlaceholder', 'เลือกจุดจัดเก็บ')}</option>
                       {containerOptions.map((container) => (
                         <option key={container.value} value={container.value}>
                           {container.label}
@@ -253,7 +253,7 @@ export function ItemFormDialog({
                     value={field.value ?? ''}
                     onChange={(event) => field.onChange(event.target.value)}
                     rows={4}
-                    placeholder={t('items.form.descriptionPlaceholder', 'Optional item notes or specification')}
+                      placeholder={t('items.form.descriptionPlaceholder', 'รายละเอียดหรือหมายเหตุเพิ่มเติม (ไม่บังคับ)')}
                   />
                 )}
               />
@@ -319,7 +319,7 @@ export function ItemFormDialog({
                         min={0}
                         value={field.value ?? ''}
                         onChange={(event) => field.onChange(event.target.value ? Number(event.target.value) : null)}
-                        placeholder={t('items.form.reorderPointPlaceholder', 'Optional')}
+                      placeholder={t('items.form.reorderPointPlaceholder', 'ไม่บังคับ')}
                       />
                     )}
                   />
@@ -337,7 +337,7 @@ export function ItemFormDialog({
                       id="item-lot-code"
                       value={field.value ?? ''}
                       onChange={(event) => field.onChange(event.target.value)}
-                      placeholder={t('items.form.lotPlaceholder', 'Optional')}
+                      placeholder={t('items.form.lotPlaceholder', 'ไม่บังคับ')}
                     />
                   )}
                 />

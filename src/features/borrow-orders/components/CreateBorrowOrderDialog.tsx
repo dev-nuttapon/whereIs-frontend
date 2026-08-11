@@ -117,12 +117,12 @@ export function CreateBorrowOrderDialog({
     <Dialog size="wide" open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[56rem]">
         <DialogHeader>
-          <DialogTitle>{t('borrowOrders.createTitle', 'Create borrow order')}</DialogTitle>
+          <DialogTitle>{t('borrowOrders.createTitle', 'สร้างรายการเบิก/ยืม')}</DialogTitle>
           <DialogDescription>{t('borrowOrders.createDescription', 'Add one or more assets or stock lines to create a new borrow order.')}</DialogDescription>
         </DialogHeader>
 
         <div className="component-stack px-5 pb-5 sm:px-6">
-          <FormField label={t('borrowOrders.purpose', 'Purpose')} htmlFor="borrow-purpose">
+          <FormField label={t('borrowOrders.purpose', 'วัตถุประสงค์')} htmlFor="borrow-purpose">
             <Textarea id="borrow-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} rows={3} />
           </FormField>
 
@@ -187,7 +187,7 @@ export function CreateBorrowOrderDialog({
                 </Select>
 
                 {line.kind === 'asset' ? (
-                  <FormField label={t('borrowOrders.asset', 'Asset')} htmlFor={`borrow-asset-${line.id}`}>
+                  <FormField label={t('borrowOrders.asset', 'ทรัพย์สิน')} htmlFor={`borrow-asset-${line.id}`}>
                     <Select
                       id={`borrow-asset-${line.id}`}
                       value={line.assetId}
@@ -198,7 +198,7 @@ export function CreateBorrowOrderDialog({
                       }
                       className="w-full"
                     >
-                      <option value="">{t('borrowOrders.assetPlaceholder', 'Select asset')}</option>
+                      <option value="">{t('borrowOrders.assetPlaceholder', 'เลือกทรัพย์สิน')}</option>
                       {assets.map((asset) => (
                         <option key={asset.id} value={asset.id}>
                           {asset.productName} - {asset.serialNumber ?? asset.barcode ?? asset.id}
@@ -208,7 +208,7 @@ export function CreateBorrowOrderDialog({
                   </FormField>
                 ) : (
                   <div className="grid gap-[18px] sm:grid-cols-3">
-                    <FormField label={t('borrowOrders.product', 'Product')} htmlFor={`borrow-product-${line.id}`}>
+                    <FormField label={t('borrowOrders.product', 'สินค้า')} htmlFor={`borrow-product-${line.id}`}>
                       <Select
                         id={`borrow-product-${line.id}`}
                         value={line.productId}
@@ -223,7 +223,7 @@ export function CreateBorrowOrderDialog({
                         }}
                         className="w-full"
                       >
-                        <option value="">{t('borrowOrders.productPlaceholder', 'Select product')}</option>
+                        <option value="">{t('borrowOrders.productPlaceholder', 'เลือกสินค้า')}</option>
                         {products.map((product) => (
                           <option key={product.id} value={product.id}>
                             {product.name}
@@ -243,7 +243,7 @@ export function CreateBorrowOrderDialog({
                         }
                         className="w-full"
                       >
-                        <option value="">{t('borrowOrders.stockPlaceholder', 'Select stock entry')}</option>
+                        <option value="">{t('borrowOrders.stockPlaceholder', 'เลือกของในคลัง')}</option>
                         {stockEntries
                           .filter((entry) => !line.productId || entry.productId === line.productId)
                           .map((entry) => (
@@ -301,7 +301,7 @@ export function CreateBorrowOrderDialog({
               resetAndClose();
             }}
           >
-            {createBorrow.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.create', 'Create borrow order')}
+            {createBorrow.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.create', 'สร้างรายการเบิก/ยืม')}
           </Button>
         </DialogFooter>
       </DialogContent>

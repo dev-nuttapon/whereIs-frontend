@@ -164,7 +164,7 @@ export function AssetsPage() {
             <Input
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder={t('assets.filters.searchPlaceholder', 'Search asset')}
+              placeholder={t('assets.filters.searchPlaceholder', 'ค้นหาทรัพย์สิน')}
               className="rounded-full"
             />
 
@@ -172,9 +172,9 @@ export function AssetsPage() {
               className="w-full"
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
-              placeholder={t('assets.filters.allStatus', 'All status')}
+              placeholder={t('assets.filters.allStatus', 'ทุกสถานะ')}
             >
-              <option value="">{t('assets.filters.allStatus', 'All status')}</option>
+              <option value="">{t('assets.filters.allStatus', 'ทุกสถานะ')}</option>
               <option value="Available">{t('assets.status.available', 'Available')}</option>
               <option value="Borrowed">{t('assets.status.borrowed', 'Borrowed')}</option>
               <option value="Missing">{t('assets.status.missing', 'Missing')}</option>
@@ -214,9 +214,9 @@ export function AssetsPage() {
               className="w-full"
               value={filters.containerId}
               onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
-              placeholder={t('assets.filters.allContainers', 'All containers')}
+              placeholder={t('assets.filters.allContainers', 'ทุกจุดจัดเก็บ')}
             >
-              <option value="">{t('assets.filters.allContainers', 'All containers')}</option>
+              <option value="">{t('assets.filters.allContainers', 'ทุกจุดจัดเก็บ')}</option>
               {containers.map((container) => (
                 <option key={container.id} value={container.id}>
                   {container.name}

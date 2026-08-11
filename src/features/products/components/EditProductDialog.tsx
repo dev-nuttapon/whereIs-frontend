@@ -21,7 +21,7 @@ export function EditProductDialog({ wsId, product, open, onOpenChange, categorie
     <ProductFormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t('products.edit.title', 'Edit product')}
+      title={t('products.edit.title', 'แก้ไขสินค้า')}
       description={t('products.edit.description', 'Update the product master record used across the workspace.')}
       submitLabel={t('common.save', 'Save')}
       categories={categories}

@@ -111,16 +111,16 @@ export function ProductsPage() {
             <Input
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder={t('products.filters.searchPlaceholder', 'Search product')}
+              placeholder={t('products.filters.searchPlaceholder', 'ค้นหาสินค้า')}
               className="rounded-full"
             />
             <Select
               className="w-full"
               value={filters.categoryId}
               onChange={(event) => setFilters((current) => ({ ...current, categoryId: event.target.value }))}
-              placeholder={t('products.filters.allCategories', 'All categories')}
+              placeholder={t('products.filters.allCategories', 'ทุกหมวดหมู่')}
             >
-              <option value="">{t('products.filters.allCategories', 'All categories')}</option>
+              <option value="">{t('products.filters.allCategories', 'ทุกหมวดหมู่')}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -131,21 +131,21 @@ export function ProductsPage() {
               className="w-full"
               value={filters.trackingType}
               onChange={(event) => setFilters((current) => ({ ...current, trackingType: event.target.value }))}
-              placeholder={t('products.filters.allTrackingTypes', 'All tracking types')}
+              placeholder={t('products.filters.allTrackingTypes', 'ทุกประเภทการติดตาม')}
             >
-              <option value="">{t('products.filters.allTrackingTypes', 'All tracking types')}</option>
-              <option value="Asset">{t('products.tracking.asset', 'Asset')}</option>
-              <option value="Stock">{t('products.tracking.stock', 'Stock')}</option>
+              <option value="">{t('products.filters.allTrackingTypes', 'ทุกประเภทการติดตาม')}</option>
+              <option value="Asset">{t('products.tracking.asset', 'ทรัพย์สิน')}</option>
+              <option value="Stock">{t('products.tracking.stock', 'ของใช้สิ้นเปลือง')}</option>
             </Select>
             <Select
               className="w-full"
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
-              placeholder={t('products.filters.allStatus', 'All status')}
+              placeholder={t('products.filters.allStatus', 'ทุกสถานะ')}
             >
-              <option value="">{t('products.filters.allStatus', 'All status')}</option>
-              <option value="active">{t('common.active', 'Active')}</option>
-              <option value="inactive">{t('common.inactive', 'Inactive')}</option>
+              <option value="">{t('products.filters.allStatus', 'ทุกสถานะ')}</option>
+              <option value="active">{t('common.active', 'ใช้งานอยู่')}</option>
+              <option value="inactive">{t('common.inactive', 'ปิดใช้งาน')}</option>
             </Select>
           </div>
         </CardContent>

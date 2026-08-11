@@ -73,7 +73,7 @@ export function MemberDetailPage() {
                   <Descriptions.Item label={t('members.visibleContainerScope', 'Visible container scope')}>
                     {scope
                       ? `${t('members.visibilitySelectedCount', 'เห็น {count} container', { count: scope.containerIds.length })}${scope.includeDescendants ? `, ${t('permissions.scope.includeDescendants', 'Include child containers')}` : ''}`
-                      : t('members.visibilityAllContainers', 'All containers in this workspace')}
+                      : t('members.visibilityAllContainers', 'ทุกจุดจัดเก็บในพื้นที่ทำงานนี้')}
                   </Descriptions.Item>
                 </Descriptions>
               </div>
@@ -129,7 +129,7 @@ export function MemberDetailPage() {
               <CardDescription>
                 {scope
                   ? t('members.visibleContainerScopeHelp', 'This member is limited to the containers listed below in this workspace.')
-                  : t('members.visibilityAllContainers', 'All containers in this workspace')}
+                  : t('members.visibilityAllContainers', 'ทุกจุดจัดเก็บในพื้นที่ทำงานนี้')}
               </CardDescription>
               {scope ? (
                 <div className="flex flex-wrap gap-2">

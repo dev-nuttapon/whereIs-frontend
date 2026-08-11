@@ -192,12 +192,12 @@ function CreateBorrowDialog({
     <Dialog size="wide" open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[56rem]">
         <DialogHeader>
-          <DialogTitle>{t('borrowOrders.createTitle', 'Create borrow order')}</DialogTitle>
+          <DialogTitle>{t('borrowOrders.createTitle', 'สร้างรายการเบิก/ยืม')}</DialogTitle>
           <DialogDescription>{t('borrowOrders.createDescription', 'Add one or more assets or stock lines to create a new borrow order.')}</DialogDescription>
         </DialogHeader>
 
         <div className="component-stack px-5 pb-5 sm:px-6">
-          <FormField label={t('borrowOrders.purpose', 'Purpose')} htmlFor="borrow-purpose">
+          <FormField label={t('borrowOrders.purpose', 'วัตถุประสงค์')} htmlFor="borrow-purpose">
             <Textarea id="borrow-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} rows={3} />
           </FormField>
 
@@ -213,7 +213,7 @@ function CreateBorrowDialog({
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={addAssetLine}>
               <PlusIcon className="h-4 w-4" />
-              {t('borrowOrders.addAssetLine', 'Add asset')}
+              {t('borrowOrders.addAssetLine', 'เพิ่มทรัพย์สิน')}
             </Button>
             <Button type="button" variant="outline" onClick={addStockLine}>
               <PlusIcon className="h-4 w-4" />
@@ -254,12 +254,12 @@ function CreateBorrowDialog({
                   }}
                   className="w-full"
                 >
-                  <option value="asset">{t('borrowOrders.lineTypeAsset', 'Asset')}</option>
+                  <option value="asset">{t('borrowOrders.lineTypeAsset', 'ทรัพย์สิน')}</option>
                   <option value="stock">{t('borrowOrders.lineTypeStock', 'Stock')}</option>
                 </Select>
 
                 {line.kind === 'asset' ? (
-                  <FormField label={t('borrowOrders.asset', 'Asset')} htmlFor={`borrow-asset-${line.id}`}>
+                  <FormField label={t('borrowOrders.asset', 'ทรัพย์สิน')} htmlFor={`borrow-asset-${line.id}`}>
                     <Select
                       id={`borrow-asset-${line.id}`}
                       value={line.assetId}
@@ -270,7 +270,7 @@ function CreateBorrowDialog({
                       }
                       className="w-full"
                     >
-                      <option value="">{t('borrowOrders.assetPlaceholder', 'Select asset')}</option>
+                      <option value="">{t('borrowOrders.assetPlaceholder', 'เลือกทรัพย์สิน')}</option>
                       {assets.map((asset) => (
                         <option key={asset.id} value={asset.id}>
                           {asset.productName} - {asset.serialNumber ?? asset.barcode ?? asset.id}
@@ -280,7 +280,7 @@ function CreateBorrowDialog({
                   </FormField>
                 ) : (
                   <div className="grid gap-[18px] sm:grid-cols-3">
-                    <FormField label={t('borrowOrders.product', 'Product')} htmlFor={`borrow-product-${line.id}`}>
+                    <FormField label={t('borrowOrders.product', 'สินค้า')} htmlFor={`borrow-product-${line.id}`}>
                       <Select
                         id={`borrow-product-${line.id}`}
                         value={line.productId}
@@ -295,7 +295,7 @@ function CreateBorrowDialog({
                         }}
                         className="w-full"
                       >
-                        <option value="">{t('borrowOrders.productPlaceholder', 'Select product')}</option>
+                        <option value="">{t('borrowOrders.productPlaceholder', 'เลือกสินค้า')}</option>
                         {products.map((product) => (
                           <option key={product.id} value={product.id}>
                             {product.name}
@@ -315,7 +315,7 @@ function CreateBorrowDialog({
                         }
                         className="w-full"
                       >
-                        <option value="">{t('borrowOrders.stockPlaceholder', 'Select stock entry')}</option>
+                        <option value="">{t('borrowOrders.stockPlaceholder', 'เลือกของในคลัง')}</option>
                         {stockEntries
                           .filter((entry) => !line.productId || entry.productId === line.productId)
                           .map((entry) => (
@@ -372,7 +372,7 @@ function CreateBorrowDialog({
               resetAndClose();
             }}
           >
-            {createBorrow.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.create', 'Create borrow order')}
+            {createBorrow.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.create', 'สร้างรายการเบิก/ยืม')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -410,7 +410,7 @@ function BorrowOrderCard({
 
         <div className="grid gap-[18px] md:grid-cols-2">
           <div className="space-y-1 text-sm text-muted-foreground">
-            <div>{t('borrowOrders.requestedBy', 'Requested by')}: {order.requestedBy}</div>
+            <div>{t('borrowOrders.requestedBy', 'ผู้ขอรายการ')}: {order.requestedBy}</div>
             <div>{t('borrowOrders.needByDate', 'Need by')}: {formatDate(order.needByDate)}</div>
             <div>{t('borrowOrders.returnByDate', 'Return by')}: {formatDate(order.returnByDate)}</div>
             <div>{t('borrowOrders.requiresApproval', 'Requires approval')}: {order.requiresApproval ? t('common.yes', 'Yes') : t('common.no', 'No')}</div>
@@ -433,7 +433,7 @@ function BorrowOrderCard({
                   <Tag color={statusColor(line.status)}>{line.status}</Tag>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {line.assetId ? t('borrowOrders.assetLine', 'Asset line') : t('borrowOrders.stockLine', 'Stock line')}
+                  {line.assetId ? t('borrowOrders.assetLine', 'รายการทรัพย์สิน') : t('borrowOrders.stockLine', 'รายการของในคลัง')}
                 </p>
               </div>
             ))}
@@ -545,12 +545,12 @@ export function BorrowOrdersPage() {
 
   return (
     <PageShell
-      title={t('borrowOrders.title', 'Borrow orders')}
+      title={t('borrowOrders.title', 'รายการเบิก/ยืม')}
       description={t('borrowOrders.description', 'Review borrowing requests, approve them, and close them when items are returned.')}
       actions={(
         <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
           <PlusIcon className="h-4 w-4" />
-          {t('borrowOrders.create', 'Create borrow order')}
+          {t('borrowOrders.create', 'สร้างรายการเบิก/ยืม')}
         </Button>
       )}
     >
