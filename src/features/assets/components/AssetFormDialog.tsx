@@ -180,7 +180,7 @@ export function AssetFormDialog({
         <form onSubmit={handleSubmit}>
           <div className="component-stack dialog-form-body">
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('assets.form.product', 'Product')} htmlFor="asset-product">
+              <FormField label={t('assets.form.product', 'สินค้า')} htmlFor="asset-product">
                 <Select
                   id="asset-product"
                   value={values.productId}
@@ -197,7 +197,7 @@ export function AssetFormDialog({
                 </Select>
               </FormField>
 
-              <FormField label={t('assets.form.site', 'Site')} htmlFor="asset-site">
+              <FormField label={t('assets.form.site', 'สถานที่')} htmlFor="asset-site">
                 <Select
                   id="asset-site"
                   value={values.siteId}
@@ -266,7 +266,7 @@ export function AssetFormDialog({
             </div>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('assets.form.serialNumber', 'Serial number')} htmlFor="asset-serial">
+              <FormField label={t('assets.form.serialNumber', 'หมายเลขประจำเครื่อง')} htmlFor="asset-serial">
                 <Input
                   id="asset-serial"
                   value={values.serialNumber}
@@ -274,7 +274,7 @@ export function AssetFormDialog({
                   placeholder={t('assets.form.serialPlaceholder', 'ไม่บังคับ')}
                 />
               </FormField>
-              <FormField label={t('assets.form.barcode', 'Barcode')} htmlFor="asset-barcode">
+              <FormField label={t('assets.form.barcode', 'บาร์โค้ด')} htmlFor="asset-barcode">
                 <Input
                   id="asset-barcode"
                   value={values.barcode}
@@ -297,7 +297,7 @@ export function AssetFormDialog({
                   <option value="Poor">{t('assets.condition.poor', 'Poor')}</option>
                 </Select>
               </FormField>
-              <FormField label={t('assets.form.acquiredDate', 'Acquired date')} htmlFor="asset-acquired">
+              <FormField label={t('assets.form.acquiredDate', 'วันที่ได้มา')} htmlFor="asset-acquired">
                 <Input
                   id="asset-acquired"
                   type="date"
@@ -308,18 +308,18 @@ export function AssetFormDialog({
             </div>
 
             {mode === 'edit' ? (
-              <FormField label={t('assets.form.status', 'Status')} htmlFor="asset-status">
+              <FormField label={t('assets.form.status', 'สถานะ')} htmlFor="asset-status">
                 <Select
                   id="asset-status"
                   value={values.status}
                   onChange={(event) => setValues((current) => ({ ...current, status: event.target.value }))}
                   className="w-full"
                 >
-                  <option value="Available">{t('assets.status.available', 'Available')}</option>
-                  <option value="Borrowed">{t('assets.status.borrowed', 'Borrowed')}</option>
+                  <option value="Available">{t('assets.status.available', 'พร้อมใช้งาน')}</option>
+                  <option value="Borrowed">{t('assets.status.borrowed', 'ถูกยืมอยู่')}</option>
                   <option value="Missing">{t('assets.status.missing', 'Missing')}</option>
                   <option value="Maintenance">{t('assets.status.maintenance', 'Maintenance')}</option>
-                  <option value="Disposed">{t('assets.status.disposed', 'Disposed')}</option>
+                  <option value="Disposed">{t('assets.status.disposed', 'จำหน่ายแล้ว')}</option>
                 </Select>
               </FormField>
             ) : null}

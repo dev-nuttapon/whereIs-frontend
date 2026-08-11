@@ -175,20 +175,20 @@ export function AssetsPage() {
               placeholder={t('assets.filters.allStatus', 'ทุกสถานะ')}
             >
               <option value="">{t('assets.filters.allStatus', 'ทุกสถานะ')}</option>
-              <option value="Available">{t('assets.status.available', 'Available')}</option>
-              <option value="Borrowed">{t('assets.status.borrowed', 'Borrowed')}</option>
-              <option value="Missing">{t('assets.status.missing', 'Missing')}</option>
-              <option value="Maintenance">{t('assets.status.maintenance', 'Maintenance')}</option>
-              <option value="Disposed">{t('assets.status.disposed', 'Disposed')}</option>
+              <option value="Available">{t('assets.status.available', 'พร้อมใช้งาน')}</option>
+              <option value="Borrowed">{t('assets.status.borrowed', 'ถูกยืมอยู่')}</option>
+              <option value="Missing">{t('assets.status.missing', 'สูญหาย')}</option>
+              <option value="Maintenance">{t('assets.status.maintenance', 'อยู่ระหว่างซ่อม')}</option>
+              <option value="Disposed">{t('assets.status.disposed', 'จำหน่ายแล้ว')}</option>
             </Select>
 
             <Select
               className="w-full"
               value={filters.siteId}
               onChange={(event) => setFilters((current) => ({ ...current, siteId: event.target.value, locationId: '' }))}
-              placeholder={t('assets.filters.allSites', 'All sites')}
+              placeholder={t('assets.filters.allSites', 'ทุกสถานที่')}
             >
-              <option value="">{t('assets.filters.allSites', 'All sites')}</option>
+              <option value="">{t('assets.filters.allSites', 'ทุกสถานที่')}</option>
               {sites.map((site) => (
                 <option key={site.id} value={site.id}>
                   {site.name}

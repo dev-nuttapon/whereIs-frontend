@@ -24,7 +24,7 @@ export function SearchFilters({ value, onChange, containerOptions }: SearchFilte
       <div className="mb-4 flex items-center gap-2">
         <FilterIcon className="h-4 w-4 text-muted-foreground" />
         <div>
-          <p className="text-sm font-medium">{t('search.filtersTitle', 'Filters')}</p>
+          <p className="text-sm font-medium">{t('search.filtersTitle', 'ตัวกรอง')}</p>
           <p className="text-xs text-muted-foreground">{t('search.filtersDescription', 'Narrow results by type, status, and container.')}</p>
         </div>
       </div>
@@ -39,19 +39,19 @@ export function SearchFilters({ value, onChange, containerOptions }: SearchFilte
         />
 
         <Select value={value.kind} onChange={(event) => onChange({ ...value, kind: event.target.value })} className="w-full">
-          <option value="">{t('search.all', 'All')}</option>
+          <option value="">{t('search.all', 'ทั้งหมด')}</option>
           <option value="single">{t('items.kind.single', 'Individual Item')}</option>
           <option value="stock">{t('items.kind.stock', 'Quantity Item')}</option>
         </Select>
 
         <Select value={value.status} onChange={(event) => onChange({ ...value, status: event.target.value })} className="w-full">
-          <option value="">{t('search.all', 'All')}</option>
-          <option value="stored">{t('items.status.stored', 'Stored')}</option>
+          <option value="">{t('search.all', 'ทั้งหมด')}</option>
+          <option value="stored">{t('items.status.stored', 'จัดเก็บอยู่')}</option>
           <option value="taken_out">{t('items.status.taken_out', 'Taken out')}</option>
-          <option value="reserved">{t('items.status.reserved', 'Reserved')}</option>
+          <option value="reserved">{t('items.status.reserved', 'จองไว้')}</option>
           <option value="missing">{t('items.status.missing', 'Missing')}</option>
-          <option value="repair">{t('items.status.repair', 'Repair')}</option>
-          <option value="disposed">{t('items.status.disposed', 'Disposed')}</option>
+          <option value="repair">{t('items.status.repair', 'รอซ่อม')}</option>
+          <option value="disposed">{t('items.status.disposed', 'จำหน่ายแล้ว')}</option>
         </Select>
 
         <Select value={value.containerId} onChange={(event) => onChange({ ...value, containerId: event.target.value })} className="w-full">

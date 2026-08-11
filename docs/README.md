@@ -37,6 +37,7 @@ Stack: React · Vite · TypeScript · React Router · TanStack Query · React Ho
 | เอกสาร | เนื้อหา |
 |--------|---------|
 | [api-contract.md](api/api-contract.md) | endpoint + request/response + error + DTO |
+| [claude-api-production-readiness-prompt.md](ai/claude-api-production-readiness-prompt.md) | prompt สำหรับให้ Claude ทำ notification worker และ health/readiness ของ backend |
 
 ## Security
 | เอกสาร | เนื้อหา |

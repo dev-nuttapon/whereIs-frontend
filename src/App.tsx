@@ -11,6 +11,7 @@ import { useLocaleSync } from '@/hooks/useLocaleSync';
 import { AuthBootstrap } from '@/features/auth/components/AuthBootstrap';
 import { NotificationStack } from '@/components/feedback/NotificationStack';
 import { uiStore } from '@/stores/ui.store';
+import { AppErrorBoundary } from '@/components/feedback/AppErrorBoundary';
 
 export function App() {
   useThemeSync();
@@ -48,16 +49,18 @@ export function App() {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ConfigProvider locale={antdLocale} theme={antdConfig}>
-        <AntdApp>
-          <BrowserRouter>
-            <AuthBootstrap />
-            <AppRoutes />
-            <NotificationStack />
-          </BrowserRouter>
-        </AntdApp>
-      </ConfigProvider>
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ConfigProvider locale={antdLocale} theme={antdConfig}>
+          <AntdApp>
+            <BrowserRouter>
+              <AuthBootstrap />
+              <AppRoutes />
+              <NotificationStack />
+            </BrowserRouter>
+          </AntdApp>
+        </ConfigProvider>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
 }

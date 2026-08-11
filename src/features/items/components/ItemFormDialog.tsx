@@ -169,7 +169,7 @@ export function ItemFormDialog({
                 />
               </FormField>
 
-              <FormField label={t('items.form.usageType', 'Usage type')} htmlFor="item-usage-type" error={errors.usageType?.message}>
+              <FormField label={t('items.form.usageType', 'ประเภทการใช้งาน')} htmlFor="item-usage-type" error={errors.usageType?.message}>
                 <Controller
                   name="usageType"
                   control={control}
@@ -189,7 +189,7 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('items.form.code', 'Code')} htmlFor="item-code">
+              <FormField label={t('items.form.code', 'รหัสของ')} htmlFor="item-code">
                 <Controller
                   name="code"
                   control={control}
@@ -204,7 +204,7 @@ export function ItemFormDialog({
                 />
               </FormField>
 
-              <FormField label={t('items.form.photoUrl', 'Photo URL')} htmlFor="item-photo-url">
+              <FormField label={t('items.form.photoUrl', 'ลิงก์รูปภาพ')} htmlFor="item-photo-url">
                 <Controller
                   name="photoUrl"
                   control={control}
@@ -328,7 +328,7 @@ export function ItemFormDialog({
             ) : null}
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('items.form.lotCode', 'Lot code')} htmlFor="item-lot-code">
+              <FormField label={t('items.form.lotCode', 'รหัสล็อต')} htmlFor="item-lot-code">
                 <Controller
                   name="lotCode"
                   control={control}
@@ -343,7 +343,7 @@ export function ItemFormDialog({
                 />
               </FormField>
 
-              <FormField label={t('items.form.receivedDate', 'Received date')} htmlFor="item-received">
+              <FormField label={t('items.form.receivedDate', 'วันที่รับเข้า')} htmlFor="item-received">
                 <Controller
                   name="receivedDate"
                   control={control}
@@ -355,7 +355,7 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid gap-[18px] sm:grid-cols-3">
-              <FormField label={t('items.form.expiryDate', 'Expiry date')} htmlFor="item-expiry">
+              <FormField label={t('items.form.expiryDate', 'วันหมดอายุ')} htmlFor="item-expiry">
                 <Controller
                   name="expiryDate"
                   control={control}

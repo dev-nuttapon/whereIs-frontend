@@ -19,7 +19,7 @@ export function SearchResults({ wsId, items, containerNameById }: SearchResultsP
   if (items.length === 0) {
     return (
       <EmptyState
-        title={t('search.emptyTitle', 'No items found')}
+        title={t('search.emptyTitle', 'ไม่พบรายการของ')}
         description={t('search.emptyDescription', 'Try a different keyword or clear the filters to refine the results.')}
         icon={<ItemIcon className="h-5 w-5" />}
       />
@@ -37,9 +37,9 @@ export function SearchResults({ wsId, items, containerNameById }: SearchResultsP
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
               <div>{t('search.kind', 'Item type')}: {item.kind === 'stock' ? t('items.kind.stock', 'Quantity Item') : t('items.kind.single', 'Individual Item')}</div>
-              <div>{t('search.status', 'Status')}: {item.status}</div>
+              <div>{t('search.status', 'สถานะ')}: {item.status}</div>
               <div>{t('search.container', 'Container')}: {item.containerId ? (containerNameById.get(item.containerId) ?? item.containerId) : '-'}</div>
-              <div>{t('search.holder', 'Holder')}: {item.currentHolderId ?? '-'}</div>
+              <div>{t('search.holder', 'ผู้ถือครอง')}: {item.currentHolderId ?? '-'}</div>
             </div>
             <Button asChild variant="outline" size="sm" className="w-full rounded-full sm:w-auto">
               <Link to={ROUTES.workspaceItemDetail(wsId, item.id)}>

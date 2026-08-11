@@ -82,12 +82,12 @@ function AdjustStockDialog({
     <Dialog open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[46rem]">
         <DialogHeader>
-          <DialogTitle>{t('stock.adjust.title', 'Adjust stock')}</DialogTitle>
+          <DialogTitle>{t('stock.adjust.title', 'ปรับยอดของในคลัง')}</DialogTitle>
           <DialogDescription>{t('stock.adjust.description', 'Increase or decrease stock for a product at a specific location or container.')}</DialogDescription>
         </DialogHeader>
 
         <div className="component-stack px-5 pb-5 sm:px-6">
-          <FormField label={t('stock.adjust.product', 'Product')} htmlFor="stock-product">
+          <FormField label={t('stock.adjust.product', 'สินค้า')} htmlFor="stock-product">
             <Select id="stock-product" value={productId} onChange={(event) => setProductId(event.target.value)} className="w-full">
               <option value="">{t('stock.adjust.productPlaceholder', 'เลือกสินค้า')}</option>
               {products.map((product) => (
@@ -99,7 +99,7 @@ function AdjustStockDialog({
           </FormField>
 
           <div className="grid gap-[18px] sm:grid-cols-2">
-            <FormField label={t('stock.adjust.site', 'Site')} htmlFor="stock-site">
+            <FormField label={t('stock.adjust.site', 'สถานที่')} htmlFor="stock-site">
               <Select
                 id="stock-site"
                 value={siteId}
@@ -136,7 +136,7 @@ function AdjustStockDialog({
           </div>
 
           <div className="grid gap-[18px] sm:grid-cols-3">
-            <FormField label={t('stock.adjust.lotCode', 'Lot / batch')} htmlFor="stock-lot-code">
+            <FormField label={t('stock.adjust.lotCode', 'ล็อต / ชุดการผลิต')} htmlFor="stock-lot-code">
               <Input id="stock-lot-code" value={lotCode} onChange={(event) => setLotCode(event.target.value)} placeholder={t('stock.adjust.lotCodePlaceholder', 'ไม่บังคับ')} />
             </FormField>
             <FormField label={t('stock.adjust.expiryDate', 'วันหมดอายุ')} htmlFor="stock-expiry-date">
@@ -164,7 +164,7 @@ function AdjustStockDialog({
           </FormField>
 
           <div className="grid gap-[18px] sm:grid-cols-2">
-            <FormField label={t('stock.adjust.delta', 'Quantity change')} htmlFor="stock-delta">
+          <FormField label={t('stock.adjust.delta', 'จำนวนที่ปรับ')} htmlFor="stock-delta">
               <Input id="stock-delta" type="number" value={delta} onChange={(event) => setDelta(event.target.value)} />
             </FormField>
             <FormField label={t('stock.adjust.reason', 'Reason')} htmlFor="stock-reason">
@@ -194,7 +194,7 @@ function AdjustStockDialog({
             }}
             disabled={adjust.isPending}
           >
-            {adjust.isPending ? t('common.saving', 'Saving...') : t('stock.adjust.save', 'Save adjustment')}
+            {adjust.isPending ? t('common.saving', 'กำลังบันทึก...') : t('stock.adjust.save', 'บันทึกการปรับยอด')}
           </Button>
         </DialogFooter>
       </DialogContent>
