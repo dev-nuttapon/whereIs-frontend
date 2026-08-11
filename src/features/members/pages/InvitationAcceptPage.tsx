@@ -22,7 +22,7 @@ export function InvitationAcceptPage() {
       return;
     }
 
-    const accepted = await acceptInvitation.mutateAsync(token);
+  const accepted = await acceptInvitation.mutateAsync(token);
     navigate(ROUTES.workspaceDashboard(accepted.workspaceId), { replace: true });
   };
 

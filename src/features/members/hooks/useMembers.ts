@@ -70,6 +70,8 @@ export function useInvitation(token: string | undefined) {
     queryKey: queryKeys.invitations.detail(token ?? ''),
     queryFn: () => getInvitationByToken(token!),
     enabled: Boolean(token),
+    staleTime: 0,
+    gcTime: 0,
   });
 }
 
@@ -80,7 +82,6 @@ export function useAcceptInvitation() {
     mutationFn: (token: string) => acceptInvitation(token),
     onSuccess: async (invitation) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.detail(invitation.token ?? '') });
       await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.inbox() });
       pushNotification({
         variant: 'success',

@@ -21,6 +21,7 @@ const tokenClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 export async function loginWithPassword(email: string, password: string): Promise<TokenSession> {

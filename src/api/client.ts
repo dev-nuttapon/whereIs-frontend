@@ -3,6 +3,7 @@ import { env } from '@/lib/env';
 import { authStore } from '@/stores/auth.store';
 import { queryClient } from '@/lib/queryClient';
 import { refreshTokenSession } from '@/api/token.api';
+import { workspaceStore } from '@/stores/workspace.store';
 
 let refreshSessionPromise: Promise<void> | null = null;
 
@@ -12,6 +13,7 @@ export const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 client.interceptors.request.use((config) => {
@@ -56,6 +58,7 @@ client.interceptors.response.use(
           }
         } catch {
           authStore.getState().logout();
+          workspaceStore.getState().clear();
           queryClient.clear();
         }
       }
@@ -63,6 +66,7 @@ client.interceptors.response.use(
 
     if (error?.response?.status === 401) {
       authStore.getState().logout();
+      workspaceStore.getState().clear();
       queryClient.clear();
     }
     return Promise.reject(error);

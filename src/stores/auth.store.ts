@@ -4,6 +4,7 @@ import type { User } from '@/types/domain.types';
 import type { AuthSession } from '@/types/auth.types';
 
 interface AuthState {
+  authStatus: 'loading' | 'authenticated' | 'unauthenticated';
   accessToken: string | null;
   refreshToken: string | null;
   idToken: string | null;
@@ -14,11 +15,13 @@ interface AuthState {
   updateTokens: (session: Pick<AuthSession, 'accessToken' | 'refreshToken' | 'idToken' | 'expiresAt'>) => void;
   updateUser: (user: User) => void;
   logout: () => void;
+  markUnauthenticated: () => void;
 }
 
 export const authStore = create<AuthState>()(
   persist(
     (set) => ({
+      authStatus: 'unauthenticated',
       accessToken: null,
       refreshToken: null,
       idToken: null,
@@ -27,6 +30,7 @@ export const authStore = create<AuthState>()(
       isAuthenticated: false,
       setAuth: (session) =>
         set({
+          authStatus: 'authenticated',
           accessToken: session.accessToken,
           refreshToken: session.refreshToken ?? null,
           idToken: session.idToken ?? null,
@@ -36,6 +40,7 @@ export const authStore = create<AuthState>()(
         }),
       updateTokens: (session) =>
         set({
+          authStatus: 'authenticated',
           accessToken: session.accessToken,
           refreshToken: session.refreshToken ?? null,
           idToken: session.idToken ?? null,
@@ -43,6 +48,7 @@ export const authStore = create<AuthState>()(
         }),
       updateUser: (user) =>
         set({
+          authStatus: 'unauthenticated',
           user,
         }),
       logout: () =>
@@ -54,18 +60,26 @@ export const authStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
         }),
+      markUnauthenticated: () =>
+        set({
+          authStatus: 'unauthenticated',
+          accessToken: null,
+          refreshToken: null,
+          idToken: null,
+          expiresAt: null,
+          user: null,
+          isAuthenticated: false,
+        }),
     }),
     {
       name: 'whereis-auth',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        idToken: state.idToken,
-        expiresAt: state.expiresAt,
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      // Tokens are intentionally memory-only. A reload must require a fresh
+      // session bootstrap instead of restoring bearer credentials from storage.
+      partialize: () => ({}),
+      onRehydrateStorage: () => (state) => {
+        state?.markUnauthenticated();
+      },
     },
   ),
 );
