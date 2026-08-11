@@ -16,6 +16,7 @@ const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').the
 const WorkspaceListPage = lazy(() => import('@/features/workspaces/pages/WorkspaceListPage').then((module) => ({ default: module.WorkspaceListPage })));
 const WorkspaceNewPage = lazy(() => import('@/features/workspaces/pages/WorkspaceNewPage').then((module) => ({ default: module.WorkspaceNewPage })));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const ReceiveInventoryPage = lazy(() => import('@/features/receiving/pages/ReceiveInventoryPage').then((module) => ({ default: module.ReceiveInventoryPage })));
 const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then((module) => ({ default: module.SearchPage })));
 const ProductsPage = lazy(() => import('@/features/products/pages/ProductsPage').then((module) => ({ default: module.ProductsPage })));
 const ProductDetailPage = lazy(() => import('@/features/products/pages/ProductDetailPage').then((module) => ({ default: module.ProductDetailPage })));
@@ -113,6 +114,7 @@ export function AppRoutes() {
           <Route path="/w/:wsId" element={<WorkspaceRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
+              <Route path="receive" element={<ReceiveInventoryPage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="products" element={<PermissionGuard perm="product.view"><ProductsPage /></PermissionGuard>} />
               <Route path="products/:productId" element={<PermissionGuard perm="product.view"><ProductDetailPage /></PermissionGuard>} />

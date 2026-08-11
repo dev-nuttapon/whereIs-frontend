@@ -1,16 +1,17 @@
 import { useI18n } from '@/hooks/useI18n';
 import { useCreateProduct } from '@/features/products/hooks/useProducts';
 import { ProductFormDialog } from '@/features/master-data/components/ProductFormDialog';
-import type { Category } from '@/types/domain.types';
+import type { Category, Product } from '@/types/domain.types';
 
 interface CreateProductDialogProps {
   wsId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
+  onCreated?: (product: Product) => void;
 }
 
-export function CreateProductDialog({ wsId, open, onOpenChange, categories }: CreateProductDialogProps) {
+export function CreateProductDialog({ wsId, open, onOpenChange, categories, onCreated }: CreateProductDialogProps) {
   const { t } = useI18n();
   const createProduct = useCreateProduct(wsId);
 
@@ -23,7 +24,7 @@ export function CreateProductDialog({ wsId, open, onOpenChange, categories }: Cr
       submitLabel={t('products.create.action', 'Create product')}
       categories={categories}
       onSubmit={async (values) => {
-        await createProduct.mutateAsync({
+        const product = await createProduct.mutateAsync({
           name: values.name,
           categoryId: values.categoryId || null,
           unitCode: values.unitCode || null,
@@ -35,6 +36,7 @@ export function CreateProductDialog({ wsId, open, onOpenChange, categories }: Cr
           imageUrl: values.imageUrl || null,
           description: values.description || null,
         });
+        onCreated?.(product);
         onOpenChange(false);
       }}
       isSubmitting={createProduct.isPending}

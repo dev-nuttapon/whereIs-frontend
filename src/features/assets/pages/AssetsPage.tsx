@@ -22,6 +22,7 @@ import type { Asset } from '@/types/domain.types';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useContainers } from '@/features/containers/hooks/useContainers';
+import { usePermission } from '@/hooks/usePermission';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -57,15 +58,16 @@ const DEFAULT_FILTERS: AssetFilters = {
 
 function AssetCardActions({ wsId, asset, onEdit }: AssetCardActionsProps) {
   const { t } = useI18n();
+  const { can } = usePermission();
   const deleteAsset = useDeleteAsset(wsId, asset.id);
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size="sm" onClick={() => onEdit(asset)} className="rounded-full">
+      {can('asset.manage') ? <Button variant="outline" size="sm" onClick={() => onEdit(asset)} className="rounded-full">
         <EditIcon className="h-4 w-4" />
         {t('common.edit', 'แก้ไข')}
-      </Button>
-      <Popconfirm
+      </Button> : null}
+      {can('asset.manage') ? <Popconfirm
         title={t('assets.deleteConfirmTitle', 'Delete this asset?')}
         description={t('assets.deleteConfirmDescription', 'This will remove the asset from the workspace.')}
         okText={t('common.delete', 'Delete')}
@@ -78,7 +80,7 @@ function AssetCardActions({ wsId, asset, onEdit }: AssetCardActionsProps) {
         <Button variant="destructive" size="sm" disabled={deleteAsset.isPending} className="rounded-full">
           {deleteAsset.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
         </Button>
-      </Popconfirm>
+      </Popconfirm> : null}
     </div>
   );
 }
@@ -86,6 +88,7 @@ function AssetCardActions({ wsId, asset, onEdit }: AssetCardActionsProps) {
 export function AssetsPage() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
+  const { can } = usePermission();
   const [filters, setFilters] = useState<AssetFilters>(DEFAULT_FILTERS);
   const assetsQuery = useAssets(wsId, {
     search: filters.search.trim() || undefined,
@@ -125,12 +128,12 @@ export function AssetsPage() {
     <PageShell
       title={t('assets.title', 'Assets')}
       description={t('assets.description', 'Track individual assets, their location, status, and photos.')}
-      actions={(
+      actions={can('asset.manage') ? (
         <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
           <PlusIcon className="h-4 w-4" />
           {t('assets.create.action', 'Create asset')}
         </Button>
-      )}
+      ) : null}
     >
       {assetsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {assetsQuery.isError ? <ErrorState message={t('assets.error', 'Unable to load assets.')} onRetry={() => assetsQuery.refetch()} /> : null}

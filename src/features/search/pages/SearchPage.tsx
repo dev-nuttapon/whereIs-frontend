@@ -62,8 +62,8 @@ export function SearchPage() {
 
   return (
     <PageShell
-      title={t('search.title', 'Search')}
-      description={t('search.description', 'Search items and open the detail page.')}
+      title={t('inventory.title', 'ของทั้งหมด')}
+      description={t('inventory.description', 'ค้นหาและดูรายการทั้งหมดในพื้นที่ทำงานจากจุดเดียว')}
     >
       {query.isLoading ? <LoadingState label={t('search.loading', 'Searching...')} /> : null}
       {query.isError ? <ErrorState message={t('search.error', 'Search failed.')} onRetry={() => query.refetch()} /> : null}

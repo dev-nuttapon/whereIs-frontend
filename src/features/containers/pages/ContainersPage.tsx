@@ -18,6 +18,7 @@ import { useSites } from '@/features/sites/hooks/useSites';
 import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
 import { formatContainerTypeLabel } from '@/features/containers/utils/containerLabels';
 import type { Container } from '@/types/domain.types';
+import { usePermission } from '@/hooks/usePermission';
 
 function groupContainersByParent(containers: Container[]) {
   return containers.reduce<Map<string | null, Container[]>>((groups, container) => {
@@ -85,6 +86,7 @@ function ContainerTreeCard({
 export function ContainersPage() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
+  const { can } = usePermission();
   const containersQuery = useContainers(wsId);
   const locationsQuery = useLocations(wsId);
   const sitesQuery = useSites(wsId);
@@ -104,12 +106,12 @@ export function ContainersPage() {
     <PageShell
       title={t('containers.list.title')}
       description={t('containers.list.description')}
-      actions={(
+      actions={can('container.create') ? (
         <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
           <PlusIcon className="h-4 w-4" />
           {t('containers.list.create', 'สร้าง container')}
         </Button>
-      )}
+      ) : null}
     >
       {containersQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {containersQuery.isError ? <ErrorState message={t('containers.list.error', 'Unable to load containers.')} onRetry={() => containersQuery.refetch()} /> : null}

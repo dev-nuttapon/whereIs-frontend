@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "test:unit": "npx tsx --test --test-reporter tap tests/unit/receivingForm.test.ts",
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {

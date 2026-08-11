@@ -9,6 +9,7 @@ export const ROUTES = {
   workspaces: '/workspaces',
   workspaceNew: '/workspaces/new',
   workspaceDashboard: (wsId: string) => `/w/${wsId}`,
+  workspaceReceive: (wsId: string) => `/w/${wsId}/receive`,
   workspaceProfile: (wsId: string) => `/w/${wsId}/profile`,
   workspaceSearch: (wsId: string) => `/w/${wsId}/search`,
   workspaceActivity: (wsId: string) => `/w/${wsId}/activity`,

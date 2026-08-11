@@ -28,6 +28,11 @@ Stack: React · Vite · TypeScript · React Router · TanStack Query · React Ho
 | [navigation.md](ui/navigation.md) | Sidebar, Topbar, Breadcrumb, menu hierarchy |
 | [ui-patterns.md](ui/ui-patterns.md) | Loading, Empty, Error, Card, Dialog, Filter, Pagination และอื่นๆ |
 
+## Roadmap
+| เอกสาร | เนื้อหา |
+|--------|---------|
+| [frontend-saas-readiness-roadmap.md](superpowers/plans/2026-08-11-frontend-saas-readiness-roadmap.md) | แผนปรับ frontend ให้พร้อมใช้งานแบบ SaaS แบ่ง 5 รอบ |
+
 ## API
 | เอกสาร | เนื้อหา |
 |--------|---------|

@@ -5,6 +5,7 @@ import { ROUTES } from '@/constants/routes';
 import { WORKSPACE_NAV_ITEMS, type NavItem } from '@/constants/navigation';
 import { useI18n } from '@/hooks/useI18n';
 import { workspaceStore } from '@/stores/workspace.store';
+import { usePermission } from '@/hooks/usePermission';
 import {
   DashboardIcon,
   SearchIcon,
@@ -18,6 +19,7 @@ import {
   ActivityIcon,
   ReportIcon,
   BellIcon,
+  PlusIcon,
 } from '@/components/ui/icons';
 
 const ICONS = {
@@ -33,6 +35,7 @@ const ICONS = {
   activity: ActivityIcon,
   reports: ReportIcon,
   notifications: BellIcon,
+  receive: PlusIcon,
 } as const;
 
 export interface SidebarProps {
@@ -40,8 +43,8 @@ export interface SidebarProps {
 }
 
 const SECTIONS: Array<{ titleKey: string; titleFallback: string; items: Array<NavItem['labelKey']> }> = [
-  { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard', 'nav.search', 'nav.activity'] },
-  { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.products', 'nav.assets', 'nav.stock', 'nav.containers', 'nav.borrowOrders'] },
+  { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard', 'nav.activity'] },
+  { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.receive', 'nav.inventory', 'nav.products', 'nav.assets', 'nav.stock', 'nav.containers', 'nav.borrowOrders'] },
   { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.reports', 'nav.notifications', 'nav.members'] },
 ] as const;
 
@@ -51,10 +54,13 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const { t } = useI18n();
   const currentWorkspaceId = workspaceStore((state) => state.currentWorkspaceId);
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
+  const { canAny } = usePermission();
   const resolvedWsId = wsId ?? currentWorkspaceId ?? '';
   const items = WORKSPACE_NAV_ITEMS.filter((item) => {
     const role = currentWorkspace?.myRole ?? 'viewer';
-    return item.roles ? item.roles.includes(role) : true;
+    const roleAllowed = item.roles ? item.roles.includes(role) : true;
+    const permissionAllowed = item.permissions ? canAny(...item.permissions) : true;
+    return roleAllowed && permissionAllowed;
   });
   const menuItems = useMemo(
     () =>

@@ -23,6 +23,7 @@ import { useStockEntries, useAdjustStock } from '@/features/stock/hooks/useStock
 import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
 import { OpenIcon, TakeOutIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
+import { usePermission } from '@/hooks/usePermission';
 
 function formatLocationLabel(locationName?: string | null, containerName?: string | null) {
   if (containerName) return containerName;
@@ -205,6 +206,7 @@ export function StockPage() {
   const { wsId = '' } = useParams();
   const [searchParams] = useSearchParams();
   const { t } = useI18n();
+  const { can } = usePermission();
   const initialContainerId = searchParams.get('containerId') ?? '';
   const initialProductId = searchParams.get('productId') ?? '';
   const [adjustOpen, setAdjustOpen] = useState(Boolean(initialContainerId || initialProductId));
@@ -230,14 +232,14 @@ export function StockPage() {
       description={t('stock.description', 'Manage stock quantities before borrowing stock items.')}
       actions={(
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          <Button className="w-full sm:w-auto" variant="outline" onClick={() => setBorrowOpen(true)}>
+          {can('borrow.create') ? <Button className="w-full sm:w-auto" variant="outline" onClick={() => setBorrowOpen(true)}>
             <TakeOutIcon className="h-4 w-4" />
             {t('stock.borrow.action', 'Create borrow order')}
-          </Button>
-          <Button className="w-full sm:w-auto" onClick={() => setAdjustOpen(true)}>
+          </Button> : null}
+          {can('stock.manage') ? <Button className="w-full sm:w-auto" onClick={() => setAdjustOpen(true)}>
             <PlusIcon className="h-4 w-4" />
             {t('stock.adjust.action', 'Adjust stock')}
-          </Button>
+          </Button> : null}
         </div>
       )}
     >

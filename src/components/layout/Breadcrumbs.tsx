@@ -52,7 +52,11 @@ export function Breadcrumbs() {
     }
 
     if (location.pathname.endsWith('/search')) {
-      return [{ label: t('nav.search', 'Search'), to: ROUTES.workspaceSearch(wsId) }];
+      return [{ label: t('nav.inventory', 'ของทั้งหมด'), to: ROUTES.workspaceSearch(wsId) }];
+    }
+
+    if (location.pathname.endsWith('/receive')) {
+      return [{ label: t('nav.receive', 'เพิ่มของเข้าคลัง'), to: ROUTES.workspaceReceive(wsId) }];
     }
 
     if (location.pathname.endsWith('/activity')) {
