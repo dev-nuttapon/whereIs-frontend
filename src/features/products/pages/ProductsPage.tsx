@@ -15,6 +15,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { FilterIcon, OpenIcon, ItemIcon } from '@/components/ui/icons';
 import { useCategories } from '@/features/categories/hooks/useCategories';
 import { useProducts } from '@/features/products/hooks/useProducts';
+import { safeAssetUrl } from '@/lib/safe-url';
 import type { Product } from '@/types/domain.types';
 
 interface ProductFilters {
@@ -169,7 +170,7 @@ export function ProductsPage() {
               <CardContent className="space-y-4 p-5 sm:p-6">
                 {product.imageUrl ? (
                   <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                    <img src={product.imageUrl} alt={product.name} className="h-40 w-full object-cover" />
+                    <img src={safeAssetUrl(product.imageUrl)} alt={product.name} className="h-40 w-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                 ) : null}
                 <div className="space-y-1">

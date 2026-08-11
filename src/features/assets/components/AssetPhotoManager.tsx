@@ -9,6 +9,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { cn } from '@/lib/cn';
 import type { AssetPhoto } from '@/types/domain.types';
 import { useDeleteAssetPhoto, useUploadAssetPhoto } from '@/features/assets/hooks/useAssets';
+import { safeAssetUrl } from '@/lib/safe-url';
 
 interface AssetPhotoManagerProps {
   wsId: string;
@@ -132,7 +133,8 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
                   <div key={photo.id} className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-3">
                     <div className="relative overflow-hidden rounded-xl border border-border/70 bg-muted/30">
                       <img
-                        src={photo.url}
+                        src={safeAssetUrl(photo.url)}
+                        referrerPolicy="no-referrer"
                         alt={t('assets.photo.alt', 'Asset photo')}
                         className={cn('h-44 w-full object-cover', photo.isMain ? 'ring-2 ring-primary/60' : '')}
                       />

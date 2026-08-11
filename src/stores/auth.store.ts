@@ -48,11 +48,12 @@ export const authStore = create<AuthState>()(
         }),
       updateUser: (user) =>
         set({
-          authStatus: 'unauthenticated',
+          authStatus: 'authenticated',
           user,
         }),
       logout: () =>
         set({
+          authStatus: 'unauthenticated',
           accessToken: null,
           refreshToken: null,
           idToken: null,

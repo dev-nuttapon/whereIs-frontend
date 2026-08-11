@@ -17,6 +17,7 @@ import { useAssets } from '@/features/assets/hooks/useAssets';
 import { useStockEntries } from '@/features/stock/hooks/useStock';
 import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { CreateAssetDialog } from '@/features/assets/components/CreateAssetDialog';
+import { safeAssetUrl } from '@/lib/safe-url';
 
 export function ProductDetailPage() {
   const { wsId = '', productId = '' } = useParams();
@@ -82,7 +83,7 @@ export function ProductDetailPage() {
 
                 {product.imageUrl ? (
                   <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                    <img src={product.imageUrl} alt={product.name} className="h-64 w-full object-cover" />
+                    <img src={safeAssetUrl(product.imageUrl)} alt={product.name} className="h-64 w-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                 ) : null}
 

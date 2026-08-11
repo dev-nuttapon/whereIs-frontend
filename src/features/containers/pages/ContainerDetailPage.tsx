@@ -17,6 +17,7 @@ import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { buildLocationLabelMap } from '@/features/containers/utils/locationOptions';
 import { formatContainerTypeLabel, isGenericContainerTypeLabel } from '@/features/containers/utils/containerLabels';
+import { safeAssetUrl } from '@/lib/safe-url';
 
 export function ContainerDetailPage() {
   const { wsId = '', containerId } = useParams();
@@ -90,7 +91,7 @@ export function ContainerDetailPage() {
             </div>
             {container?.photoUrl ? (
               <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                <img src={container.photoUrl} alt={container.name} className="h-64 w-full object-cover" />
+                <img src={safeAssetUrl(container.photoUrl)} alt={container.name} className="h-64 w-full object-cover" referrerPolicy="no-referrer" />
               </div>
             ) : null}
             <div className="responsive-descriptions">

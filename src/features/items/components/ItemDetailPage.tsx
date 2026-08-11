@@ -16,6 +16,7 @@ import { useDeleteItem, useItem, useItemEvents } from '@/features/items/hooks/us
 import { UpdateItemDialog } from '@/features/items/components/UpdateItemDialog';
 import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
 import { TakeOutIcon } from '@/components/ui/icons';
+import { safeAssetUrl } from '@/lib/safe-url';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -102,7 +103,8 @@ export function ItemDetailPage() {
                       <CardTitle className="text-sm">{t('items.detail.photo', 'รูปภาพ')}</CardTitle>
                       {item.photoUrl ? (
                         <img
-                          src={item.photoUrl}
+                          src={safeAssetUrl(item.photoUrl)}
+                          referrerPolicy="no-referrer"
                           alt={item.name}
                           className="h-72 w-full rounded-2xl object-cover"
                         />

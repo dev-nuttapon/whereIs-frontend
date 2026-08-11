@@ -18,6 +18,7 @@ import { BorrowOrderReturnDialog } from '@/features/borrow-orders/components/Bor
 import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { EditIcon, OpenIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
 import { PermissionGuard } from '@/components/common/PermissionGuard';
+import { safeAssetUrl } from '@/lib/safe-url';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -165,7 +166,8 @@ export function AssetDetailPage() {
                 <CardTitle className="text-base">{t('assets.detail.preview', 'ภาพตัวอย่าง')}</CardTitle>
                 {mainPhoto ? (
                     <img
-                      src={mainPhoto.url}
+                      src={safeAssetUrl(mainPhoto.url)}
+                      referrerPolicy="no-referrer"
                     alt={t('assets.photo.alt', 'รูปทรัพย์สิน')}
                       className="h-72 w-full rounded-2xl object-cover"
                     />
