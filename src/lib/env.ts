@@ -1,3 +1,9 @@
+import { resolveApiBaseUrl } from '@/lib/api-base-url';
+
 export const env = {
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
+  apiBaseUrl: resolveApiBaseUrl(
+    import.meta.env.VITE_API_BASE_URL,
+    import.meta.env.MODE,
+    typeof window === 'undefined' ? '' : window.location.origin,
+  ),
 } as const;

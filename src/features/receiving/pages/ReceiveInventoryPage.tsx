@@ -13,6 +13,7 @@ import { useCategories } from '@/features/categories/hooks/useCategories';
 import { CreateProductDialog } from '@/features/products/components/CreateProductDialog';
 import { useCreateReceivingReceipt, useReceivingReceipts } from '@/features/receiving/hooks/useReceivingReceipts';
 import { buildReceivingReceiptInput, getReceivingLineError, type ReceivingFormLine } from '@/features/receiving/utils/receivingForm';
+import { parseReceivingDraft } from '@/features/receiving/utils/receivingDraft';
 
 type TrackingType = ReceivingFormLine['trackingType'];
 type ReceivingLine = ReceivingFormLine;
@@ -51,14 +52,12 @@ export function ReceiveInventoryPage() {
     const draft = window.localStorage.getItem(`whereis:receive-draft:${wsId}`);
     if (!draft) return;
 
-    try {
-      const parsed = JSON.parse(draft) as { lines?: ReceivingLine[]; savedAt?: string };
-      if (parsed.lines?.length) {
-        setLines(parsed.lines);
-        setNextId(Math.max(...parsed.lines.map((line) => line.id)) + 1);
-        setSavedAt(parsed.savedAt ?? null);
-      }
-    } catch {
+    const parsedLines = parseReceivingDraft(draft);
+    if (parsedLines) {
+      setLines(parsedLines);
+      setNextId(Math.max(...parsedLines.map((line) => line.id)) + 1);
+      setSavedAt(JSON.parse(draft).savedAt ?? null);
+    } else {
       window.localStorage.removeItem(`whereis:receive-draft:${wsId}`);
     }
   }, [wsId]);

@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { getSafeErrorMessage } from '@/lib/error-message';
+import { formatErrorLog } from '@/lib/error-log';
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -17,7 +18,12 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('WhereIs application error', error, errorInfo.componentStack);
+    const details = formatErrorLog(error, import.meta.env.MODE);
+    if (import.meta.env.MODE === 'development') {
+      console.error('WhereIs application error', details, errorInfo.componentStack);
+    } else {
+      console.error('WhereIs application error', details);
+    }
   }
 
   handleReload = () => {

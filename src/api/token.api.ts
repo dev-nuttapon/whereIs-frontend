@@ -62,6 +62,10 @@ export async function refreshTokenSession(refreshToken?: string): Promise<TokenS
   }
 }
 
+export async function revokeSession(): Promise<void> {
+  await tokenClient.post('/auth/logout');
+}
+
 function toAuthError(cause: unknown, fallback: string) {
   if (cause instanceof AxiosError) {
     const data = cause.response?.data as ApiErrorResponse | undefined;

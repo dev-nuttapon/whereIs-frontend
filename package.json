@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
-    "test:unit": "npx tsx --test --test-reporter tap tests/unit/receivingForm.test.ts tests/unit/errorMessage.test.ts tests/security/safe-url.test.ts tests/security/session.test.ts",
+    "test:unit": "npx tsx --test --test-reporter tap tests/unit/receivingForm.test.ts tests/unit/errorMessage.test.ts tests/security/api-base-url.test.ts tests/security/error-log.test.ts tests/security/receiving-draft.test.ts tests/security/safe-url.test.ts tests/security/session.test.ts",
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {

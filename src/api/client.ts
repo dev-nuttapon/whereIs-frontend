@@ -34,12 +34,9 @@ client.interceptors.response.use(
       originalRequest &&
       !originalRequest._retry
     ) {
-      const refreshToken = authStore.getState().refreshToken;
-
-      if (refreshToken) {
-        try {
-          originalRequest._retry = true;
-          refreshSessionPromise ??= refreshTokenSession(refreshToken)
+      try {
+        originalRequest._retry = true;
+        refreshSessionPromise ??= refreshTokenSession(authStore.getState().refreshToken ?? undefined)
             .then((session) => {
               authStore.getState().updateTokens(session);
             })
@@ -47,20 +44,19 @@ client.interceptors.response.use(
               refreshSessionPromise = null;
             });
 
-          await refreshSessionPromise;
-          const token = authStore.getState().accessToken;
-          if (token) {
-            originalRequest.headers = {
-              ...(originalRequest.headers ?? {}),
-              Authorization: `Bearer ${token}`,
-            };
-            return client(originalRequest);
-          }
-        } catch {
-          authStore.getState().logout();
-          workspaceStore.getState().clear();
-          queryClient.clear();
+        await refreshSessionPromise;
+        const token = authStore.getState().accessToken;
+        if (token) {
+          originalRequest.headers = {
+            ...(originalRequest.headers ?? {}),
+            Authorization: `Bearer ${token}`,
+          };
+          return client(originalRequest);
         }
+      } catch {
+        authStore.getState().logout();
+        workspaceStore.getState().clear();
+        queryClient.clear();
       }
     }
 

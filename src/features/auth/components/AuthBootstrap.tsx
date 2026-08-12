@@ -18,6 +18,7 @@ export function AuthBootstrap() {
     }
 
     let active = true;
+    workspaceStore.getState().clear();
     void refreshAuthSession()
       .then(async (session) => {
         const user = await getCurrentUser();

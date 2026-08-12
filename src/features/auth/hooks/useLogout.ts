@@ -11,17 +11,25 @@ export function useLogout() {
   const clearAuth = authStore((state) => state.logout);
   const idToken = authStore((state) => state.idToken);
 
+  const clearLocalSession = async () => {
+    clearAuth();
+    workspaceStore.getState().clear();
+    await queryClient.clear();
+  };
+
   return useMutation({
     mutationFn: () => logout(idToken),
     onSuccess: async (result) => {
-      clearAuth();
-      workspaceStore.getState().clear();
-      await queryClient.clear();
+      await clearLocalSession();
       if (result.redirectUrl) {
         window.location.assign(result.redirectUrl);
         return;
       }
 
+      navigate(ROUTES.login, { replace: true });
+    },
+    onError: async () => {
+      await clearLocalSession();
       navigate(ROUTES.login, { replace: true });
     },
   });

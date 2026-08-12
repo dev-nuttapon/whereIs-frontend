@@ -114,7 +114,7 @@ export function AppRoutes() {
           <Route path="/w/:wsId" element={<WorkspaceRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
-              <Route path="receive" element={<ReceiveInventoryPage />} />
+              <Route path="receive" element={<PermissionGuard perm={['stock.manage', 'asset.manage']} mode="any"><ReceiveInventoryPage /></PermissionGuard>} />
               <Route path="search" element={<SearchPage />} />
               <Route path="products" element={<PermissionGuard perm="product.view"><ProductsPage /></PermissionGuard>} />
               <Route path="products/:productId" element={<PermissionGuard perm="product.view"><ProductDetailPage /></PermissionGuard>} />
@@ -125,9 +125,9 @@ export function AppRoutes() {
               <Route path="stock" element={<PermissionGuard perm="stock.view"><StockPage /></PermissionGuard>} />
               <Route path="stock/:stockEntryId" element={<PermissionGuard perm="stock.view"><StockDetailPage /></PermissionGuard>} />
               <Route path="containers" element={<PermissionGuard perm="container.view"><ContainersPage /></PermissionGuard>} />
-              <Route path="activity" element={<ActivityPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="activity" element={<PermissionGuard perm="activity.view"><ActivityPage /></PermissionGuard>} />
+              <Route path="reports" element={<PermissionGuard perm="report.view"><ReportsPage /></PermissionGuard>} />
+              <Route path="notifications" element={<PermissionGuard perm="notification.view"><NotificationsPage /></PermissionGuard>} />
               <Route path="borrow-orders" element={<PermissionGuard perm="borrow.view"><BorrowOrdersPage /></PermissionGuard>} />
               <Route path="borrow-orders/:orderId" element={<PermissionGuard perm="borrow.view"><BorrowOrderDetailPage /></PermissionGuard>} />
               <Route path="master-data" element={<PermissionGuard perm="category.manage"><MasterDataPage /></PermissionGuard>} />

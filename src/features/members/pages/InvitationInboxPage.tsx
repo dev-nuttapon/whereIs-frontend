@@ -12,6 +12,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 import { useAcceptInvitation, useMyInvitations } from '@/features/members/hooks/useMembers';
 import type { InvitationDto } from '@/api/member.api';
+import { getUserFacingErrorMessage } from '@/lib/error-log';
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('th-TH', {
@@ -61,7 +62,7 @@ export function InvitationInboxPage() {
       pushNotification({
         variant: 'error',
         title: t('members.acceptInvitationError', 'ตอบรับคำเชิญไม่สำเร็จ'),
-        description: error instanceof Error ? error.message : t('common.errorUnexpected', 'เกิดข้อผิดพลาดที่ไม่คาดคิด'),
+        description: getUserFacingErrorMessage(error),
       });
     }
   };

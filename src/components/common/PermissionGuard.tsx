@@ -7,10 +7,11 @@ export interface PermissionGuardProps {
   perm: PermissionKey | PermissionKey[];
   children: ReactNode;
   fallback?: ReactNode;
+  mode?: 'all' | 'any';
 }
 
-export function PermissionGuard({ perm, children, fallback = <AccessDeniedState /> }: PermissionGuardProps) {
-  const { can, canAll } = usePermission();
-  const allowed = Array.isArray(perm) ? canAll(...perm) : can(perm);
+export function PermissionGuard({ perm, children, fallback = <AccessDeniedState />, mode = 'all' }: PermissionGuardProps) {
+  const { can, canAll, canAny } = usePermission();
+  const allowed = Array.isArray(perm) ? (mode === 'any' ? canAny(...perm) : canAll(...perm)) : can(perm);
   return allowed ? children : fallback;
 }

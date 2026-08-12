@@ -43,6 +43,7 @@ Stack: React · Vite · TypeScript · React Router · TanStack Query · React Ho
 | เอกสาร | เนื้อหา |
 |--------|---------|
 | [permission-ui.md](security/permission-ui.md) | roles, primary role + extra permissions + container access scope, permission keys, role matrix |
+| [pre-deploy-security-checklist.md](operations/pre-deploy-security-checklist.md) | checklist สำหรับ health check, external scheduler, monitoring และ security ก่อน deploy |
 
 ## State
 | เอกสาร | เนื้อหา |

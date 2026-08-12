@@ -1,7 +1,7 @@
 import type { User } from '@/types/domain.types';
 import type { AuthSession } from '@/types/auth.types';
 import { client } from '@/api/client';
-import { loginWithPassword, refreshTokenSession, registerWithPassword } from '@/api/token.api';
+import { loginWithPassword, refreshTokenSession, registerWithPassword, revokeSession } from '@/api/token.api';
 
 interface UserResponseEnvelope {
   success: boolean;
@@ -40,6 +40,7 @@ export async function refreshAuthSession(refreshToken?: string): Promise<Omit<Au
 
 export async function logout(idTokenHint?: string | null): Promise<{ success: true; redirectUrl?: string | null }> {
   void idTokenHint;
+  await revokeSession();
   return {
     success: true,
     redirectUrl: null,
