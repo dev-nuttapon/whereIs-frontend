@@ -105,6 +105,7 @@ export function ItemDetailPage() {
                         <img
                           src={safeAssetUrl(item.photoUrl)}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
                           alt={item.name}
                           className="h-72 w-full rounded-2xl object-cover"
                         />

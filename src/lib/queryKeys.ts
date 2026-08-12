@@ -72,7 +72,10 @@ export const queryKeys = {
   },
   invitations: {
     all: (wsId: string) => ['ws', wsId, 'invitations'] as const,
-    detail: (token: string) => ['invitations', token] as const,
+    // Keep the one-time invitation token out of React Query's cache key.
+    // The token is still sent to the API by the query function, but is not
+    // duplicated in cache metadata or devtools output.
+    detail: () => ['invitations', 'detail'] as const,
     inbox: () => ['invitations', 'inbox'] as const,
   },
 } as const;

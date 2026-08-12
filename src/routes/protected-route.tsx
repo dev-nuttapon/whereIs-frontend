@@ -3,7 +3,10 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { authStore } from '@/stores/auth.store';
 import { isSessionExpired } from '@/lib/session';
+import { LoadingState } from '@/components/feedback/LoadingState';
+
 export function ProtectedRoute() {
+  const authStatus = authStore((state) => state.authStatus);
   const isAuthenticated = authStore((state) => state.isAuthenticated);
   const expiresAt = authStore((state) => state.expiresAt);
   const markUnauthenticated = authStore((state) => state.markUnauthenticated);
@@ -15,6 +18,10 @@ export function ProtectedRoute() {
       markUnauthenticated();
     }
   }, [isExpired, markUnauthenticated]);
+
+  if (authStatus === 'loading') {
+    return <LoadingState />;
+  }
 
   if (!isAuthenticated || isExpired) {
     return <Navigate to={ROUTES.login} replace />;

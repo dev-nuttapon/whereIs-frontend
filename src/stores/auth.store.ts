@@ -14,6 +14,7 @@ interface AuthState {
   setAuth: (session: AuthSession) => void;
   updateTokens: (session: Pick<AuthSession, 'accessToken' | 'refreshToken' | 'idToken' | 'expiresAt'>) => void;
   updateUser: (user: User) => void;
+  startBootstrap: () => void;
   logout: () => void;
   markUnauthenticated: () => void;
 }
@@ -21,7 +22,7 @@ interface AuthState {
 export const authStore = create<AuthState>()(
   persist(
     (set) => ({
-      authStatus: 'unauthenticated',
+      authStatus: 'loading',
       accessToken: null,
       refreshToken: null,
       idToken: null,
@@ -51,6 +52,10 @@ export const authStore = create<AuthState>()(
           authStatus: 'authenticated',
           user,
         }),
+      startBootstrap: () =>
+        set({
+          authStatus: 'loading',
+        }),
       logout: () =>
         set({
           authStatus: 'unauthenticated',
@@ -79,7 +84,7 @@ export const authStore = create<AuthState>()(
       // session bootstrap instead of restoring bearer credentials from storage.
       partialize: () => ({}),
       onRehydrateStorage: () => (state) => {
-        state?.markUnauthenticated();
+        state?.startBootstrap();
       },
     },
   ),

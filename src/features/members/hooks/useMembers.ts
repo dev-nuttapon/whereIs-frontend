@@ -16,6 +16,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 import { refreshWorkspaceContext } from '@/features/workspaces/utils/refreshWorkspaceContext';
+import { isUsableInvitationToken } from '@/lib/invitation-token';
 
 export function useMembers(wsId: string) {
   return useQuery({
@@ -67,9 +68,9 @@ export function useMyInvitations() {
 
 export function useInvitation(token: string | undefined) {
   return useQuery({
-    queryKey: queryKeys.invitations.detail(token ?? ''),
+    queryKey: queryKeys.invitations.detail(),
     queryFn: () => getInvitationByToken(token!),
-    enabled: Boolean(token),
+    enabled: isUsableInvitationToken(token),
     staleTime: 0,
     gcTime: 0,
   });
@@ -81,6 +82,7 @@ export function useAcceptInvitation() {
   return useMutation({
     mutationFn: (token: string) => acceptInvitation(token),
     onSuccess: async (invitation) => {
+      queryClient.removeQueries({ queryKey: queryKeys.invitations.detail(), exact: true });
       await queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
       await queryClient.invalidateQueries({ queryKey: queryKeys.invitations.inbox() });
       pushNotification({

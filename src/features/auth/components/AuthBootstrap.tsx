@@ -10,6 +10,7 @@ export function AuthBootstrap() {
   const isAuthenticated = authStore((state) => state.isAuthenticated);
   const setAuth = authStore((state) => state.setAuth);
   const updateUser = authStore((state) => state.updateUser);
+  const startBootstrap = authStore((state) => state.startBootstrap);
   const markUnauthenticated = authStore((state) => state.markUnauthenticated);
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export function AuthBootstrap() {
     }
 
     let active = true;
+    startBootstrap();
     workspaceStore.getState().clear();
     void refreshAuthSession()
       .then(async (session) => {
@@ -38,7 +40,7 @@ export function AuthBootstrap() {
     return () => {
       active = false;
     };
-  }, [isAuthenticated, markUnauthenticated, setAuth]);
+  }, [isAuthenticated, markUnauthenticated, setAuth, startBootstrap]);
 
   useEffect(() => {
     if (query.data) {

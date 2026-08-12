@@ -200,7 +200,7 @@ export function ItemsPage() {
               <CardContent className="space-y-4 p-5 sm:p-6">
                 {item.photoUrl ? (
                   <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                    <img src={safeAssetUrl(item.photoUrl)} alt={item.name} className="h-40 w-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={safeAssetUrl(item.photoUrl)} alt={item.name} className="h-40 w-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                   </div>
                 ) : null}
                 <div className="space-y-1">

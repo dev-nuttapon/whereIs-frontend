@@ -168,7 +168,8 @@ export function AssetDetailPage() {
                     <img
                       src={safeAssetUrl(mainPhoto.url)}
                       referrerPolicy="no-referrer"
-                    alt={t('assets.photo.alt', 'รูปทรัพย์สิน')}
+                      loading="lazy"
+                      alt={t('assets.photo.alt', 'รูปทรัพย์สิน')}
                       className="h-72 w-full rounded-2xl object-cover"
                     />
                 ) : (

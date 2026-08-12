@@ -83,7 +83,7 @@ export function ProductDetailPage() {
 
                 {product.imageUrl ? (
                   <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                    <img src={safeAssetUrl(product.imageUrl)} alt={product.name} className="h-64 w-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={safeAssetUrl(product.imageUrl)} alt={product.name} className="h-64 w-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                   </div>
                 ) : null}
 

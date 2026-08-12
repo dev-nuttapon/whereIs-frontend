@@ -52,7 +52,7 @@ function ContainerTreeCard({
         <CardContent className="space-y-4 p-5 sm:p-6">
           {container.photoUrl ? (
             <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-              <img src={safeAssetUrl(container.photoUrl)} alt={container.name} className="h-36 w-full object-cover" referrerPolicy="no-referrer" />
+              <img src={safeAssetUrl(container.photoUrl)} alt={container.name} className="h-36 w-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
             </div>
           ) : null}
           <div className="space-y-1">

@@ -135,6 +135,7 @@ export function AssetPhotoManager({ wsId, assetId, photos = [] }: AssetPhotoMana
                       <img
                         src={safeAssetUrl(photo.url)}
                         referrerPolicy="no-referrer"
+                        loading="lazy"
                         alt={t('assets.photo.alt', 'Asset photo')}
                         className={cn('h-44 w-full object-cover', photo.isMain ? 'ring-2 ring-primary/60' : '')}
                       />
