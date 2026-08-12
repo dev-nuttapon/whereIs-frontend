@@ -50,9 +50,12 @@ export async function registerWithPassword(
   }
 }
 
-export async function refreshTokenSession(refreshToken: string): Promise<TokenSession> {
+export async function refreshTokenSession(refreshToken?: string): Promise<TokenSession> {
   try {
-    const response = await tokenClient.post<ApiResponse<TokenSession>>('/auth/refresh', { refreshToken });
+    const response = await tokenClient.post<ApiResponse<TokenSession>>(
+      '/auth/refresh',
+      refreshToken ? { refreshToken } : undefined,
+    );
     return response.data.data;
   } catch (cause) {
     throw toAuthError(cause, 'Unable to refresh session.');

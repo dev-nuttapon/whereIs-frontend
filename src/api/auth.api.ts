@@ -34,7 +34,7 @@ export async function register(
   return registerWithPassword(email, password, displayName);
 }
 
-export async function refreshAuthSession(refreshToken: string): Promise<Omit<AuthSession, 'user'>> {
+export async function refreshAuthSession(refreshToken?: string): Promise<Omit<AuthSession, 'user'>> {
   return refreshTokenSession(refreshToken);
 }
 

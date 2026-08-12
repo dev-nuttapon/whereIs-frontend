@@ -285,13 +285,16 @@ async function main() {
     });
 
     await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
-    await page.locator('input[autocomplete="email"]').fill(smokeEmail);
-    await page.locator('input[autocomplete="current-password"]').fill(smokePassword);
-    await page.locator('button[type="submit"]').click();
-    await page.waitForURL(/\/workspaces$/, { timeout: 20_000 }).catch(async (error) => {
+    await page.waitForURL(/\/(login|workspaces)$/, { timeout: 20_000 }).catch(async (error) => {
       const bodyText = (await page.locator('body').innerText()).replace(/\s+/g, ' ').trim();
       throw new Error(`${error.message}\nlogin diagnostic URL=${page.url()} body=${bodyText.slice(0, 500)}`);
     });
+    if (page.url().endsWith('/login')) {
+      await page.locator('input[autocomplete="email"]').fill(smokeEmail);
+      await page.locator('input[autocomplete="current-password"]').fill(smokePassword);
+      await page.locator('button[type="submit"]').click();
+      await page.waitForURL(/\/workspaces$/, { timeout: 20_000 });
+    }
 
     const navigateSpa = async (path) => {
       await page.evaluate((nextPath) => {
