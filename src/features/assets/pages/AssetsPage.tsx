@@ -149,7 +149,7 @@ export function AssetsPage() {
               <FilterIcon className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">{t('assets.filters.title', 'ค้นหาและกรอง')}</p>
-                <p className="text-xs text-muted-foreground">{t('assets.filters.description', 'ค้นหาและกรองตามสินค้า Serial number Barcode หรือจุดจัดเก็บ')}</p>
+                <p className="text-xs text-muted-foreground">{t('assets.filters.description', 'ค้นหาและกรองตามสินค้า Serial number Barcode หรือตำแหน่งจัดเก็บ')}</p>
               </div>
             </div>
             <Button
@@ -164,8 +164,8 @@ export function AssetsPage() {
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div className="min-w-0 space-y-1 xl:col-span-2"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (สินค้า/Serial/Barcode)</label><Input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder={t('assets.filters.searchPlaceholder', 'ค้นหาทรัพย์สิน')} className="w-full rounded-full" /></div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (สินค้า/Serial/Barcode)</label><Input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder={t('assets.filters.searchPlaceholder', 'ค้นหาทรัพย์สิน')} className="w-full rounded-full" /></div>
 
             <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะทรัพย์สิน</label><Select
               className="w-full"
@@ -195,13 +195,13 @@ export function AssetsPage() {
               ))}
             </Select></div>
 
-            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">Location</label><Select
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ตำแหน่งจัดเก็บ</label><Select
               className="w-full"
               value={filters.locationId}
               onChange={(event) => setFilters((current) => ({ ...current, locationId: event.target.value }))}
-              placeholder={t('assets.filters.allLocations', 'All locations')}
+              placeholder={t('assets.filters.allLocations', 'ทุกตำแหน่งจัดเก็บ')}
             >
-              <option value="">{t('assets.filters.allLocations', 'All locations')}</option>
+              <option value="">{t('assets.filters.allLocations', 'ทุกตำแหน่งจัดเก็บ')}</option>
               {filteredLocations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.name}
@@ -209,13 +209,13 @@ export function AssetsPage() {
               ))}
             </Select></div>
 
-            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">จุดจัดเก็บ (Container)</label><Select
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ภาชนะจัดเก็บ</label><Select
               className="w-full"
               value={filters.containerId}
               onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
-              placeholder={t('assets.filters.allContainers', 'ทุกจุดจัดเก็บ')}
+              placeholder={t('assets.filters.allContainers', 'ทุกภาชนะจัดเก็บ')}
             >
-              <option value="">{t('assets.filters.allContainers', 'ทุกจุดจัดเก็บ')}</option>
+              <option value="">{t('assets.filters.allContainers', 'ทุกภาชนะจัดเก็บ')}</option>
               {containers.map((container) => (
                 <option key={container.id} value={container.id}>
                   {container.name}

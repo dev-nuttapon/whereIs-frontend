@@ -158,14 +158,14 @@ export function ReceiveInventoryPage() {
   return (
     <PageShell
       title="เพิ่มของเข้าคลัง"
-      description="เพิ่มของที่ซื้อมาในครั้งเดียว แล้วกำหนดประเภท จำนวน จุดจัดเก็บ และการแจ้งเตือน"
+      description="เพิ่มของที่ซื้อมาในครั้งเดียว แล้วกำหนดประเภท จำนวน ภาชนะจัดเก็บ และการแจ้งเตือน"
       actions={<Button type="button" onClick={saveDraft}>บันทึกแบบร่าง</Button>}
     >
       {submittedReceiptId ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
         เพิ่มของเข้าคลังสำเร็จแล้ว สามารถเพิ่มรายการรอบใหม่ได้ทันที
       </div> : null}
       {createReceipt.isError ? <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-        บันทึกไม่สำเร็จ กรุณาตรวจสอบสินค้า จุดจัดเก็บ และสิทธิ์การใช้งาน แล้วลองใหม่อีกครั้ง
+        บันทึกไม่สำเร็จ กรุณาตรวจสอบสินค้า ภาชนะจัดเก็บ และสิทธิ์การใช้งาน แล้วลองใหม่อีกครั้ง
       </div> : null}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <Card>
@@ -246,9 +246,9 @@ export function ReceiveInventoryPage() {
                     </FormGrid>
                   </FormSection>
                   <FormGrid>
-                    <FormField label="จุดจัดเก็บ *" htmlFor={`receive-storage-${line.id}`} description={containers.length ? 'เลือกจากจุดจัดเก็บที่สร้างไว้แล้ว' : 'ยังไม่มีจุดจัดเก็บ ให้สร้างก่อนแล้วกลับมาเลือกที่นี่'}>
+                      <FormField label="ภาชนะจัดเก็บ *" htmlFor={`receive-storage-${line.id}`} description={containers.length ? 'เลือกจากภาชนะจัดเก็บที่สร้างไว้แล้ว' : 'ยังไม่มีภาชนะจัดเก็บ ให้สร้างก่อนแล้วกลับมาเลือกที่นี่'}>
                       <Select id={`receive-storage-${line.id}`} value={line.storage} onChange={(event) => updateLine(line.id, { storage: event.target.value })} disabled={containers.length === 0}>
-                        <option value="">{containers.length ? 'เลือกจุดจัดเก็บ' : 'ยังไม่มีจุดจัดเก็บ'}</option>
+                        <option value="">{containers.length ? 'เลือกภาชนะจัดเก็บ' : 'ยังไม่มีภาชนะจัดเก็บ'}</option>
                         {containers.map((container) => <option key={container.id} value={container.id}>{container.name}{container.code ? ` (${container.code})` : ''}</option>)}
                       </Select>
                     </FormField>
@@ -266,7 +266,7 @@ export function ReceiveInventoryPage() {
                   </FormGrid>
                   {containers.length === 0 ? (
                     <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
-                      <span>ยังไม่มีจุดจัดเก็บสำหรับรายการนี้</span>
+                      <span>ยังไม่มีภาชนะจัดเก็บสำหรับรายการนี้</span>
                       <Button asChild type="button" variant="outline" size="sm"><Link to={`/w/${wsId}/containers`}>สร้างจุดจัดเก็บ</Link></Button>
                     </div>
                   ) : null}

@@ -93,9 +93,9 @@ export function ItemsPage() {
 
       <Card className="shadow-sm">
         <CardContent className="space-y-4 p-4 sm:p-6">
-          <div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาและกรองตามชื่อ รหัส จุดจัดเก็บ หรือประเภท</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => updateFilters(DEFAULT_FILTERS)} disabled={!hasActiveFilters}>ล้างตัวกรอง</Button></div>
+          <div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาและกรองตามชื่อ รหัส ตำแหน่งจัดเก็บ หรือประเภท</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => updateFilters(DEFAULT_FILTERS)} disabled={!hasActiveFilters}>ล้างตัวกรอง</Button></div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อ/รหัส/จุดจัดเก็บ)</label><Input className="w-full" value={filters.search} onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="ค้นหาชื่อหรือจุดจัดเก็บ" allowClear /></div>
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อ/รหัส/ตำแหน่งจัดเก็บ)</label><Input className="w-full" value={filters.search} onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="ค้นหาชื่อหรือตำแหน่งจัดเก็บ" allowClear /></div>
             <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ประเภท</label><Select className="w-full" value={filters.type} onChange={(event) => updateFilters({ ...filters, type: event.target.value as InventoryFilters['type'] })}>
               <option value="all">ทั้งหมด</option><option value="asset">ทรัพย์สิน</option><option value="stock">สต็อก</option>
             </Select></div>
@@ -120,7 +120,7 @@ export function ItemsPage() {
                   <th className="px-5 py-4">ประเภท</th>
                   <th className="px-5 py-4">สถานะ</th>
                   <th className="px-5 py-4 text-right">จำนวน</th>
-                  <th className="px-5 py-4">จุดจัดเก็บ</th>
+                  <th className="px-5 py-4">ตำแหน่งจัดเก็บ</th>
                   <th className="px-5 py-4 text-right">จัดการ</th>
                 </tr>
               </thead>

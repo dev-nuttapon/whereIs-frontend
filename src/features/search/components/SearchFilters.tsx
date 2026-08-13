@@ -25,7 +25,7 @@ export function SearchFilters({ value, onChange, containerOptions }: SearchFilte
         <FilterIcon className="h-4 w-4 text-muted-foreground" />
         <div>
           <p className="text-sm font-medium">{t('search.filtersTitle', 'ค้นหาและกรอง')}</p>
-          <p className="text-xs text-muted-foreground">{t('search.filtersDescription', 'ค้นหาและกรองตามประเภท สถานะ และจุดจัดเก็บ')}</p>
+          <p className="text-xs text-muted-foreground">{t('search.filtersDescription', 'ค้นหาและกรองตามประเภท สถานะ และภาชนะจัดเก็บ')}</p>
         </div>
       </div>
 
@@ -54,8 +54,8 @@ export function SearchFilters({ value, onChange, containerOptions }: SearchFilte
           <option value="disposed">{t('items.status.disposed', 'จำหน่ายแล้ว')}</option>
         </Select></div>
 
-        <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">จุดจัดเก็บ (Container)</label><Select value={value.containerId} onChange={(event) => onChange({ ...value, containerId: event.target.value })} className="w-full">
-          <option value="">{t('search.container', 'Container')}</option>
+        <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">ภาชนะจัดเก็บ</label><Select value={value.containerId} onChange={(event) => onChange({ ...value, containerId: event.target.value })} className="w-full">
+          <option value="">{t('search.container', 'ทุกภาชนะจัดเก็บ')}</option>
           {containerOptions.map((container) => (
             <option key={container.value} value={container.value}>
               {container.label}

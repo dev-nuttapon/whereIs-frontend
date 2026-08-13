@@ -236,6 +236,7 @@ export function StockPage() {
   const initialContainerId = searchParams.get('containerId') ?? '';
   const initialProductId = searchParams.get('productId') ?? '';
   const [adjustOpen, setAdjustOpen] = useState(Boolean(initialContainerId || initialProductId));
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const productsQuery = useProducts(wsId);
   const sitesQuery = useSites(wsId);
@@ -294,7 +295,7 @@ export function StockPage() {
                 <p className="text-sm font-medium">
                   ค้นหาและกรอง{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                 </p>
-                <p className="text-xs text-muted-foreground">ค้นหาจากสินค้า, SKU, ล็อต, หน่วย หรือจุดจัดเก็บ</p>
+                <p className="text-xs text-muted-foreground">ค้นหาจากสินค้า, SKU, ล็อต, หน่วย หรือตำแหน่งจัดเก็บ</p>
               </div>
             </div>
             <Button
@@ -309,11 +310,11 @@ export function StockPage() {
             </Button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (สินค้า/SKU/ล็อต/หน่วย/จุดจัดเก็บ)</label><Input
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (สินค้า/SKU/ล็อต/หน่วย/ตำแหน่งจัดเก็บ)</label><Input
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder="ค้นหาสินค้า, SKU, ล็อต, หน่วย หรือจุดจัดเก็บ"
+              placeholder="ค้นหาสินค้า, SKU, ล็อต, หน่วย หรือตำแหน่งจัดเก็บ"
               className="rounded-full"
             /></div>
 
@@ -330,6 +331,21 @@ export function StockPage() {
               ))}
             </Select></div>
 
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">สถานที่</label><Select
+              className="w-full"
+              value={filters.siteId}
+              onChange={(event) => setFilters((current) => ({ ...current, siteId: event.target.value, locationId: '' }))}
+            >
+              <option value="">ทุกสถานที่</option>
+              {sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}
+            </Select></div>
+          </div>
+
+          <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => setShowAdvancedFilters((current) => !current)}>
+            {showAdvancedFilters ? 'ซ่อนการค้นหารายละเอียด' : 'ค้นหารายละเอียด'}
+          </Button>
+
+          {showAdvancedFilters ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">รหัสล็อต</label><Input
               value={filters.lotCode}
               onChange={(event) => setFilters((current) => ({ ...current, lotCode: event.target.value }))}
@@ -337,26 +353,13 @@ export function StockPage() {
               className="rounded-full"
             /></div>
 
-            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">สถานที่</label><Select
-              className="w-full"
-              value={filters.siteId}
-              onChange={(event) => setFilters((current) => ({ ...current, siteId: event.target.value, locationId: '' }))}
-            >
-              <option value="">ทุกสถานที่</option>
-              {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name}
-                </option>
-              ))}
-            </Select></div>
-
-            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">Location</label><Select
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">ตำแหน่งจัดเก็บ</label><Select
               className="w-full"
               value={filters.locationId}
               onChange={(event) => setFilters((current) => ({ ...current, locationId: event.target.value }))}
               disabled={!filters.siteId}
             >
-              <option value="">ทุก Location</option>
+              <option value="">ทุกตำแหน่งจัดเก็บ</option>
               {filteredLocations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.name}
@@ -364,12 +367,12 @@ export function StockPage() {
               ))}
             </Select></div>
 
-            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">จุดจัดเก็บ (Container)</label><Select
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">ภาชนะจัดเก็บ</label><Select
               className="w-full"
               value={filters.containerId}
               onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
             >
-              <option value="">ทุกจุดจัดเก็บ</option>
+              <option value="">ทุกภาชนะจัดเก็บ</option>
               {containers.map((container) => (
                 <option key={container.id} value={container.id}>
                   {container.name}
@@ -404,7 +407,7 @@ export function StockPage() {
               placeholder="วันหมดอายุ (ถึง)"
               className="rounded-full"
             /></div>
-          </div>
+          </div> : null}
         </CardContent>
       </Card>
 

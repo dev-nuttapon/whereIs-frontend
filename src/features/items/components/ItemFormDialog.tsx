@@ -229,9 +229,9 @@ export function ItemFormDialog({
                       value={field.value}
                       onChange={(event) => field.onChange(event.target.value)}
                       className="w-full"
-                      placeholder={t('items.form.containerPlaceholder', 'เลือกจุดจัดเก็บ')}
+                      placeholder={t('items.form.containerPlaceholder', 'เลือกภาชนะจัดเก็บ')}
                     >
-                      <option value="">{t('items.form.containerPlaceholder', 'เลือกจุดจัดเก็บ')}</option>
+                      <option value="">{t('items.form.containerPlaceholder', 'เลือกภาชนะจัดเก็บ')}</option>
                       {containerOptions.map((container) => (
                         <option key={container.value} value={container.value}>
                           {container.label}
