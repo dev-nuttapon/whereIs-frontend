@@ -93,8 +93,8 @@ export function ProductsPage() {
             <div className="flex items-center gap-2">
               <FilterIcon className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">{t('products.filters.title', 'Search and filter')}</p>
-                <p className="text-xs text-muted-foreground">{t('products.filters.description', 'Search by name, code, SKU, category, tracking type, or status.')}</p>
+                <p className="text-sm font-medium">{t('products.filters.title', 'ค้นหาและกรอง')}</p>
+                <p className="text-xs text-muted-foreground">{t('products.filters.description', 'ค้นหาและกรองตามชื่อ รหัส SKU หมวดหมู่ ประเภทการติดตาม หรือสถานะ')}</p>
               </div>
             </div>
             <Button
@@ -105,18 +105,18 @@ export function ProductsPage() {
               onClick={() => setFilters(DEFAULT_FILTERS)}
               disabled={!hasActiveFilters}
             >
-              {t('products.filters.clear', 'Clear filters')}
+              {t('products.filters.clear', 'ล้างตัวกรอง')}
             </Button>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
-            <Input
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อ/รหัส/SKU)</label><Input
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
               placeholder={t('products.filters.searchPlaceholder', 'ค้นหาสินค้า')}
               className="rounded-full"
-            />
-            <Select
+            /></div>
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">หมวดหมู่</label><Select
               className="w-full"
               value={filters.categoryId}
               onChange={(event) => setFilters((current) => ({ ...current, categoryId: event.target.value }))}
@@ -128,8 +128,8 @@ export function ProductsPage() {
                   {category.name}
                 </option>
               ))}
-            </Select>
-            <Select
+            </Select></div>
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ประเภทการติดตาม</label><Select
               className="w-full"
               value={filters.trackingType}
               onChange={(event) => setFilters((current) => ({ ...current, trackingType: event.target.value }))}
@@ -138,8 +138,8 @@ export function ProductsPage() {
               <option value="">{t('products.filters.allTrackingTypes', 'ทุกประเภทการติดตาม')}</option>
               <option value="Asset">{t('products.tracking.asset', 'ทรัพย์สิน')}</option>
               <option value="Stock">{t('products.tracking.stock', 'ของใช้สิ้นเปลือง')}</option>
-            </Select>
-            <Select
+            </Select></div>
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะสินค้า</label><Select
               className="w-full"
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
@@ -148,7 +148,7 @@ export function ProductsPage() {
               <option value="">{t('products.filters.allStatus', 'ทุกสถานะ')}</option>
               <option value="active">{t('common.active', 'ใช้งานอยู่')}</option>
               <option value="inactive">{t('common.inactive', 'ปิดใช้งาน')}</option>
-            </Select>
+            </Select></div>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 import { client } from '@/api/client';
-import type { StockEntry } from '@/types/domain.types';
+import type { StockEntry, StockStatus } from '@/types/domain.types';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -19,6 +19,8 @@ interface StockEntryDto {
   productId: string;
   productName: string;
   unitCode: string | null;
+  siteId: string | null;
+  siteName: string | null;
   locationId: string | null;
   locationName: string | null;
   containerId: string | null;
@@ -27,6 +29,8 @@ interface StockEntryDto {
   lotCode: string | null;
   expiryDate: string | null;
   alertLeadDays: number | null;
+  minStockAlert: number | null;
+  stockStatus: StockStatus;
   createdAt: string;
 }
 
@@ -48,6 +52,8 @@ function toStockEntry(dto: StockEntryDto): StockEntry {
     productId: dto.productId,
     productName: dto.productName,
     unitCode: dto.unitCode ?? undefined,
+    siteId: dto.siteId ?? undefined,
+    siteName: dto.siteName ?? undefined,
     locationId: dto.locationId ?? undefined,
     locationName: dto.locationName ?? undefined,
     containerId: dto.containerId ?? undefined,
@@ -56,18 +62,41 @@ function toStockEntry(dto: StockEntryDto): StockEntry {
     lotCode: dto.lotCode ?? undefined,
     expiryDate: dto.expiryDate ?? undefined,
     alertLeadDays: dto.alertLeadDays ?? undefined,
+    minStockAlert: dto.minStockAlert ?? undefined,
+    stockStatus: dto.stockStatus,
     createdAt: dto.createdAt,
   };
 }
 
+export interface ListStockEntriesParams {
+  productId?: string | null;
+  siteId?: string | null;
+  locationId?: string | null;
+  containerId?: string | null;
+  lotCode?: string | null;
+  search?: string | null;
+  stockStatus?: StockStatus | '' | null;
+  expiryFrom?: string | null;
+  expiryTo?: string | null;
+  page?: number;
+  pageSize?: number;
+}
+
 export async function listStockEntries(
   wsId: string,
-  params: { productId?: string | null; locationId?: string | null; page?: number; pageSize?: number } = {},
+  params: ListStockEntriesParams = {},
 ): Promise<PagedResult<StockEntry>> {
   const response = await client.get<ApiResponse<PagedResult<StockEntryDto>>>(`/workspaces/${encodeURIComponent(wsId)}/stock`, {
     params: {
       productId: params.productId ?? undefined,
+      siteId: params.siteId ?? undefined,
       locationId: params.locationId ?? undefined,
+      containerId: params.containerId ?? undefined,
+      lotCode: params.lotCode ?? undefined,
+      search: params.search?.trim() || undefined,
+      stockStatus: params.stockStatus || undefined,
+      expiryFrom: params.expiryFrom ?? undefined,
+      expiryTo: params.expiryTo ?? undefined,
       page: params.page ?? 1,
       pageSize: params.pageSize ?? 100,
     },

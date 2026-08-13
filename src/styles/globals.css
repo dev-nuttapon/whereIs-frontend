@@ -128,6 +128,10 @@
 }
 
 @layer components {
+  .space-y-1 > label {
+    display: block;
+  }
+
   .app-background {
     background: var(--app-background);
     background-attachment: fixed;
@@ -150,6 +154,16 @@
   .ant-input-affix-wrapper,
   .ant-select-selector {
     min-height: 44px;
+  }
+
+  .ant-select {
+    display: block;
+    min-height: 44px;
+  }
+
+  .ant-select-single .ant-select-selector {
+    height: 44px;
+    align-items: center;
   }
 
   .ant-input-affix-wrapper > input.ant-input {

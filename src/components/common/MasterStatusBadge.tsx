@@ -18,7 +18,12 @@ export function masterStatus(status: string, kind: 'active' | 'asset' | 'borrow'
     if (value.includes('cancel')) return { label: 'ยกเลิก', color: 'red' as const };
     if (value.includes('reject')) return { label: 'ปฏิเสธ', color: undefined };
   }
-  if (kind === 'stock') return value === 'หมดสต็อก' ? { label: 'หมดสต็อก', color: 'red' as const } : { label: 'มีสต็อก', color: 'green' as const };
+  if (kind === 'stock') {
+    if (value === 'expired' || value === 'หมดอายุ') return { label: 'หมดอายุ', color: 'red' as const };
+    if (value === 'out_of_stock' || value === 'หมดสต็อก') return { label: 'หมดสต็อก', color: 'red' as const };
+    if (value === 'low_stock' || value === 'ใกล้หมด') return { label: 'ใกล้หมด', color: 'orange' as const };
+    return { label: 'มีสต็อก', color: 'green' as const };
+  }
   return { label: status || '-', color: undefined };
 }
 

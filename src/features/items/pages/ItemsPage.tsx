@@ -62,11 +62,12 @@ export function ItemsPage() {
       storage: entry.containerName || entry.locationName || '-',
       detailPath: ROUTES.workspaceStockDetail(wsId, entry.id),
     }));
-    return [...assetRows, ...stockRows].filter((row) => {
+    const filteredRows = [...assetRows, ...stockRows].filter((row) => {
       const matchesSearch = !search || `${row.name} ${row.code} ${row.storage}`.toLowerCase().includes(search);
       const matchesStatus = !filters.status || row.status.toLowerCase() === filters.status.toLowerCase();
       return matchesSearch && matchesStatus;
     });
+    return Array.from(new Map(filteredRows.map((row) => [`${row.type}:${row.id}`, row])).values());
   }, [assets, filters, stockEntries, wsId]);
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
@@ -90,24 +91,24 @@ export function ItemsPage() {
       {isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {hasError ? <ErrorState message="ไม่สามารถโหลดข้อมูลของทั้งหมดได้" onRetry={() => { void assetsQuery.refetch(); void stockQuery.refetch(); }} /> : null}
 
-      <div className="grid gap-[18px] md:grid-cols-3">
-        <StatCard label="รายการทั้งหมด" value={assets.length + stockEntries.length} />
-        <StatCard label="ทรัพย์สิน" value={assets.length} />
-        <StatCard label="สต็อก" value={stockEntries.reduce((total, entry) => total + entry.quantity, 0)} />
-      </div>
-
       <Card className="shadow-sm">
         <CardContent className="space-y-4 p-4 sm:p-6">
-          <div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ตัวกรอง</p><p className="text-xs text-muted-foreground">ค้นหาจากชื่อ รหัส จุดจัดเก็บ หรือกรองตามประเภท</p></div></div>
-          <div className="grid gap-3 md:grid-cols-3">
-            <Input value={filters.search} onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="ค้นหาชื่อหรือจุดจัดเก็บ" allowClear />
-            <Select value={filters.type} onChange={(event) => updateFilters({ ...filters, type: event.target.value as InventoryFilters['type'] })}>
+          <div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาและกรองตามชื่อ รหัส จุดจัดเก็บ หรือประเภท</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => updateFilters(DEFAULT_FILTERS)} disabled={!hasActiveFilters}>ล้างตัวกรอง</Button></div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อ/รหัส/จุดจัดเก็บ)</label><Input className="w-full" value={filters.search} onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="ค้นหาชื่อหรือจุดจัดเก็บ" allowClear /></div>
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ประเภท</label><Select className="w-full" value={filters.type} onChange={(event) => updateFilters({ ...filters, type: event.target.value as InventoryFilters['type'] })}>
               <option value="all">ทั้งหมด</option><option value="asset">ทรัพย์สิน</option><option value="stock">สต็อก</option>
-            </Select>
-            <div className="flex gap-2"><Select className="flex-1" value={filters.status} onChange={(event) => updateFilters({ ...filters, status: event.target.value })}><option value="">ทุกสถานะ</option><option value="พร้อมใช้งาน">พร้อมใช้งาน</option><option value="ถูกยืม">ถูกยืม</option><option value="จัดเก็บอยู่">จัดเก็บอยู่</option><option value="หมดสต็อก">หมดสต็อก</option></Select><Button type="button" variant="outline" onClick={() => updateFilters(DEFAULT_FILTERS)} disabled={!hasActiveFilters}>ล้าง</Button></div>
+            </Select></div>
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะ</label><Select className="w-full" value={filters.status} onChange={(event) => updateFilters({ ...filters, status: event.target.value })}><option value="">ทุกสถานะ</option><option value="พร้อมใช้งาน">พร้อมใช้งาน</option><option value="ถูกยืม">ถูกยืม</option><option value="จัดเก็บอยู่">จัดเก็บอยู่</option><option value="หมดสต็อก">หมดสต็อก</option></Select></div>
           </div>
         </CardContent>
       </Card>
+
+      <div className="grid gap-[18px] md:grid-cols-3">
+        <StatCard label="รายการทั้งหมด" value={rows.length} />
+        <StatCard label="ทรัพย์สิน" value={rows.filter((row) => row.type === 'asset').length} />
+        <StatCard label="สต็อก" value={rows.filter((row) => row.type === 'stock').reduce((total, row) => total + row.quantity, 0)} />
+      </div>
 
       {rows.length === 0 ? <EmptyState title={hasActiveFilters ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีของในคลัง'} description="รายการที่เพิ่มผ่านการรับเข้าคลังจะแสดงเป็นทรัพย์สินหรือสต็อกที่นี่" icon={<ItemIcon className="h-5 w-5" />} /> : (
         <Card className="overflow-hidden border-border/80 shadow-sm">

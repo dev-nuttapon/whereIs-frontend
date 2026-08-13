@@ -32,7 +32,7 @@ export function Select({ className, children, onChange, placeholder, ...props }:
 
   return (
     <AntSelectAny
-      className={cn(className)}
+      className={cn('block w-full', className)}
       options={options.length > 0 ? options : undefined}
       placeholder={placeholder}
       {...(props as Record<string, unknown>)}

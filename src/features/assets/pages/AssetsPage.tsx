@@ -148,8 +148,8 @@ export function AssetsPage() {
             <div className="flex items-center gap-2">
               <FilterIcon className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">{t('assets.filters.title', 'Search and filter')}</p>
-                <p className="text-xs text-muted-foreground">{t('assets.filters.description', 'Search by product, serial number, barcode, or filter by storage location.')}</p>
+                <p className="text-sm font-medium">{t('assets.filters.title', 'ค้นหาและกรอง')}</p>
+                <p className="text-xs text-muted-foreground">{t('assets.filters.description', 'ค้นหาและกรองตามสินค้า Serial number Barcode หรือจุดจัดเก็บ')}</p>
               </div>
             </div>
             <Button
@@ -160,19 +160,14 @@ export function AssetsPage() {
             onClick={() => setFilters(DEFAULT_FILTERS)}
             disabled={!hasActiveFilters}
           >
-              {t('assets.filters.clear', 'Clear filters')}
+              {t('assets.filters.clear', 'ล้างตัวกรอง')}
             </Button>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-5">
-            <Input
-              value={filters.search}
-              onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder={t('assets.filters.searchPlaceholder', 'ค้นหาทรัพย์สิน')}
-              className="rounded-full"
-            />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="min-w-0 space-y-1 xl:col-span-2"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (สินค้า/Serial/Barcode)</label><Input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder={t('assets.filters.searchPlaceholder', 'ค้นหาทรัพย์สิน')} className="w-full rounded-full" /></div>
 
-            <Select
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะทรัพย์สิน</label><Select
               className="w-full"
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
@@ -184,9 +179,9 @@ export function AssetsPage() {
               <option value="Missing">{t('assets.status.missing', 'สูญหาย')}</option>
               <option value="Maintenance">{t('assets.status.maintenance', 'อยู่ระหว่างซ่อม')}</option>
               <option value="Disposed">{t('assets.status.disposed', 'จำหน่ายแล้ว')}</option>
-            </Select>
+            </Select></div>
 
-            <Select
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานที่</label><Select
               className="w-full"
               value={filters.siteId}
               onChange={(event) => setFilters((current) => ({ ...current, siteId: event.target.value, locationId: '' }))}
@@ -198,9 +193,9 @@ export function AssetsPage() {
                   {site.name}
                 </option>
               ))}
-            </Select>
+            </Select></div>
 
-            <Select
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">Location</label><Select
               className="w-full"
               value={filters.locationId}
               onChange={(event) => setFilters((current) => ({ ...current, locationId: event.target.value }))}
@@ -212,9 +207,9 @@ export function AssetsPage() {
                   {location.name}
                 </option>
               ))}
-            </Select>
+            </Select></div>
 
-            <Select
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">จุดจัดเก็บ (Container)</label><Select
               className="w-full"
               value={filters.containerId}
               onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
@@ -226,7 +221,7 @@ export function AssetsPage() {
                   {container.name}
                 </option>
               ))}
-            </Select>
+            </Select></div>
           </div>
         </CardContent>
       </Card>

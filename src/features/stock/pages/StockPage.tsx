@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,6 +23,8 @@ import { OpenIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { usePermission } from '@/hooks/usePermission';
 import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
+import { MasterStatusBadge } from '@/components/common/MasterStatusBadge';
+import type { StockStatus } from '@/types/domain.types';
 
 function formatLocationLabel(locationName?: string | null, containerName?: string | null) {
   if (containerName) return containerName;
@@ -202,6 +203,30 @@ function AdjustStockDialog({
   );
 }
 
+interface StockFilters {
+  search: string;
+  productId: string;
+  siteId: string;
+  locationId: string;
+  containerId: string;
+  lotCode: string;
+  stockStatus: StockStatus | '';
+  expiryFrom: string;
+  expiryTo: string;
+}
+
+const DEFAULT_STOCK_FILTERS: StockFilters = {
+  search: '',
+  productId: '',
+  siteId: '',
+  locationId: '',
+  containerId: '',
+  lotCode: '',
+  stockStatus: '',
+  expiryFrom: '',
+  expiryTo: '',
+};
+
 export function StockPage() {
   const { wsId = '' } = useParams();
   const navigate = useNavigate();
@@ -211,25 +236,41 @@ export function StockPage() {
   const initialContainerId = searchParams.get('containerId') ?? '';
   const initialProductId = searchParams.get('productId') ?? '';
   const [adjustOpen, setAdjustOpen] = useState(Boolean(initialContainerId || initialProductId));
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const productsQuery = useProducts(wsId);
-  const entriesQuery = useStockEntries(wsId, { pageSize: 100 });
-  const products = productsQuery.data ?? [];
+  const sitesQuery = useSites(wsId);
+  const locationsQuery = useLocations(wsId);
+  const containersQuery = useContainers(wsId);
+  const entriesQuery = useStockEntries(wsId, {
+    search: filters.search.trim() || undefined,
+    productId: filters.productId || undefined,
+    siteId: filters.siteId || undefined,
+    locationId: filters.locationId || undefined,
+    containerId: filters.containerId || undefined,
+    lotCode: filters.lotCode.trim() || undefined,
+    stockStatus: filters.stockStatus || undefined,
+    expiryFrom: filters.expiryFrom || undefined,
+    expiryTo: filters.expiryTo || undefined,
+    pageSize: 100,
+  });
+  const products = (productsQuery.data ?? []).filter((product) => product.trackingType.toLowerCase() === 'stock');
+  const sites = sitesQuery.data ?? [];
+  const locations = locationsQuery.data ?? [];
+  const containers = containersQuery.data ?? [];
   const entries = entriesQuery.data?.items ?? [];
-  const filteredEntries = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return entries;
-    return entries.filter((entry) => `${entry.productName} ${formatLocationLabel(entry.locationName, entry.containerName)} ${entry.unitCode ?? ''}`.toLowerCase().includes(query));
-  }, [entries, search]);
 
-  const stats = useMemo(
-    () => [
-      { label: t('stock.stats.entries', 'Stock entries'), value: filteredEntries.length },
-      { label: t('stock.stats.products', 'Products with stock'), value: new Set(filteredEntries.map((entry) => entry.productId)).size },
-      { label: t('stock.stats.quantity', 'Total quantity'), value: filteredEntries.reduce((sum, entry) => sum + entry.quantity, 0) },
-    ],
-    [filteredEntries, t],
-  );
+  const filteredLocations = filters.siteId
+    ? locations.filter((location) => location.siteId === filters.siteId)
+    : locations;
+
+  const activeFilterCount = Object.values(filters).filter((value) => Boolean(value)).length;
+  const hasActiveFilters = activeFilterCount > 0;
+
+  const stats = [
+    { label: t('stock.stats.entries', 'Stock entries'), value: entries.length },
+    { label: t('stock.stats.products', 'Products with stock'), value: new Set(entries.map((entry) => entry.productId)).size },
+    { label: t('stock.stats.quantity', 'Total quantity'), value: entries.reduce((sum, entry) => sum + entry.quantity, 0) },
+  ];
 
   return (
     <PageShell
@@ -244,31 +285,147 @@ export function StockPage() {
         </div>
       )}
     >
+      <Card className="shadow-sm">
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <FilterIcon className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">
+                  ค้นหาและกรอง{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                </p>
+                <p className="text-xs text-muted-foreground">ค้นหาจากสินค้า, SKU, ล็อต, หน่วย หรือจุดจัดเก็บ</p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => setFilters(DEFAULT_STOCK_FILTERS)}
+              disabled={!hasActiveFilters}
+            >
+              ล้างตัวกรอง
+            </Button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (สินค้า/SKU/ล็อต/หน่วย/จุดจัดเก็บ)</label><Input
+              value={filters.search}
+              onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+              placeholder="ค้นหาสินค้า, SKU, ล็อต, หน่วย หรือจุดจัดเก็บ"
+              className="rounded-full"
+            /></div>
+
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สินค้า</label><Select
+              className="w-full"
+              value={filters.productId}
+              onChange={(event) => setFilters((current) => ({ ...current, productId: event.target.value }))}
+            >
+              <option value="">ทุกสินค้า</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </Select></div>
+
+            <div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">รหัสล็อต</label><Input
+              value={filters.lotCode}
+              onChange={(event) => setFilters((current) => ({ ...current, lotCode: event.target.value }))}
+              placeholder="ล็อต (Lot code)"
+              className="rounded-full"
+            /></div>
+
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">สถานที่</label><Select
+              className="w-full"
+              value={filters.siteId}
+              onChange={(event) => setFilters((current) => ({ ...current, siteId: event.target.value, locationId: '' }))}
+            >
+              <option value="">ทุกสถานที่</option>
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>
+                  {site.name}
+                </option>
+              ))}
+            </Select></div>
+
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">Location</label><Select
+              className="w-full"
+              value={filters.locationId}
+              onChange={(event) => setFilters((current) => ({ ...current, locationId: event.target.value }))}
+              disabled={!filters.siteId}
+            >
+              <option value="">ทุก Location</option>
+              {filteredLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name}
+                </option>
+              ))}
+            </Select></div>
+
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">จุดจัดเก็บ (Container)</label><Select
+              className="w-full"
+              value={filters.containerId}
+              onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
+            >
+              <option value="">ทุกจุดจัดเก็บ</option>
+              {containers.map((container) => (
+                <option key={container.id} value={container.id}>
+                  {container.name}
+                </option>
+              ))}
+            </Select></div>
+
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">สถานะสต็อก</label><Select
+              className="w-full"
+              value={filters.stockStatus}
+              onChange={(event) => setFilters((current) => ({ ...current, stockStatus: event.target.value as StockStatus | '' }))}
+            >
+              <option value="">ทุกสถานะ</option>
+              <option value="in_stock">มีสต็อก</option>
+              <option value="low_stock">ใกล้หมด</option>
+              <option value="out_of_stock">หมดสต็อก</option>
+              <option value="expired">หมดอายุ</option>
+            </Select></div>
+
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">วันหมดอายุ (ตั้งแต่)</label><Input
+              type="date"
+              value={filters.expiryFrom}
+              onChange={(event) => setFilters((current) => ({ ...current, expiryFrom: event.target.value }))}
+              placeholder="วันหมดอายุ (จาก)"
+              className="rounded-full"
+            /></div>
+
+            <div className="space-y-1"><label className="text-xs font-medium text-muted-foreground">วันหมดอายุ (ถึง)</label><Input
+              type="date"
+              value={filters.expiryTo}
+              onChange={(event) => setFilters((current) => ({ ...current, expiryTo: event.target.value }))}
+              placeholder="วันหมดอายุ (ถึง)"
+              className="rounded-full"
+            /></div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-[18px] md:grid-cols-3">
         {stats.map((stat) => (
           <StatCard key={stat.label} label={stat.label} value={stat.value} />
         ))}
       </div>
 
-      <Card className="shadow-sm">
-        <CardContent className="space-y-4 p-4 sm:p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ตัวกรอง</p><p className="text-xs text-muted-foreground">ค้นหาจากสินค้า หน่วย หรือจุดจัดเก็บ</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setSearch('')} disabled={!search}>ล้างตัวกรอง</Button></div>
-          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ค้นหาสินค้าหรือจุดจัดเก็บ" className="rounded-full" />
-        </CardContent>
-      </Card>
-
       {entriesQuery.isLoading ? <LoadingState label={t('common.loading', 'Loading...')} /> : null}
       {entriesQuery.isError ? <ErrorState message={t('stock.loadError', 'Unable to load stock.')} onRetry={() => entriesQuery.refetch()} /> : null}
       {productsQuery.isError ? <ErrorState message={t('stock.productsLoadError', 'Unable to load products.')} onRetry={() => productsQuery.refetch()} /> : null}
 
-      {filteredEntries.length === 0 && !entriesQuery.isLoading ? (
+      {entries.length === 0 && !entriesQuery.isLoading ? (
         <EmptyState
-          title={t('stock.emptyTitle', 'No stock entries yet')}
-          description={t('stock.emptyDescription', 'Adjust stock for a stock-tracked product to create the first entry.')}
+          title={hasActiveFilters ? t('stock.filteredEmptyTitle', 'No matching stock entries') : t('stock.emptyTitle', 'No stock entries yet')}
+          description={hasActiveFilters ? t('stock.filteredEmptyDescription', 'Try clearing the filters or search with another term.') : t('stock.emptyDescription', 'Adjust stock for a stock-tracked product to create the first entry.')}
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <DataTableShell minWidth="min-w-[750px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>จำนวน</th><th className={dataTableCellClass}>หน่วย</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{filteredEntries.map((entry) => <DataTableRow key={entry.id}><td className={`${dataTableCellClass} font-medium`}>{entry.productName}</td><td className={`${dataTableCellClass} font-medium`}>{entry.quantity}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{entry.unitCode ?? '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{formatLocationLabel(entry.locationName, entry.containerName)}</td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
+        <DataTableShell minWidth="min-w-[850px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>จำนวน</th><th className={dataTableCellClass}>หน่วย</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={dataTableCellClass}>สถานะ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{entries.map((entry) => <DataTableRow key={entry.id}><td className={`${dataTableCellClass} font-medium`}>{entry.productName}</td><td className={`${dataTableCellClass} font-medium`}>{entry.quantity}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{entry.unitCode ?? '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{formatLocationLabel(entry.locationName, entry.containerName)}</td><td className={dataTableCellClass}><MasterStatusBadge status={entry.stockStatus} kind="stock" /></td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
       )}
 
       <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} initialContainerId={initialContainerId} initialProductId={initialProductId} />

@@ -244,12 +244,16 @@ export interface AssetPhoto {
   sortOrder: number;
 }
 
+export type StockStatus = 'in_stock' | 'out_of_stock' | 'low_stock' | 'expired';
+
 export interface StockEntry {
   id: string;
   workspaceId: string;
   productId: string;
   productName: string;
   unitCode?: string | null;
+  siteId?: string | null;
+  siteName?: string | null;
   locationId?: string | null;
   locationName?: string | null;
   containerId?: string | null;
@@ -258,6 +262,8 @@ export interface StockEntry {
   lotCode?: string | null;
   expiryDate?: string | null;
   alertLeadDays?: number | null;
+  minStockAlert?: number | null;
+  stockStatus: StockStatus;
   createdAt: string;
 }
 
