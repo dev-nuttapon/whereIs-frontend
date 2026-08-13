@@ -14,7 +14,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { useI18n } from '@/hooks/useI18n';
-import { DatabaseIcon, PlusIcon } from '@/components/ui/icons';
+import { DatabaseIcon, FilterIcon, PlusIcon } from '@/components/ui/icons';
 import { useProducts } from '@/features/products/hooks/useProducts';
 import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
@@ -213,18 +213,24 @@ export function StockPage() {
   const [adjustOpen, setAdjustOpen] = useState(Boolean(initialContainerId || initialProductId));
   const [borrowOpen, setBorrowOpen] = useState(false);
   const [borrowDefaults, setBorrowDefaults] = useState<{ productId?: string | null; stockEntryId?: string | null } | null>(null);
+  const [search, setSearch] = useState('');
   const productsQuery = useProducts(wsId);
   const entriesQuery = useStockEntries(wsId, { pageSize: 100 });
   const products = productsQuery.data ?? [];
   const entries = entriesQuery.data?.items ?? [];
+  const filteredEntries = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return entries;
+    return entries.filter((entry) => `${entry.productName} ${formatLocationLabel(entry.locationName, entry.containerName)} ${entry.unitCode ?? ''}`.toLowerCase().includes(query));
+  }, [entries, search]);
 
   const stats = useMemo(
     () => [
-      { label: t('stock.stats.entries', 'Stock entries'), value: entries.length },
-      { label: t('stock.stats.products', 'Products with stock'), value: new Set(entries.map((entry) => entry.productId)).size },
-      { label: t('stock.stats.quantity', 'Total quantity'), value: entries.reduce((sum, entry) => sum + entry.quantity, 0) },
+      { label: t('stock.stats.entries', 'Stock entries'), value: filteredEntries.length },
+      { label: t('stock.stats.products', 'Products with stock'), value: new Set(filteredEntries.map((entry) => entry.productId)).size },
+      { label: t('stock.stats.quantity', 'Total quantity'), value: filteredEntries.reduce((sum, entry) => sum + entry.quantity, 0) },
     ],
-    [entries, t],
+    [filteredEntries, t],
   );
 
   return (
@@ -250,18 +256,25 @@ export function StockPage() {
         ))}
       </div>
 
+      <Card className="shadow-sm">
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ตัวกรอง</p><p className="text-xs text-muted-foreground">ค้นหาจากสินค้า หน่วย หรือจุดจัดเก็บ</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setSearch('')} disabled={!search}>ล้างตัวกรอง</Button></div>
+          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ค้นหาสินค้าหรือจุดจัดเก็บ" className="rounded-full" />
+        </CardContent>
+      </Card>
+
       {entriesQuery.isLoading ? <LoadingState label={t('common.loading', 'Loading...')} /> : null}
       {entriesQuery.isError ? <ErrorState message={t('stock.loadError', 'Unable to load stock.')} onRetry={() => entriesQuery.refetch()} /> : null}
       {productsQuery.isError ? <ErrorState message={t('stock.productsLoadError', 'Unable to load products.')} onRetry={() => productsQuery.refetch()} /> : null}
 
-      {entries.length === 0 && !entriesQuery.isLoading ? (
+      {filteredEntries.length === 0 && !entriesQuery.isLoading ? (
         <EmptyState
           title={t('stock.emptyTitle', 'No stock entries yet')}
           description={t('stock.emptyDescription', 'Adjust stock for a stock-tracked product to create the first entry.')}
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <DataTableShell minWidth="min-w-[750px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>จำนวน</th><th className={dataTableCellClass}>หน่วย</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{entries.map((entry) => <DataTableRow key={entry.id}><td className={`${dataTableCellClass} font-medium`}>{entry.productName}</td><td className={`${dataTableCellClass} font-medium`}>{entry.quantity}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{entry.unitCode ?? '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{formatLocationLabel(entry.locationName, entry.containerName)}</td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
+        <DataTableShell minWidth="min-w-[750px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>จำนวน</th><th className={dataTableCellClass}>หน่วย</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{filteredEntries.map((entry) => <DataTableRow key={entry.id}><td className={`${dataTableCellClass} font-medium`}>{entry.productName}</td><td className={`${dataTableCellClass} font-medium`}>{entry.quantity}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{entry.unitCode ?? '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{formatLocationLabel(entry.locationName, entry.containerName)}</td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
       )}
 
       <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} initialContainerId={initialContainerId} initialProductId={initialProductId} />

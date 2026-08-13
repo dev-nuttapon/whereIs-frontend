@@ -85,12 +85,6 @@ export function ItemsPage() {
     <PageShell
       title="ของทั้งหมด"
       description="ค้นหาและดูรายการทรัพย์สินกับสต็อกทั้งหมดในพื้นที่ทำงาน"
-      actions={(
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline"><Link to={ROUTES.workspaceAssets(wsId)}>ทรัพย์สิน</Link></Button>
-          <Button asChild><Link to={ROUTES.workspaceStock(wsId)}>สต็อก</Link></Button>
-        </div>
-      )}
     >
       {isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {hasError ? <ErrorState message="ไม่สามารถโหลดข้อมูลของทั้งหมดได้" onRetry={() => { void assetsQuery.refetch(); void stockQuery.refetch(); }} /> : null}
