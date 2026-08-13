@@ -20,8 +20,7 @@ import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useSites } from '@/features/sites/hooks/useSites';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useStockEntries, useAdjustStock } from '@/features/stock/hooks/useStock';
-import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
-import { OpenIcon, TakeOutIcon } from '@/components/ui/icons';
+import { OpenIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { usePermission } from '@/hooks/usePermission';
 import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
@@ -212,8 +211,6 @@ export function StockPage() {
   const initialContainerId = searchParams.get('containerId') ?? '';
   const initialProductId = searchParams.get('productId') ?? '';
   const [adjustOpen, setAdjustOpen] = useState(Boolean(initialContainerId || initialProductId));
-  const [borrowOpen, setBorrowOpen] = useState(false);
-  const [borrowDefaults, setBorrowDefaults] = useState<{ productId?: string | null; stockEntryId?: string | null } | null>(null);
   const [search, setSearch] = useState('');
   const productsQuery = useProducts(wsId);
   const entriesQuery = useStockEntries(wsId, { pageSize: 100 });
@@ -240,13 +237,9 @@ export function StockPage() {
       description={t('stock.description', 'Manage stock quantities before borrowing stock items.')}
       actions={(
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          {can('borrow.create') ? <Button className="w-full sm:w-auto" variant="outline" onClick={() => setBorrowOpen(true)}>
-            <TakeOutIcon className="h-4 w-4" />
-            เบิก/ยืม
-          </Button> : null}
           {can('stock.manage') ? <Button className="w-full sm:w-auto" onClick={() => navigate(`${ROUTES.workspaceReceive(wsId)}?from=stock`)}>
             <PlusIcon className="h-4 w-4" />
-            {t('stock.adjust.action', 'Adjust stock')}
+            เพิ่มสต็อก
           </Button> : null}
         </div>
       )}
@@ -279,13 +272,6 @@ export function StockPage() {
       )}
 
       <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} initialContainerId={initialContainerId} initialProductId={initialProductId} />
-      <CreateBorrowOrderDialog
-        wsId={wsId}
-        open={borrowOpen}
-        onOpenChange={setBorrowOpen}
-        initialProductId={borrowDefaults?.productId ?? null}
-        initialStockEntryId={borrowDefaults?.stockEntryId ?? null}
-      />
     </PageShell>
   );
 }

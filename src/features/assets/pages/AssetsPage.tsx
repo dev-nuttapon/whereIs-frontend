@@ -12,10 +12,9 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { DatabaseIcon, EditIcon, FilterIcon, OpenIcon, PlusIcon, TakeOutIcon } from '@/components/ui/icons';
+import { DatabaseIcon, EditIcon, FilterIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
 import { useAssets } from '@/features/assets/hooks/useAssets';
 import { CreateAssetDialog } from '@/features/assets/components/CreateAssetDialog';
-import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
 import { UpdateAssetDialog } from '@/features/assets/components/UpdateAssetDialog';
 import { useDeleteAsset } from '@/features/assets/hooks/useAssets';
 import { Popconfirm } from 'antd';
@@ -109,7 +108,6 @@ export function AssetsPage() {
   const locations = locationsQuery.data ?? [];
   const containers = containersQuery.data ?? [];
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
-  const [borrowOpen, setBorrowOpen] = useState(false);
   const hasActiveFilters = Boolean(
     filters.search.trim() || filters.status || filters.siteId || filters.locationId || filters.containerId,
   );
@@ -134,13 +132,9 @@ export function AssetsPage() {
       description={t('assets.description', 'Track individual assets, their location, status, and photos.')}
       actions={(
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setBorrowOpen(true)}>
-            <TakeOutIcon className="h-4 w-4" />
-            เบิก/ยืม
-          </Button>
           {can('asset.manage') ? <Button className="w-full sm:w-auto" onClick={() => navigate(`${ROUTES.workspaceReceive(wsId)}?from=assets`)}>
             <PlusIcon className="h-4 w-4" />
-            {t('assets.create.action', 'Create asset')}
+            เพิ่มทรัพย์สิน
           </Button> : null}
         </div>
       )}
@@ -265,7 +259,6 @@ export function AssetsPage() {
           }}
         />
       ) : null}
-      <CreateBorrowOrderDialog wsId={wsId} open={borrowOpen} onOpenChange={setBorrowOpen} />
     </PageShell>
   );
 }
