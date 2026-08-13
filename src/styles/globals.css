@@ -100,6 +100,34 @@
 }
 
 @layer components {
+  .form-section {
+    @apply flex flex-col gap-6;
+  }
+
+  .form-grid {
+    @apply grid gap-6 sm:grid-cols-2;
+  }
+
+  .form-field {
+    @apply flex min-w-0 flex-col items-stretch gap-3;
+  }
+
+  .form-field > label {
+    @apply block w-full;
+  }
+
+  .form-field > input,
+  .form-field > textarea,
+  .form-field > select,
+  .form-field > .ant-input,
+  .form-field > .ant-select,
+  .form-field > .ant-picker,
+  .form-field > .ant-input-number {
+    @apply block w-full;
+  }
+}
+
+@layer components {
   .app-background {
     background: var(--app-background);
     background-attachment: fixed;
@@ -272,9 +300,25 @@
     overflow: hidden;
   }
 
+  .ant-modal .ant-modal-close {
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 5;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid hsl(var(--border) / 0.8);
+    background: hsl(var(--card));
+    box-shadow: none;
+  }
+
+  .ant-modal .ant-modal-close:hover {
+    background: hsl(var(--muted));
+  }
+
   .ant-modal .ant-modal-header {
     margin-bottom: 0;
-    padding: 1.25rem 1.25rem 0.75rem;
+    padding: 1.25rem 4.5rem 0.75rem 1.25rem;
     background: transparent;
   }
 

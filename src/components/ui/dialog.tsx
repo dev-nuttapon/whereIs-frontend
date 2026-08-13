@@ -40,7 +40,7 @@ export function DialogContent({ className, ...props }: HTMLAttributes<HTMLDivEle
       role="dialog"
       aria-modal="true"
       className={cn(
-        'w-full rounded-2xl border border-border/70 bg-card/95 p-5 shadow-[0_24px_70px_-48px_rgb(15_23_42_/_0.7)] backdrop-blur-xl sm:rounded-3xl sm:p-6',
+        'w-full rounded-2xl border-0 bg-card/95 p-5 shadow-[0_24px_70px_-48px_rgb(15_23_42_/_0.7)] backdrop-blur-xl sm:rounded-3xl sm:p-6',
         className,
       )}
       {...props}

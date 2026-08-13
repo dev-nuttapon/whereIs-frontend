@@ -9,9 +9,10 @@ interface CreateProductDialogProps {
   onOpenChange: (open: boolean) => void;
   categories: Category[];
   onCreated?: (product: Product) => void;
+  initialName?: string;
 }
 
-export function CreateProductDialog({ wsId, open, onOpenChange, categories, onCreated }: CreateProductDialogProps) {
+export function CreateProductDialog({ wsId, open, onOpenChange, categories, onCreated, initialName = '' }: CreateProductDialogProps) {
   const { t } = useI18n();
   const createProduct = useCreateProduct(wsId);
 
@@ -23,6 +24,7 @@ export function CreateProductDialog({ wsId, open, onOpenChange, categories, onCr
       description={t('products.create.description', 'Add a product that assets and stock entries can reference.')}
       submitLabel={t('products.create.action', 'Create product')}
       categories={categories}
+      initialValues={{ name: initialName }}
       onSubmit={async (values) => {
         const product = await createProduct.mutateAsync({
           name: values.name,

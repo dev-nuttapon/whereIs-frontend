@@ -197,20 +197,32 @@ function CreateBorrowDialog({
         </DialogHeader>
 
         <div className="component-stack px-5 pb-5 sm:px-6">
-          <FormField label={t('borrowOrders.purpose', 'วัตถุประสงค์')} htmlFor="borrow-purpose">
-            <Textarea id="borrow-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} rows={3} />
-          </FormField>
-
-          <div className="grid gap-[18px] sm:grid-cols-2">
-            <FormField label={t('borrowOrders.needByDate', 'Need by')} htmlFor="borrow-need">
-              <Input id="borrow-need" type="date" value={needByDate} onChange={(event) => setNeedByDate(event.target.value)} />
+          <section className="space-y-5 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:p-5">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold">{t('borrowOrders.requestDetails', 'รายละเอียดการยืม')}</h3>
+              <p className="text-xs leading-5 text-muted-foreground">{t('borrowOrders.requestDetailsDescription', 'ระบุเหตุผลและกำหนดวันที่ต้องการยืม')}</p>
+            </div>
+            <FormField label={t('borrowOrders.purpose', 'วัตถุประสงค์')} htmlFor="borrow-purpose">
+              <Textarea id="borrow-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} rows={3} />
             </FormField>
-            <FormField label={t('borrowOrders.returnByDate', 'Return by')} htmlFor="borrow-return">
-              <Input id="borrow-return" type="date" value={returnByDate} onChange={(event) => setReturnByDate(event.target.value)} />
-            </FormField>
-          </div>
 
-          <div className="flex flex-wrap gap-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label={t('borrowOrders.needByDate', 'Need by')} htmlFor="borrow-need">
+                <Input id="borrow-need" type="date" value={needByDate} onChange={(event) => setNeedByDate(event.target.value)} />
+              </FormField>
+              <FormField label={t('borrowOrders.returnByDate', 'Return by')} htmlFor="borrow-return">
+                <Input id="borrow-return" type="date" value={returnByDate} onChange={(event) => setReturnByDate(event.target.value)} />
+              </FormField>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold">{t('borrowOrders.itemsSection', 'รายการที่ต้องการยืม')}</h3>
+                <p className="text-xs leading-5 text-muted-foreground">{t('borrowOrders.itemsSectionDescription', 'เพิ่มทรัพย์สินหรือสินค้าในคลัง แล้วตรวจสอบรายละเอียดก่อนสร้างรายการ')}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={addAssetLine}>
               <PlusIcon className="h-4 w-4" />
               {t('borrowOrders.addAssetLine', 'เพิ่มทรัพย์สิน')}
@@ -219,44 +231,51 @@ function CreateBorrowDialog({
               <PlusIcon className="h-4 w-4" />
               {t('borrowOrders.addStockLine', 'Add stock')}
             </Button>
-          </div>
+              </div>
+            </div>
 
-          <div className="component-stack">
+            <div className="component-stack">
             {lines.map((line, index) => (
-              <div key={line.id} className="space-y-3 rounded-2xl border border-border/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-base">
-                    {t('borrowOrders.lineLabel', 'Line {index}', { index: index + 1 })}
-                  </CardTitle>
+              <div key={line.id} className="space-y-5 rounded-2xl border border-border/70 bg-background p-4 sm:p-5">
+                <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
+                  <div className="space-y-1">
+                    <CardTitle className="text-base">
+                      {t('borrowOrders.lineLabel', 'Line {index}', { index: index + 1 })}
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">{t('borrowOrders.lineDescription', 'เลือกประเภทและระบุรายละเอียดของรายการนี้')}</p>
+                  </div>
                   <Button
                     type="button"
                     variant="destructive"
                     size="sm"
-                    className="rounded-full"
+                    className="shrink-0 rounded-full"
                     onClick={() => setLines((current) => current.filter((entry) => entry.id !== line.id))}
                   >
                     {t('common.delete', 'Delete')}
                   </Button>
                 </div>
 
-                <Select
-                  value={line.kind}
-                  onChange={(event) => {
-                    const kind = event.target.value as 'asset' | 'stock';
-                    setLines((current) =>
-                      current.map((entry) => {
-                        if (entry.id !== line.id) return entry;
-                        return kind === 'asset'
-                          ? { id: entry.id, kind: 'asset', assetId: '' }
-                          : { id: entry.id, kind: 'stock', stockEntryId: '', productId: '', quantity: '1' };
-                      }),
-                    );
-                  }}
-                  className="w-full"
-                >
-                  <option value="asset">{t('borrowOrders.lineTypeAsset', 'ทรัพย์สิน')}</option>
-                  <option value="stock">{t('borrowOrders.lineTypeStock', 'Stock')}</option>
-                </Select>
+                <FormField label={t('borrowOrders.lineType', 'ประเภทรายการ')} htmlFor={`borrow-line-type-${line.id}`}>
+                  <Select
+                    id={`borrow-line-type-${line.id}`}
+                    value={line.kind}
+                    onChange={(event) => {
+                      const kind = event.target.value as 'asset' | 'stock';
+                      setLines((current) =>
+                        current.map((entry) => {
+                          if (entry.id !== line.id) return entry;
+                          return kind === 'asset'
+                            ? { id: entry.id, kind: 'asset', assetId: '' }
+                            : { id: entry.id, kind: 'stock', stockEntryId: '', productId: '', quantity: '1' };
+                        }),
+                      );
+                    }}
+                    className="w-full sm:max-w-xs"
+                  >
+                    <option value="asset">{t('borrowOrders.lineTypeAsset', 'ทรัพย์สิน')}</option>
+                    <option value="stock">{t('borrowOrders.lineTypeStock', 'Stock')}</option>
+                  </Select>
+                </FormField>
 
                 {line.kind === 'asset' ? (
                   <FormField label={t('borrowOrders.asset', 'ทรัพย์สิน')} htmlFor={`borrow-asset-${line.id}`}>
@@ -279,7 +298,7 @@ function CreateBorrowDialog({
                     </Select>
                   </FormField>
                 ) : (
-                  <div className="grid gap-[18px] sm:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-3">
                     <FormField label={t('borrowOrders.product', 'สินค้า')} htmlFor={`borrow-product-${line.id}`}>
                       <Select
                         id={`borrow-product-${line.id}`}
@@ -343,7 +362,8 @@ function CreateBorrowDialog({
                 )}
               </div>
             ))}
-          </div>
+            </div>
+          </section>
         </div>
 
         <DialogFooter className="border-t border-border/70 bg-muted/30 px-5 py-4 sm:px-6">

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { PageShell } from '@/components/common/PageShell';
 import { FormField } from '@/components/forms/FormField';
+import { FormGrid, FormSection } from '@/components/forms/FormLayout';
 import { PlusIcon, StockIcon, ContainerIcon } from '@/components/ui/icons';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { useProducts } from '@/features/products/hooks/useProducts';
@@ -178,37 +179,53 @@ export function ReceiveInventoryPage() {
                       ลบรายการ
                     </Button>
                   </div>
-                  {currentStep === 1 ? <div className="grid gap-4 sm:grid-cols-2">
-                    <FormField label="ค้นหาสินค้า" htmlFor={`receive-product-search-${line.id}`} description={products.length ? 'ค้นหาจากชื่อ รหัส หรือ SKU แล้วเลือกสินค้า' : 'ยังไม่มีสินค้า ให้สร้างสินค้าใหม่ก่อน'}>
-                      <Input id={`receive-product-search-${line.id}`} value={line.productSearch ?? ''} onChange={(event) => updateLine(line.id, { productSearch: event.target.value })} placeholder="เช่น โยเกิร์ต" />
+                  {currentStep === 1 ? <FormSection>
+                    <FormField label="สินค้า" htmlFor={`receive-product-search-${line.id}`} description="พิมพ์เพื่อค้นหา หรือเลือกสินค้าจากรายการที่แนะนำ">
+                      <Input
+                        id={`receive-product-search-${line.id}`}
+                        list={`receive-product-options-${line.id}`}
+                        value={line.productSearch ?? ''}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          const matched = products.find((product) => [product.name, product.code, product.sku].filter(Boolean).some((candidate) => candidate?.toLowerCase() === value.trim().toLowerCase()));
+                          if (matched) selectProduct(line.id, matched.id);
+                          else updateLine(line.id, { productSearch: value, productId: '', name: value });
+                        }}
+                        placeholder="พิมพ์ชื่อสินค้า รหัส หรือ SKU"
+                      />
+                      <datalist id={`receive-product-options-${line.id}`}>
+                        {products.map((product) => <option key={product.id} value={product.name}>{product.code || product.sku ? `${product.code ?? product.sku}` : undefined}</option>)}
+                      </datalist>
+                      {!line.productId && line.productSearch?.trim() ? (
+                        <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+                          <span>ไม่พบสินค้า “{line.productSearch}” ในระบบ</span>
+                          <Button type="button" variant="outline" size="sm" onClick={() => { setCreateProductForLine(line.id); setCreateProductOpen(true); }}>สร้างสินค้าใหม่</Button>
+                        </div>
+                      ) : null}
                     </FormField>
-                    <FormField label="สินค้า" htmlFor={`receive-product-${line.id}`}>
-                      <Select id={`receive-product-${line.id}`} value={line.productId} onChange={(event) => selectProduct(line.id, event.target.value)}>
-                        <option value="">เลือกสินค้าที่มีอยู่</option>
-                        {products.filter((product) => {
-                          const query = (line.productSearch ?? '').trim().toLowerCase();
-                          return !query || [product.name, product.code, product.sku].filter(Boolean).some((value) => value!.toLowerCase().includes(query));
-                        }).map((product) => <option key={product.id} value={product.id}>{product.name}{product.code ? ` (${product.code})` : ''}</option>)}
-                      </Select>
-                      {products.length === 0 ? <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => { setCreateProductForLine(line.id); setCreateProductOpen(true); }}>สร้างสินค้าใหม่</Button> : null}
-                    </FormField>
-                    <FormField label="ชื่อรายการสำรอง" htmlFor={`receive-name-${line.id}`} description="ใช้เมื่อสินค้านี้ยังไม่ถูกสร้างในระบบ">
-                      <Input id={`receive-name-${line.id}`} value={line.name} onChange={(event) => updateLine(line.id, { name: event.target.value, productId: '' })} placeholder="เช่น โยเกิร์ต" />
-                    </FormField>
-                    <FormField label="ประเภทการติดตาม" htmlFor={`receive-type-${line.id}`} description={line.productId ? 'ประเภทนี้กำหนดจากสินค้าในระบบ' : 'เลือกสินค้าเพื่อให้ระบบกำหนดประเภทอัตโนมัติ'}>
-                      <Select id={`receive-type-${line.id}`} value={line.trackingType} disabled={Boolean(line.productId)} onChange={(event) => updateLine(line.id, { trackingType: event.target.value as TrackingType })}>
-                        <option value="stock">สต็อก / นับเป็นจำนวน</option>
-                        <option value="asset">ทรัพย์สิน / ติดตามรายชิ้น</option>
-                      </Select>
-                    </FormField>
-                    <FormField label="จำนวน" htmlFor={`receive-quantity-${line.id}`}>
-                      <Input id={`receive-quantity-${line.id}`} type="number" min="1" value={line.quantity} onChange={(event) => updateLine(line.id, { quantity: event.target.value })} />
-                    </FormField>
-                    <FormField label="หน่วย" htmlFor={`receive-unit-${line.id}`}>
-                      <Input id={`receive-unit-${line.id}`} value={line.unit} onChange={(event) => updateLine(line.id, { unit: event.target.value })} placeholder="เช่น กล่อง, ชิ้น, ขวด" />
-                    </FormField>
-                  </div> : null}
-                  {currentStep === 2 ? <div className="grid gap-4 sm:grid-cols-2">
+
+                    {!line.productId ? <FormGrid className="border-t border-border/60 pt-6">
+                      <FormField label="ชื่อสินค้าใหม่" htmlFor={`receive-name-${line.id}`} description="ใช้เมื่อสินค้านี้ยังไม่ถูกสร้างในระบบ">
+                        <Input id={`receive-name-${line.id}`} value={line.name} onChange={(event) => updateLine(line.id, { name: event.target.value, productId: '', productSearch: event.target.value })} placeholder="เช่น โยเกิร์ต" />
+                      </FormField>
+                      <FormField label="ประเภทการติดตาม" htmlFor={`receive-type-${line.id}`} description="กำหนดวิธีติดตามสินค้านี้ในคลัง">
+                        <Select id={`receive-type-${line.id}`} value={line.trackingType} onChange={(event) => updateLine(line.id, { trackingType: event.target.value as TrackingType })}>
+                          <option value="stock">สต็อก / นับเป็นจำนวน</option>
+                          <option value="asset">ทรัพย์สิน / ติดตามรายชิ้น</option>
+                        </Select>
+                      </FormField>
+                    </FormGrid> : null}
+
+                    <FormGrid className="border-t border-border/60 pt-6">
+                      <FormField label="จำนวน" htmlFor={`receive-quantity-${line.id}`}>
+                        <Input id={`receive-quantity-${line.id}`} type="number" min="1" value={line.quantity} onChange={(event) => updateLine(line.id, { quantity: event.target.value })} />
+                      </FormField>
+                      <FormField label="หน่วย" htmlFor={`receive-unit-${line.id}`}>
+                        <Input id={`receive-unit-${line.id}`} value={line.unit} onChange={(event) => updateLine(line.id, { unit: event.target.value })} placeholder="เช่น กล่อง, ชิ้น, ขวด" />
+                      </FormField>
+                    </FormGrid>
+                  </FormSection> : null}
+                  {currentStep === 2 ? <FormGrid>
                     <FormField label="จุดจัดเก็บ" htmlFor={`receive-storage-${line.id}`} description={containers.length ? 'เลือกจากจุดจัดเก็บที่สร้างไว้แล้ว' : 'ยังไม่มีจุดจัดเก็บ ให้สร้างก่อนแล้วกลับมาเลือกที่นี่'}>
                       <Select id={`receive-storage-${line.id}`} value={line.storage} onChange={(event) => updateLine(line.id, { storage: event.target.value })} disabled={containers.length === 0}>
                         <option value="">{containers.length ? 'เลือกจุดจัดเก็บ' : 'ยังไม่มีจุดจัดเก็บ'}</option>
@@ -226,7 +243,7 @@ export function ReceiveInventoryPage() {
                         <Input id={`receive-low-stock-${line.id}`} type="number" min="0" value={line.lowStockAlert} onChange={(event) => updateLine(line.id, { lowStockAlert: event.target.value })} placeholder="เช่น 3" />
                       </FormField>
                     ) : null}
-                  </div> : null}
+                  </FormGrid> : null}
                   {currentStep === 2 && containers.length === 0 ? (
                     <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
                       <span>ยังไม่มีจุดจัดเก็บสำหรับรายการนี้</span>
@@ -305,6 +322,7 @@ export function ReceiveInventoryPage() {
         open={createProductOpen}
         onOpenChange={setCreateProductOpen}
         categories={categoriesQuery.data ?? []}
+        initialName={lines.find((line) => line.id === createProductForLine)?.productSearch ?? ''}
         onCreated={(product) => {
           if (createProductForLine === null) return;
           updateLine(createProductForLine, {
