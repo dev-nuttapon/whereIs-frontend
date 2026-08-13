@@ -119,7 +119,6 @@ export interface Category {
   workspaceId: string;
   name: string;
   description?: string | null;
-  color?: string | null;
   isActive: boolean;
   productCount: number;
   createdAt: string;

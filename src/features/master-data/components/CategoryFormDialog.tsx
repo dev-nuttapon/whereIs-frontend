@@ -11,7 +11,6 @@ import type { Category } from '@/types/domain.types';
 export interface CategoryFormValues {
   name: string;
   description: string;
-  color: string;
   isActive: 'true' | 'false';
 }
 
@@ -30,7 +29,6 @@ export interface CategoryFormDialogProps {
 const EMPTY_VALUES: CategoryFormValues = {
   name: '',
   description: '',
-  color: '',
   isActive: 'true',
 };
 
@@ -56,7 +54,6 @@ export function CategoryFormDialog({
     setValues({
       name: initialValues?.name ?? '',
       description: initialValues?.description ?? '',
-      color: initialValues?.color ?? '',
       isActive: initialValues?.isActive === false ? 'false' : 'true',
     });
   }, [initialValues, open]);
@@ -72,7 +69,6 @@ export function CategoryFormDialog({
       ...values,
       name: values.name.trim(),
       description: values.description.trim(),
-      color: values.color.trim(),
     });
   };
 
@@ -94,16 +90,6 @@ export function CategoryFormDialog({
                 value={values.name}
                 onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
                 placeholder={t('categories.form.namePlaceholder', 'เช่น เครื่องใช้ไฟฟ้า')}
-                autoComplete="off"
-              />
-            </FormField>
-
-            <FormField label={t('categories.form.color', 'สี')} htmlFor="category-color">
-              <Input
-                id="category-color"
-                value={values.color}
-                onChange={(event) => setValues((current) => ({ ...current, color: event.target.value }))}
-                placeholder={t('categories.form.colorPlaceholder', 'เช่น #4f46e5')}
                 autoComplete="off"
               />
             </FormField>

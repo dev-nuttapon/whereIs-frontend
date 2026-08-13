@@ -38,16 +38,6 @@ function statusColor(isActive: boolean) {
   return isActive ? 'green' : 'default';
 }
 
-function CategoryDot({ color }: { color?: string | null }) {
-  return (
-    <span
-      aria-hidden
-      className="inline-block h-3 w-3 rounded-full border border-border/60"
-      style={{ backgroundColor: color ?? '#cbd5e1' }}
-    />
-  );
-}
-
 function flattenLocationNodes(nodes: LocationTreeNode[], depth = 0): Array<{ value: string; label: string }> {
   return nodes.flatMap((node) => [
     {
@@ -435,7 +425,6 @@ function EditCategoryDialog({ wsId, category, onClose }: { wsId: string; categor
         await updateCategory.mutateAsync({
           name: values.name,
           description: values.description || null,
-          color: values.color || null,
           isActive: values.isActive === 'true',
         });
         onClose();
@@ -616,7 +605,7 @@ export function MasterDataPage() {
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
           <div className="space-y-1">
             <CardTitle className="text-lg">{t('masterData.categories.title', 'Categories')}</CardTitle>
-            <CardDescription>{t('masterData.categories.description', 'Group products by category and color')}</CardDescription>
+          <CardDescription>{t('masterData.categories.description', 'Group products by category')}</CardDescription>
           </div>
           <Button className="w-full sm:w-auto" onClick={() => setCreateCategoryOpen(true)}>
             <PlusIcon className="h-4 w-4" />
@@ -644,8 +633,7 @@ export function MasterDataPage() {
                   <CardDescription>{category.description ?? category.id}</CardDescription>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <CategoryDot color={category.color} />
-                  <span className="text-sm text-muted-foreground">{category.color ?? t('masterData.categories.noColor', 'No color')}</span>
+                  <span className="text-sm text-muted-foreground">{category.description ?? t('masterData.categories.noDescription', 'No description')}</span>
                   <Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Tag>
                 </div>
                 <div className="space-y-1 text-sm text-muted-foreground">
@@ -901,7 +889,6 @@ export function MasterDataPage() {
           await createCategory.mutateAsync({
             name: values.name,
             description: values.description || null,
-            color: values.color || null,
           });
           setCreateCategoryOpen(false);
         }}

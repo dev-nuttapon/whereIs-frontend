@@ -18,7 +18,6 @@ interface CategoryDto {
   workspaceId: string;
   name: string;
   description: string | null;
-  color: string | null;
   isActive: boolean;
   productCount: number;
   createdAt: string;
@@ -27,13 +26,11 @@ interface CategoryDto {
 export interface CreateCategoryInput {
   name: string;
   description?: string | null;
-  color?: string | null;
 }
 
 export interface UpdateCategoryInput {
   name?: string | null;
   description?: string | null;
-  color?: string | null;
   isActive?: boolean | null;
 }
 
@@ -43,7 +40,6 @@ function toCategory(dto: CategoryDto): Category {
     workspaceId: dto.workspaceId,
     name: dto.name,
     description: dto.description ?? undefined,
-    color: dto.color ?? undefined,
     isActive: dto.isActive,
     productCount: dto.productCount,
     createdAt: dto.createdAt,
@@ -66,7 +62,6 @@ export async function createCategory(wsId: string, input: CreateCategoryInput): 
   const response = await client.post<ApiResponse<CategoryDto>>(`/workspaces/${encodeURIComponent(wsId)}/categories`, {
     name: input.name,
     description: input.description ?? null,
-    color: input.color ?? null,
   });
   return toCategory(response.data.data);
 }
@@ -75,7 +70,6 @@ export async function updateCategory(wsId: string, id: string, input: UpdateCate
   const response = await client.put<ApiResponse<CategoryDto>>(`/workspaces/${encodeURIComponent(wsId)}/categories/${encodeURIComponent(id)}`, {
     name: input.name ?? null,
     description: input.description ?? null,
-    color: input.color ?? null,
     isActive: input.isActive ?? null,
   });
   return toCategory(response.data.data);
