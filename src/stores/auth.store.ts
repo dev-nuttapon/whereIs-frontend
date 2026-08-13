@@ -80,12 +80,9 @@ export const authStore = create<AuthState>()(
     {
       name: 'whereis-auth',
       storage: createJSONStorage(() => localStorage),
-      // Keep only the refresh credential across reloads. The access token stays
-      // memory-only and is re-issued by AuthBootstrap, so protected routes do
-      // not render with a stale bearer token after a page refresh.
-      partialize: (state) => ({
-        refreshToken: state.refreshToken,
-      }),
+      // Tokens are held by the backend refresh cookie. The access token stays
+      // memory-only and is re-issued by AuthBootstrap after a page refresh.
+      partialize: () => ({}),
       onRehydrateStorage: () => (state) => {
         state?.startBootstrap();
       },

@@ -15,6 +15,8 @@ interface ApiErrorResponse {
 
 type TokenSession = Omit<AuthSession, 'user'>;
 
+let refreshSessionPromise: Promise<TokenSession> | null = null;
+
 const tokenClient = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 15_000,
@@ -60,6 +62,14 @@ export async function refreshTokenSession(refreshToken?: string): Promise<TokenS
   } catch (cause) {
     throw toAuthError(cause, 'Unable to refresh session.');
   }
+}
+
+export function refreshTokenSessionSingleFlight(): Promise<TokenSession> {
+  refreshSessionPromise ??= refreshTokenSession().finally(() => {
+    refreshSessionPromise = null;
+  });
+
+  return refreshSessionPromise;
 }
 
 export async function revokeSession(): Promise<void> {

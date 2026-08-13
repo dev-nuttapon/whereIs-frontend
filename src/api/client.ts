@@ -2,10 +2,8 @@ import axios from 'axios';
 import { env } from '@/lib/env';
 import { authStore } from '@/stores/auth.store';
 import { queryClient } from '@/lib/queryClient';
-import { refreshTokenSession } from '@/api/token.api';
+import { refreshTokenSessionSingleFlight } from '@/api/token.api';
 import { workspaceStore } from '@/stores/workspace.store';
-
-let refreshSessionPromise: Promise<void> | null = null;
 
 export const client = axios.create({
   baseURL: env.apiBaseUrl,
@@ -36,15 +34,8 @@ client.interceptors.response.use(
     ) {
       try {
         originalRequest._retry = true;
-        refreshSessionPromise ??= refreshTokenSession(authStore.getState().refreshToken ?? undefined)
-            .then((session) => {
-              authStore.getState().updateTokens(session);
-            })
-            .finally(() => {
-              refreshSessionPromise = null;
-            });
-
-        await refreshSessionPromise;
+        const session = await refreshTokenSessionSingleFlight();
+        authStore.getState().updateTokens(session);
         const token = authStore.getState().accessToken;
         if (token) {
           originalRequest.headers = {
