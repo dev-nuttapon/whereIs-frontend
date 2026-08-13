@@ -179,9 +179,14 @@ export function ProductFormDialog({
                   onChange={(event) => setValues((current) => ({ ...current, trackingType: event.target.value as ProductFormValues['trackingType'] }))}
                   className="w-full"
                 >
-                  <option value="Asset">Asset</option>
-                  <option value="Stock">Stock</option>
+                  <option value="Asset">ติดตามรายชิ้น (Asset)</option>
+                  <option value="Stock">ติดตามเป็นจำนวน (Stock)</option>
                 </Select>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  {values.trackingType === 'Asset'
+                    ? 'เหมาะกับของที่ต้องรู้ว่าแต่ละชิ้นอยู่ที่ไหนหรือใครเป็นผู้ถือ เช่น Laptop กล้อง หรือเครื่องมือ'
+                    : 'เหมาะกับของที่เบิกใช้และนับเป็นยอดรวม เช่น กระดาษ ปากกา หรือวัสดุสิ้นเปลือง'}
+                </p>
               </FormField>
             </div>
             <FormField label={`${t('products.form.expiryLeadDaysDefault', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} (ไม่บังคับ)`} htmlFor="product-expiry-lead-days">

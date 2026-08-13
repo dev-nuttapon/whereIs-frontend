@@ -83,6 +83,11 @@ export const authStore = create<AuthState>()(
       // Tokens are held by the backend refresh cookie. The access token stays
       // memory-only and is re-issued by AuthBootstrap after a page refresh.
       partialize: () => ({}),
+      // Auth state is intentionally not persisted. Ignore any state written by
+      // older versions as well, otherwise ProtectedRoute can briefly see an
+      // unauthenticated state during hydration and redirect away from the
+      // route the user refreshed.
+      merge: (_persistedState, currentState) => currentState,
       onRehydrateStorage: () => (state) => {
         state?.startBootstrap();
       },

@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Drawer, Layout } from 'antd';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -6,13 +6,19 @@ import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { workspaceStore } from '@/stores/workspace.store';
 import { uiStore } from '@/stores/ui.store';
 import { ROUTES } from '@/constants/routes';
+import { LoadingState } from '@/components/feedback/LoadingState';
 
 export function AppLayout() {
+  const location = useLocation();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
   const sidebarOpen = uiStore((state) => state.sidebarOpen);
   const setSidebarOpen = uiStore((state) => state.setSidebarOpen);
 
   if (!currentWorkspace) {
+    if (location.pathname.startsWith('/w/')) {
+      return <LoadingState />;
+    }
+
     return <Navigate to={ROUTES.workspaces} replace />;
   }
 

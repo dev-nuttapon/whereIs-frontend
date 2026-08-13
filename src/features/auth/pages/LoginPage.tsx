@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Form, Input, Typography } from 'antd';
 import { ROUTES } from '@/constants/routes';
@@ -13,18 +13,26 @@ interface LoginFormValues {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = authStore((state) => state.isAuthenticated);
   const setAuth = authStore((state) => state.setAuth);
   const updateTokens = authStore((state) => state.updateTokens);
   const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const redirectPath = (() => {
+    const from = (location.state as { from?: { pathname?: unknown; search?: unknown; hash?: unknown } } | null)?.from;
+    if (typeof from?.pathname !== 'string' || !from.pathname.startsWith('/')) {
+      return ROUTES.workspaces;
+    }
+    return `${from.pathname}${typeof from.search === 'string' ? from.search : ''}${typeof from.hash === 'string' ? from.hash : ''}`;
+  })();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(ROUTES.workspaces);
+      navigate(redirectPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, redirectPath]);
 
   const onFinish = async (values: LoginFormValues) => {
     setError(null);
@@ -39,7 +47,7 @@ export function LoginPage() {
         ...session,
         user,
       });
-      navigate(ROUTES.workspaces, { replace: true });
+      navigate(redirectPath, { replace: true });
     } catch {
       setError(t('auth.login.errorDescription', 'ตรวจสอบอีเมลและรหัสผ่านแล้วลองอีกครั้ง'));
     } finally {

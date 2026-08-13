@@ -53,7 +53,6 @@ export function AuthBootstrap() {
 
     let active = true;
     startBootstrap();
-    workspaceStore.getState().clear();
     // The backend keeps the refresh credential in an HttpOnly cookie. Do not
     // send a refresh token in the request body; withCredentials is configured
     // on the auth client so the browser supplies the cookie.

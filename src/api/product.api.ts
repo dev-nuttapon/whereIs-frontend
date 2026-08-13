@@ -1,5 +1,7 @@
 import { client } from '@/api/client';
 import type { Product } from '@/types/domain.types';
+import { buildProductFormData } from '@/features/products/utils/productFormData';
+export { buildProductFormData } from '@/features/products/utils/productFormData';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -61,16 +63,6 @@ export interface UpdateProductInput {
   isActive?: boolean | null;
 }
 
-export function buildProductFormData(input: { name: string; trackingType: string; image?: File | null }): FormData {
-  const formData = new FormData();
-  formData.append('name', input.name);
-  formData.append('trackingType', input.trackingType);
-  if (input.image) {
-    formData.append('image', input.image);
-  }
-  return formData;
-}
-
 function toProduct(dto: ProductDto): Product {
   return {
     id: dto.id,
@@ -106,17 +98,7 @@ export async function getProduct(wsId: string, id: string): Promise<Product> {
 }
 
 export async function createProduct(wsId: string, input: CreateProductInput): Promise<Product> {
-  const formData = new FormData();
-  formData.append('name', input.name);
-  formData.append('description', input.description ?? '');
-  formData.append('categoryId', input.categoryId ?? '');
-  formData.append('unitCode', input.unitCode ?? '');
-  formData.append('code', input.code ?? '');
-  formData.append('sku', input.sku ?? '');
-  formData.append('trackingType', input.trackingType);
-  formData.append('minStockAlert', input.minStockAlert?.toString() ?? '');
-  formData.append('expiryLeadDaysDefault', input.expiryLeadDaysDefault?.toString() ?? '');
-  if (input.image) formData.append('image', input.image);
+  const formData = buildProductFormData(input);
   const response = await client.post<ApiResponse<ProductDto>>(`/workspaces/${encodeURIComponent(wsId)}/products`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   return toProduct(response.data.data);
 }
