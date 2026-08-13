@@ -22,7 +22,7 @@ export function FormField({ label, htmlFor, required, optional, error, descripti
     ? 'required'
     : label.includes('ไม่บังคับ')
       ? 'optional'
-      : undefined;
+      : 'required';
   const requirement = required ? 'required' : optional ? 'optional' : inferredRequirement;
   const displayLabel = formatFieldLabel(label, requirement);
 

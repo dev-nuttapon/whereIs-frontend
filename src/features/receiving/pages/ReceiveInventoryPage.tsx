@@ -297,7 +297,7 @@ export function ReceiveInventoryPage() {
             }
             <FormSection>
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold">รูปหลักฐานการรับเข้าครั้งนี้ (ไม่บังคับ)</p>
+                  <p className="text-sm font-semibold">รูปหลักฐานการรับเข้าครั้งนี้</p>
                   <p className="text-xs text-muted-foreground">แยกจากรูป Master ของสินค้า และอัปโหลดได้หลายรูป เช่น ใบส่งของ กล่อง หรือสภาพสินค้า</p>
                 </div>
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-muted/20 p-5 text-center hover:border-primary/60">
