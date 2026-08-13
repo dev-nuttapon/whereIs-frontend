@@ -12,7 +12,7 @@ import { FormField } from '@/components/forms/FormField';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
-import { ClipboardCheckIcon, PlusIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
+import { ClipboardCheckIcon, FilterIcon, PlusIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
 import { OpenIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { useAssets } from '@/features/assets/hooks/useAssets';
@@ -554,14 +554,27 @@ export function BorrowOrdersPage() {
   const orders = query.data?.items ?? [];
   const [returnOrder, setReturnOrder] = useState<BorrowOrder | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const filteredOrders = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return orders.filter((order) => {
+      const searchable = `${order.id} ${order.requestedBy} ${order.purpose ?? ''} ${order.lines.map((line) => `${line.productName ?? ''} ${line.assetSerialNumber ?? ''}`).join(' ')}`.toLowerCase();
+      return (!term || searchable.includes(term)) && (!statusFilter || order.status.toLowerCase().includes(statusFilter));
+    });
+  }, [orders, search, statusFilter]);
+  const pageCount = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+  const visibleOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
 
   const stats = useMemo(
     () => [
-      { label: t('borrowOrders.total', 'Total orders'), value: orders.length },
-      { label: t('borrowOrders.pending', 'Pending'), value: orders.filter((order) => order.status.toLowerCase().includes('pending')).length },
-      { label: t('borrowOrders.active', 'Active'), value: orders.filter((order) => order.status.toLowerCase().includes('active')).length },
+      { label: t('borrowOrders.total', 'Total orders'), value: filteredOrders.length },
+      { label: t('borrowOrders.pending', 'Pending'), value: filteredOrders.filter((order) => order.status.toLowerCase().includes('pending')).length },
+      { label: t('borrowOrders.active', 'Active'), value: filteredOrders.filter((order) => order.status.toLowerCase().includes('active')).length },
     ],
-    [orders, t],
+    [filteredOrders, t],
   );
 
   return (
@@ -575,6 +588,8 @@ export function BorrowOrdersPage() {
         </Button>
       )}
     >
+      <Card className="shadow-sm"><CardContent className="space-y-4 p-4 sm:p-6"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาเลขรายการ ผู้ยืม วัตถุประสงค์ หรือสินค้า</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => { setSearch(''); setStatusFilter(''); setPage(1); }} disabled={!search && !statusFilter}>ล้างตัวกรอง</Button></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (เลขรายการ/ผู้ยืม/สินค้า)</label><Input className="w-full rounded-full" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="ค้นหารายการยืม" /></div><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะรายการยืม</label><Select className="w-full" value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}><option value="">ทุกสถานะ</option><option value="pending">รออนุมัติ</option><option value="approved">อนุมัติแล้ว</option><option value="active">กำลังยืม</option><option value="completed">เสร็จสิ้น</option><option value="cancel">ยกเลิก</option></Select></div></div></CardContent></Card>
+
       <div className="grid gap-[18px] md:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label} className="shadow-sm">
@@ -602,10 +617,12 @@ export function BorrowOrdersPage() {
       ) : null}
 
       <div className="component-stack">
-        {orders.map((order) => (
+        {visibleOrders.map((order) => (
           <BorrowOrderCard key={order.id} order={order} onReturn={setReturnOrder} />
         ))}
       </div>
+
+      <div className="flex flex-col gap-3 border-t border-border/70 px-5 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><span>{filteredOrders.length === 0 ? '0 รายการ' : `${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, filteredOrders.length)} จาก ${filteredOrders.length} รายการ`}</span><div className="flex items-center gap-2"><Button type="button" variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1}>ก่อนหน้า</Button><span className="min-w-16 text-center text-foreground">หน้า {page} / {pageCount}</span><Button type="button" variant="outline" size="sm" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount}>ถัดไป</Button><Select className="w-24" value={String(pageSize)} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}><option value="10">10 / หน้า</option><option value="25">25 / หน้า</option><option value="50">50 / หน้า</option></Select></div></div>
 
       <CreateBorrowDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />
       <ReturnDialog order={returnOrder} open={Boolean(returnOrder)} onOpenChange={(open) => !open && setReturnOrder(null)} />

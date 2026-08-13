@@ -27,6 +27,7 @@ import { CategoryFormDialog } from '@/features/master-data/components/CategoryFo
 import { SiteFormDialog } from '@/features/master-data/components/SiteFormDialog';
 import { LocationFormDialog } from '@/features/master-data/components/LocationFormDialog';
 import { client } from '@/api/client';
+import { ContainersPage } from '@/features/containers/pages/ContainersPage';
 
 function trackingTypeColor(trackingType: string) {
   const normalized = trackingType.toLowerCase();
@@ -942,6 +943,7 @@ export function MasterDataPage() {
           { key: 'categories', label: t('masterData.categories.tab', 'Categories'), children: categoryTab },
           { key: 'sites', label: t('masterData.sites.tab', 'Sites'), children: siteTab },
           { key: 'locations', label: t('masterData.locations.tab', 'Locations'), children: locationTab },
+          { key: 'containers', label: 'ภาชนะจัดเก็บ', children: <ContainersPage /> },
         ]}
       />
 
