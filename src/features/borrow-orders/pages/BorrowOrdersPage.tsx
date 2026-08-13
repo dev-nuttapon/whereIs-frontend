@@ -29,6 +29,7 @@ import { useProducts } from '@/features/products/hooks/useProducts';
 import { useStockEntries } from '@/features/stock/hooks/useStock';
 import type { BorrowOrder, BorrowOrderLine } from '@/types/domain.types';
 import type { CreateBorrowOrderInput } from '@/api/borrow-order.api';
+import { MasterStatusBadge } from '@/components/common/MasterStatusBadge';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -425,7 +426,7 @@ function BorrowOrderCard({
             <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'Borrow order')}</CardTitle>
             <CardDescription>{order.id}</CardDescription>
           </div>
-          <Tag color={statusColor(order.status)}>{order.status}</Tag>
+          <MasterStatusBadge status={order.status} kind="borrow" />
         </div>
 
         <div className="grid gap-[18px] md:grid-cols-2">
@@ -450,7 +451,7 @@ function BorrowOrderCard({
               <div key={line.id} className="rounded-2xl border border-border/70 bg-background/60 px-4 py-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-medium">{formatLineLabel(line)}</span>
-                  <Tag color={statusColor(line.status)}>{line.status}</Tag>
+                  <MasterStatusBadge status={line.status} kind="borrow" />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {line.assetId ? t('borrowOrders.assetLine', 'รายการทรัพย์สิน') : t('borrowOrders.stockLine', 'รายการของในคลัง')}

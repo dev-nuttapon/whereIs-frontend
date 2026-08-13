@@ -23,6 +23,8 @@ import { useSites } from '@/features/sites/hooks/useSites';
 import { useLocations } from '@/features/locations/hooks/useLocations';
 import { useContainers } from '@/features/containers/hooks/useContainers';
 import { usePermission } from '@/hooks/usePermission';
+import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
+import { MasterStatusBadge } from '@/components/common/MasterStatusBadge';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -240,36 +242,7 @@ export function AssetsPage() {
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {displayAssets.map((asset) => (
-            <Card key={asset.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{asset.productName}</CardTitle>
-                  <CardDescription>{asset.serialNumber ?? asset.barcode ?? asset.id}</CardDescription>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Tag color={statusColor(asset.status)}>{asset.status}</Tag>
-                  <Tag color="blue">{asset.condition}</Tag>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('assets.location', 'Location')}: {asset.locationName ?? '-'}</div>
-                  <div>{t('assets.container', 'Container')}: {asset.containerName ?? '-'}</div>
-                  <div>{t('assets.photos', 'Photos')}: {asset.photos?.length ?? 0}</div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline" size="sm" className="rounded-full">
-                    <Link to={ROUTES.workspaceAssetDetail(wsId, asset.id)}>
-                      <OpenIcon className="h-4 w-4" />
-                      {t('common.open', 'Open')}
-                    </Link>
-                  </Button>
-                  <AssetCardActions wsId={wsId} asset={asset} onEdit={setEditAsset} />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <DataTableShell minWidth="min-w-[900px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>สถานะ</th><th className={dataTableCellClass}>สภาพ</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{displayAssets.map((asset) => <DataTableRow key={asset.id}><td className={`${dataTableCellClass} font-medium`}>{asset.productName}</td><td className={dataTableCellClass}><MasterStatusBadge status={asset.status} kind="asset" /></td><td className={`${dataTableCellClass} text-muted-foreground`}>{asset.condition}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{asset.containerName ?? asset.locationName ?? '-'}</td><td className={`${dataTableCellClass} text-right`}><div className="flex justify-end gap-2"><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceAssetDetail(wsId, asset.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button><AssetCardActions wsId={wsId} asset={asset} onEdit={setEditAsset} /></div></td></DataTableRow>)}</tbody></DataTableShell>
       )}
 
       <CreateAssetDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />

@@ -45,7 +45,6 @@ export function ReceiveInventoryPage() {
   const [lines, setLines] = useState<ReceivingLine[]>([{ id: 1, ...INITIAL_LINE }]);
   const [nextId, setNextId] = useState(2);
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [submittedReceiptId, setSubmittedReceiptId] = useState<string | null>(null);
   const [createProductOpen, setCreateProductOpen] = useState(false);
   const [createProductForLine, setCreateProductForLine] = useState<number | null>(null);
@@ -119,14 +118,6 @@ export function ReceiveInventoryPage() {
   const lineErrors = useMemo(() => lines.map(getReceivingLineError), [lines]);
   const incompleteLines = lines.filter((_, index) => lineErrors[index]);
   const [showValidation, setShowValidation] = useState(false);
-  const goNext = () => {
-    if (currentStep === 1 && lines.some((line) => !line.productId || !line.quantity || Number(line.quantity) <= 0)) {
-      setShowValidation(true);
-      return;
-    }
-    setShowValidation(false);
-    setCurrentStep((step) => Math.min(3, step + 1) as 1 | 2 | 3);
-  };
   const submitReceipt = () => {
     setShowValidation(true);
     if (incompleteLines.length > 0 || createReceipt.isPending) return;
@@ -141,7 +132,6 @@ export function ReceiveInventoryPage() {
         setSavedAt(null);
         setLines([{ id: 1, ...INITIAL_LINE }]);
         setNextId(2);
-        setCurrentStep(1);
         setShowValidation(false);
         setEvidenceFiles([]);
       },
@@ -165,18 +155,6 @@ export function ReceiveInventoryPage() {
       {createReceipt.isError ? <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
         บันทึกไม่สำเร็จ กรุณาตรวจสอบสินค้า จุดจัดเก็บ และสิทธิ์การใช้งาน แล้วลองใหม่อีกครั้ง
       </div> : null}
-      <div className="grid gap-2 rounded-2xl border border-border/70 bg-card/70 p-3 sm:grid-cols-3 sm:p-4">
-        {[
-          ['1', 'เพิ่มรายการ', 'ชื่อ จำนวน และประเภท'],
-          ['2', 'จัดเก็บและแจ้งเตือน', 'จุดจัดเก็บ วันหมดอายุ และจุดเตือน'],
-          ['3', 'ตรวจสอบ', 'สรุปก่อนส่งเข้าระบบ'],
-        ].map(([step, title, description]) => (
-          <button key={step} type="button" onClick={() => setCurrentStep(Number(step) as 1 | 2 | 3)} className={`flex items-start gap-3 rounded-xl p-2.5 text-left transition-colors ${currentStep === Number(step) ? 'bg-teal-50 text-teal-900' : 'text-muted-foreground hover:bg-muted/60'}`}>
-            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${currentStep === Number(step) ? 'bg-teal-600 text-white' : 'bg-muted text-foreground'}`}>{step}</span>
-            <span className="min-w-0"><span className="block text-sm font-semibold">{title}</span><span className="block text-xs leading-5">{description}</span></span>
-          </button>
-        ))}
-      </div>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <Card>
           <CardHeader className="border-b border-border/70 px-5 py-5 sm:px-6">
@@ -186,24 +164,27 @@ export function ReceiveInventoryPage() {
           <CardContent className="component-stack p-5 sm:p-6">
             <p className="text-xs text-muted-foreground"><span className="font-semibold text-destructive">*</span> ช่องที่มีเครื่องหมายนี้จำเป็นต้องกรอก</p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              {currentStep === 1 ? (
-                <Button type="button" variant="outline" size="sm" onClick={() => { setLines((current) => [...current, { id: nextId, ...INITIAL_LINE }]); setNextId((value) => value + 1); }}>
+              <Button type="button" variant="outline" size="sm" onClick={() => { setLines((current) => [...current, { id: nextId, ...INITIAL_LINE }]); setNextId((value) => value + 1); }}>
                   <PlusIcon className="h-4 w-4" />
                   เพิ่มรายการ
                 </Button>
-              ) : null}
             </div>
 
-            <div className={`component-stack ${currentStep === 3 ? 'hidden' : ''}`}>
+            <div className="component-stack">
               {lines.map((line, index) => (
                 <div key={line.id} className="rounded-2xl border border-border/70 bg-background/55 p-4">
+                  {(() => {
+                    const selectedProduct = products.find((product) => product.id === line.productId);
+                    const trackingType = line.trackingType || selectedProduct?.trackingType?.toLowerCase() || '';
+                    const unit = line.unit || selectedProduct?.unitCode || '-';
+                    return (<>
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold">รายการที่ {index + 1}</p>
                     <Button type="button" variant="ghost" size="sm" disabled={lines.length === 1} onClick={() => removeLine(line.id)}>
                       ลบรายการ
                     </Button>
                   </div>
-                  {currentStep === 1 ? <FormSection>
+                  <FormSection>
                     <FormField label="สินค้า *" htmlFor={`receive-product-search-${line.id}`} description="พิมพ์เพื่อค้นหา หรือเลือกสินค้าจากรายการที่แนะนำ ต้องเลือกจากสินค้าใน Master">
                       <Input
                         id={`receive-product-search-${line.id}`}
@@ -236,7 +217,7 @@ export function ReceiveInventoryPage() {
                       <div className="space-y-1.5">
                         <p className="text-sm font-medium">ประเภทการติดตาม</p>
                         <p className="min-h-10 w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
-                          {line.trackingType === 'asset' ? 'ทรัพย์สิน / ติดตามรายชิ้น' : line.trackingType === 'stock' ? 'สต็อก / นับเป็นจำนวน' : null}
+                          {trackingType === 'asset' ? 'ทรัพย์สิน / ติดตามรายชิ้น' : trackingType === 'stock' ? 'สต็อก / นับเป็นจำนวน' : trackingType || '-'}
                         </p>
                       </div>
                     </FormGrid>
@@ -247,12 +228,12 @@ export function ReceiveInventoryPage() {
                       </FormField>
                       <FormField label="หน่วย" htmlFor={`receive-unit-${line.id}`}>
                         <div id={`receive-unit-${line.id}`} className="min-h-10 w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
-                          {line.unit}
+                          {unit}
                         </div>
                       </FormField>
                     </FormGrid>
-                  </FormSection> : null}
-                  {currentStep === 2 ? <FormGrid>
+                  </FormSection>
+                  <FormGrid>
                     <FormField label="จุดจัดเก็บ *" htmlFor={`receive-storage-${line.id}`} description={containers.length ? 'เลือกจากจุดจัดเก็บที่สร้างไว้แล้ว' : 'ยังไม่มีจุดจัดเก็บ ให้สร้างก่อนแล้วกลับมาเลือกที่นี่'}>
                       <Select id={`receive-storage-${line.id}`} value={line.storage} onChange={(event) => updateLine(line.id, { storage: event.target.value })} disabled={containers.length === 0}>
                         <option value="">{containers.length ? 'เลือกจุดจัดเก็บ' : 'ยังไม่มีจุดจัดเก็บ'}</option>
@@ -270,14 +251,16 @@ export function ReceiveInventoryPage() {
                         <Input id={`receive-low-stock-${line.id}`} type="number" min="0" value={line.lowStockAlert} onChange={(event) => updateLine(line.id, { lowStockAlert: event.target.value })} placeholder="เช่น 3" />
                       </FormField>
                     ) : null}
-                  </FormGrid> : null}
-                  {currentStep === 2 && containers.length === 0 ? (
+                  </FormGrid>
+                  {containers.length === 0 ? (
                     <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
                       <span>ยังไม่มีจุดจัดเก็บสำหรับรายการนี้</span>
                       <Button asChild type="button" variant="outline" size="sm"><Link to={`/w/${wsId}/containers`}>สร้างจุดจัดเก็บ</Link></Button>
                     </div>
                   ) : null}
                   {showValidation && lineErrors[index] ? <p className="mt-3 text-sm text-destructive">{lineErrors[index]}</p> : null}
+                    </>);
+                  })()}
                 </div>
               ))}
             </div>
@@ -317,8 +300,8 @@ export function ReceiveInventoryPage() {
                 ) : null}
             </FormSection>
             <div className="flex flex-col gap-2 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <Button type="button" variant="outline" onClick={() => setCurrentStep((step) => Math.max(1, step - 1) as 1 | 2 | 3)} disabled={currentStep === 1}>ย้อนกลับ</Button>
-              {currentStep < 3 ? <Button type="button" onClick={goNext}>ถัดไป</Button> : <Button type="button" onClick={submitReceipt} loading={createReceipt.isPending} disabled={incompleteLines.length > 0}>บันทึกเข้าคลัง</Button>}
+              <span />
+              <Button type="button" onClick={submitReceipt} loading={createReceipt.isPending} disabled={incompleteLines.length > 0}>บันทึกเข้าคลัง</Button>
             </div>
           </CardContent>
         </Card>
@@ -338,8 +321,8 @@ export function ReceiveInventoryPage() {
             <div className="rounded-xl bg-teal-50 p-3 text-xs leading-5 text-teal-800">
               {savedAt ? `บันทึกแบบร่างล่าสุด ${new Intl.DateTimeFormat('th-TH', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(savedAt))}` : 'กรอกชื่อรายการและจุดจัดเก็บให้ครบก่อนบันทึกแบบร่าง'}
             </div>
-            <Button type="button" onClick={currentStep === 3 ? submitReceipt : saveDraft} loading={currentStep === 3 && createReceipt.isPending} disabled={currentStep === 3 ? incompleteLines.length > 0 : false}>
-              {currentStep === 3 ? (incompleteLines.length > 0 ? `แก้ข้อมูลอีก ${incompleteLines.length} รายการ` : 'บันทึกเข้าคลัง') : 'บันทึกแบบร่าง'}
+            <Button type="button" onClick={submitReceipt} loading={createReceipt.isPending} disabled={incompleteLines.length > 0}>
+              {incompleteLines.length > 0 ? `แก้ข้อมูลอีก ${incompleteLines.length} รายการ` : 'บันทึกเข้าคลัง'}
             </Button>
           </CardContent>
         </Card>

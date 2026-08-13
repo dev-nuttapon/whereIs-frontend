@@ -17,6 +17,8 @@ import { useCategories } from '@/features/categories/hooks/useCategories';
 import { useProducts } from '@/features/products/hooks/useProducts';
 import { safeAssetUrl } from '@/lib/safe-url';
 import type { Product } from '@/types/domain.types';
+import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
+import { MasterStatusBadge } from '@/components/common/MasterStatusBadge';
 
 interface ProductFilters {
   search: string;
@@ -164,41 +166,7 @@ export function ProductsPage() {
           icon={<ItemIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                {product.imageUrl ? (
-                  <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                    <img src={safeAssetUrl(product.imageUrl)} alt={product.name} className="h-40 w-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-                  </div>
-                ) : null}
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{product.name}</CardTitle>
-                  <CardDescription>{product.code ?? product.sku ?? product.id}</CardDescription>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Tag color={trackingTypeColor(product.trackingType)}>{product.trackingType}</Tag>
-                  <Tag color={product.isActive ? 'green' : 'default'}>{product.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Tag>
-                  <Tag>{categoryNameById.get(product.categoryId ?? '') ?? t('products.noCategory', 'No category')}</Tag>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('products.detail.unitCode', 'Unit')}: {product.unitCode ?? '-'}</div>
-                  <div>{t('products.detail.assetCount', 'Assets')}: {product.assetCount}</div>
-                  <div>{t('products.detail.totalStock', 'Stock')}: {product.totalStock}</div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline" size="sm" className="w-full rounded-full sm:w-auto">
-                    <Link to={ROUTES.workspaceProductDetail(wsId, product.id)}>
-                      <OpenIcon className="h-4 w-4" />
-                      {t('products.open', 'Open')}
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-        ))}
-        </div>
+        <DataTableShell minWidth="min-w-[900px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>หมวดหมู่</th><th className={dataTableCellClass}>หน่วย</th><th className={dataTableCellClass}>ประเภท</th><th className={dataTableCellClass}>สถานะ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{filteredProducts.map((product) => <DataTableRow key={product.id}><td className={`${dataTableCellClass} font-medium`}>{product.name}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{categoryNameById.get(product.categoryId ?? '') ?? '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{product.unitCode ?? '-'}</td><td className={dataTableCellClass}><Tag color={trackingTypeColor(product.trackingType)}>{product.trackingType}</Tag></td><td className={dataTableCellClass}><MasterStatusBadge status={product.isActive ? 'active' : 'inactive'} /></td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceProductDetail(wsId, product.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
       )}
     </PageShell>
   );

@@ -20,6 +20,7 @@ import { formatContainerTypeLabel } from '@/features/containers/utils/containerL
 import type { Container } from '@/types/domain.types';
 import { usePermission } from '@/hooks/usePermission';
 import { safeAssetUrl } from '@/lib/safe-url';
+import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
 
 function groupContainersByParent(containers: Container[]) {
   return containers.reduce<Map<string | null, Container[]>>((groups, container) => {
@@ -129,18 +130,7 @@ export function ContainersPage() {
           icon={<ContainerIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="space-y-4">
-          {rootContainers.map((container) => (
-            <ContainerTreeCard
-              key={container.id}
-              container={container}
-              childMap={childMap}
-              wsId={wsId}
-              t={t}
-              locationLabelById={locationLabelById}
-            />
-          ))}
-        </div>
+        <DataTableShell minWidth="min-w-[850px]"><DataTableHead><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={dataTableCellClass}>ประเภท</th><th className={dataTableCellClass}>สถานที่</th><th className={dataTableCellClass}>รายการ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{containers.map((container) => <DataTableRow key={container.id}><td className={`${dataTableCellClass} font-medium`}><span className={container.parentId ? 'pl-5 text-muted-foreground' : ''}>{container.parentId ? '↳ ' : ''}{container.name}</span></td><td className={`${dataTableCellClass} text-muted-foreground`}>{formatContainerTypeLabel(container.typeLabel)}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{container.locationId ? (locationLabelById.get(container.locationId) ?? '-') : '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{container.itemCount ?? 0}</td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceContainerDetail(wsId, container.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
       )}
 
       <CreateContainerDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />

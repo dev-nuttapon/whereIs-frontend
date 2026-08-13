@@ -24,6 +24,7 @@ import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/Cre
 import { OpenIcon, TakeOutIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { usePermission } from '@/hooks/usePermission';
+import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
 
 function formatLocationLabel(locationName?: string | null, containerName?: string | null) {
   if (containerName) return containerName;
@@ -260,42 +261,7 @@ export function StockPage() {
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {entries.map((entry) => (
-            <Card key={entry.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-3 p-5 sm:p-6">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{entry.productName}</CardTitle>
-                  <CardDescription>{entry.unitCode ?? entry.productId}</CardDescription>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('stock.location', 'Location')}: {formatLocationLabel(entry.locationName, entry.containerName)}</div>
-                  <div>{t('stock.quantity', 'Quantity')}: {entry.quantity}</div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full"
-                    onClick={() => {
-                      setBorrowDefaults({ productId: entry.productId, stockEntryId: entry.id });
-                      setBorrowOpen(true);
-                    }}
-                  >
-                    <TakeOutIcon className="h-4 w-4" />
-                    {t('stock.borrow.fromEntry', 'Borrow from this entry')}
-                  </Button>
-                  <Button asChild variant="outline" size="sm" className="rounded-full">
-                    <Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}>
-                      <OpenIcon className="h-4 w-4" />
-                      {t('common.open', 'Open')}
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <DataTableShell minWidth="min-w-[850px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>จำนวน</th><th className={dataTableCellClass}>หน่วย</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{entries.map((entry) => <DataTableRow key={entry.id}><td className={`${dataTableCellClass} font-medium`}>{entry.productName}</td><td className={`${dataTableCellClass} font-medium`}>{entry.quantity}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{entry.unitCode ?? '-'}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{formatLocationLabel(entry.locationName, entry.containerName)}</td><td className={`${dataTableCellClass} text-right`}><div className="flex justify-end gap-2"><Button variant="outline" size="sm" className="rounded-full" onClick={() => { setBorrowDefaults({ productId: entry.productId, stockEntryId: entry.id }); setBorrowOpen(true); }}><TakeOutIcon className="h-4 w-4" />ยืม</Button><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceStockDetail(wsId, entry.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></div></td></DataTableRow>)}</tbody></DataTableShell>
       )}
 
       <AdjustStockDialog wsId={wsId} open={adjustOpen} onOpenChange={setAdjustOpen} initialContainerId={initialContainerId} initialProductId={initialProductId} />

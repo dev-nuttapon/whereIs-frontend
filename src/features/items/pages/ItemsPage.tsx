@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Popconfirm } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -11,234 +10,149 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { useI18n } from '@/hooks/useI18n';
-import { EditIcon, FilterIcon, ItemIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
-import { CreateItemDialog } from '@/features/items/components/CreateItemDialog';
-import { UpdateItemDialog } from '@/features/items/components/UpdateItemDialog';
-import { useContainers } from '@/features/containers/hooks/useContainers';
+import { DatabaseIcon, FilterIcon, ItemIcon, OpenIcon } from '@/components/ui/icons';
+import { useAssets } from '@/features/assets/hooks/useAssets';
+import { useStockEntries } from '@/features/stock/hooks/useStock';
 import { ROUTES } from '@/constants/routes';
-import type { Item } from '@/types/domain.types';
-import { useDeleteItem, useItems } from '@/features/items/hooks/useItems';
-import { safeAssetUrl } from '@/lib/safe-url';
 
-interface ItemFilters {
+interface InventoryFilters {
   search: string;
+  type: 'all' | 'asset' | 'stock';
   status: string;
-  kind: string;
-  containerId: string;
 }
 
-const DEFAULT_FILTERS: ItemFilters = {
-  search: '',
-  status: '',
-  kind: '',
-  containerId: '',
-};
-
-interface ItemCardActionsProps {
-  wsId: string;
-  item: Item;
-  onEdit: (item: Item) => void;
-}
-
-function ItemCardActions({ wsId, item, onEdit }: ItemCardActionsProps) {
-  const { t } = useI18n();
-  const deleteItem = useDeleteItem(wsId, item.id);
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size="sm" onClick={() => onEdit(item)} className="rounded-full">
-        <EditIcon className="h-4 w-4" />
-        {t('common.edit', 'แก้ไข')}
-      </Button>
-      <Popconfirm
-        title={t('items.detail.deleteConfirmTitle', 'Delete this item?')}
-        description={t('items.detail.deleteConfirmDescription', 'This will remove the item from the workspace.')}
-        okText={t('common.delete', 'Delete')}
-        cancelText={t('common.cancel', 'Cancel')}
-        okButtonProps={{ danger: true }}
-        onConfirm={async () => {
-          await deleteItem.mutateAsync();
-        }}
-      >
-        <Button variant="destructive" size="sm" disabled={deleteItem.isPending} className="rounded-full">
-          {deleteItem.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
-        </Button>
-      </Popconfirm>
-    </div>
-  );
-}
+const DEFAULT_FILTERS: InventoryFilters = { search: '', type: 'all', status: '' };
 
 export function ItemsPage() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
-  const [filters, setFilters] = useState<ItemFilters>(DEFAULT_FILTERS);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editItem, setEditItem] = useState<Item | null>(null);
+  const [filters, setFilters] = useState<InventoryFilters>(DEFAULT_FILTERS);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const assetsQuery = useAssets(wsId, { page: 1, pageSize: 100 });
+  const stockQuery = useStockEntries(wsId, { page: 1, pageSize: 100 });
+  const assets = assetsQuery.data ?? [];
+  const stockEntries = stockQuery.data?.items ?? [];
+  const isLoading = assetsQuery.isLoading || stockQuery.isLoading;
+  const hasError = assetsQuery.isError || stockQuery.isError;
+  const hasActiveFilters = Boolean(filters.search.trim() || filters.type !== 'all' || filters.status);
 
-  const itemsQuery = useItems(wsId, {
-    q: filters.search.trim() || undefined,
-    status: filters.status || undefined,
-    kind: filters.kind || undefined,
-    containerId: filters.containerId || undefined,
-    page: 1,
-    limit: 100,
-  });
-  const containersQuery = useContainers(wsId);
-  const items = itemsQuery.data?.items ?? [];
-  const containers = containersQuery.data ?? [];
-  const hasActiveFilters = Object.values(filters).some((value) => value.trim().length > 0);
-
-  const containerNameById = useMemo(
-    () => new Map(containers.map((container) => [container.id, container.name])),
-    [containers],
-  );
-  const containerOptions = useMemo(
-    () => containers.map((container) => ({ value: container.id, label: container.name })),
-    [containers],
-  );
+  const rows = useMemo(() => {
+    const search = filters.search.trim().toLowerCase();
+    const assetRows = filters.type === 'stock' ? [] : assets.map((asset) => ({
+      id: asset.id,
+      type: 'asset' as const,
+      name: asset.productName,
+      code: asset.serialNumber || asset.barcode || asset.id,
+      status: asset.status.toLowerCase() === 'available' ? 'พร้อมใช้งาน' : asset.status.toLowerCase() === 'borrowed' ? 'ถูกยืม' : asset.status.toLowerCase() === 'missing' ? 'สูญหาย' : asset.status,
+      quantity: 1,
+      unit: 'ชิ้น',
+      storage: asset.containerName || asset.locationName || '-',
+      detailPath: ROUTES.workspaceAssetDetail(wsId, asset.id),
+    }));
+    const stockRows = filters.type === 'asset' ? [] : stockEntries.map((entry) => ({
+      id: entry.id,
+      type: 'stock' as const,
+      name: entry.productName,
+      code: entry.lotCode || entry.id,
+      status: entry.quantity > 0 ? 'พร้อมใช้งาน' : 'หมดสต็อก',
+      quantity: entry.quantity,
+      unit: entry.unitCode || '-',
+      storage: entry.containerName || entry.locationName || '-',
+      detailPath: ROUTES.workspaceStockDetail(wsId, entry.id),
+    }));
+    return [...assetRows, ...stockRows].filter((row) => {
+      const matchesSearch = !search || `${row.name} ${row.code} ${row.storage}`.toLowerCase().includes(search);
+      const matchesStatus = !filters.status || row.status.toLowerCase() === filters.status.toLowerCase();
+      return matchesSearch && matchesStatus;
+    });
+  }, [assets, filters, stockEntries, wsId]);
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
+  const updateFilters = (next: InventoryFilters) => {
+    setFilters(next);
+    setPage(1);
+  };
+  const statusClass = (status: string) => {
+    const normalized = status.toLowerCase();
+    if (normalized === 'พร้อมใช้งาน' || normalized === 'available' || normalized === 'จัดเก็บอยู่') return 'bg-emerald-50 text-emerald-700';
+    if (normalized === 'ถูกยืม' || normalized === 'borrowed') return 'bg-blue-50 text-blue-700';
+    if (normalized === 'หมดสต็อก' || normalized === 'disposed' || normalized === 'missing') return 'bg-red-50 text-red-700';
+    return 'bg-muted text-muted-foreground';
+  };
 
   return (
     <PageShell
-      title={t('items.list.title', 'Items')}
-      description={t('items.list.description', 'Create and manage items inside the active workspace.')}
+      title="ของทั้งหมด"
+      description="ค้นหาและดูรายการทรัพย์สินกับสต็อกทั้งหมดในพื้นที่ทำงาน"
       actions={(
-        <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
-          <PlusIcon className="h-4 w-4" />
-          {t('items.list.create', 'Create item')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline"><Link to={ROUTES.workspaceAssets(wsId)}>ทรัพย์สิน</Link></Button>
+          <Button asChild><Link to={ROUTES.workspaceStock(wsId)}>สต็อก</Link></Button>
+        </div>
       )}
     >
-      {itemsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
-      {itemsQuery.isError ? <ErrorState message={t('items.list.error', 'Unable to load items.')} onRetry={() => itemsQuery.refetch()} /> : null}
+      {isLoading ? <LoadingState label={t('common.loading')} /> : null}
+      {hasError ? <ErrorState message="ไม่สามารถโหลดข้อมูลของทั้งหมดได้" onRetry={() => { void assetsQuery.refetch(); void stockQuery.refetch(); }} /> : null}
+
+      <div className="grid gap-[18px] md:grid-cols-3">
+        <StatCard label="รายการทั้งหมด" value={assets.length + stockEntries.length} />
+        <StatCard label="ทรัพย์สิน" value={assets.length} />
+        <StatCard label="สต็อก" value={stockEntries.reduce((total, entry) => total + entry.quantity, 0)} />
+      </div>
 
       <Card className="shadow-sm">
         <CardContent className="space-y-4 p-4 sm:p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <FilterIcon className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">{t('items.list.filters.title', 'Search and filter')}</p>
-                <p className="text-xs text-muted-foreground">{t('items.list.filters.description', 'Search by item name, code, kind, status, or container')}</p>
-              </div>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={() => setFilters(DEFAULT_FILTERS)}
-              disabled={!hasActiveFilters}
-            >
-              {t('items.list.clearFilters', 'Clear filters')}
-            </Button>
-          </div>
-
-          <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
-            <Input
-              value={filters.search}
-              onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder={t('items.list.searchPlaceholder', 'ค้นหาชื่อหรือรหัสของ')}
-              allowClear
-              className="rounded-full"
-            />
-
-            <Select
-              className="w-full"
-              value={filters.kind || undefined}
-              onChange={(event) => setFilters((current) => ({ ...current, kind: event.target.value }))}
-              placeholder={t('items.list.allKinds', 'ทุกประเภทของ')}
-            >
-              <option value="single">{t('items.kind.single', 'Individual Item')}</option>
-              <option value="stock">{t('items.kind.stock', 'Quantity Item')}</option>
+          <div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ตัวกรอง</p><p className="text-xs text-muted-foreground">ค้นหาจากชื่อ รหัส จุดจัดเก็บ หรือกรองตามประเภท</p></div></div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Input value={filters.search} onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="ค้นหาชื่อหรือจุดจัดเก็บ" allowClear />
+            <Select value={filters.type} onChange={(event) => updateFilters({ ...filters, type: event.target.value as InventoryFilters['type'] })}>
+              <option value="all">ทั้งหมด</option><option value="asset">ทรัพย์สิน</option><option value="stock">สต็อก</option>
             </Select>
-
-            <Select
-              className="w-full"
-              value={filters.status || undefined}
-              onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
-              placeholder={t('items.list.allStatuses', 'ทุกสถานะ')}
-            >
-              <option value="stored">{t('items.status.stored', 'Stored')}</option>
-              <option value="taken_out">{t('items.status.taken_out', 'Taken out')}</option>
-              <option value="reserved">{t('items.status.reserved', 'Reserved')}</option>
-              <option value="missing">{t('items.status.missing', 'Missing')}</option>
-              <option value="repair">{t('items.status.repair', 'Repair')}</option>
-              <option value="disposed">{t('items.status.disposed', 'Disposed')}</option>
-            </Select>
-
-            <Select
-              className="w-full"
-              value={filters.containerId || undefined}
-              onChange={(event) => setFilters((current) => ({ ...current, containerId: event.target.value }))}
-              placeholder={t('items.list.allContainers', 'ทุกจุดจัดเก็บ')}
-            >
-              <option value="">{t('items.list.allContainers', 'ทุกจุดจัดเก็บ')}</option>
-              {containerOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Select>
+            <div className="flex gap-2"><Select className="flex-1" value={filters.status} onChange={(event) => updateFilters({ ...filters, status: event.target.value })}><option value="">ทุกสถานะ</option><option value="พร้อมใช้งาน">พร้อมใช้งาน</option><option value="ถูกยืม">ถูกยืม</option><option value="จัดเก็บอยู่">จัดเก็บอยู่</option><option value="หมดสต็อก">หมดสต็อก</option></Select><Button type="button" variant="outline" onClick={() => updateFilters(DEFAULT_FILTERS)} disabled={!hasActiveFilters}>ล้าง</Button></div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-[18px] md:grid-cols-3">
-        <StatCard label={t('items.list.count', 'Items')} value={items.length} />
-        <StatCard label={t('items.list.stockCount', 'Stock items')} value={items.filter((item) => item.kind === 'stock').length} />
-        <StatCard label={t('items.list.withContainers', 'In containers')} value={items.filter((item) => item.containerId).length} />
-      </div>
-
-      {items.length === 0 ? (
-        <EmptyState
-          title={hasActiveFilters ? t('items.list.filteredEmptyTitle', 'No items match the current filters') : t('items.list.emptyTitle', 'No items yet')}
-          description={hasActiveFilters ? t('items.list.filteredEmptyDescription', 'Try clearing filters or change the search term.') : t('items.list.emptyDescription', 'Create the first item to begin tracking.')}
-          icon={<ItemIcon className="h-5 w-5" />}
-        />
-      ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => (
-            <Card key={item.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                {item.photoUrl ? (
-                  <div className="overflow-hidden rounded-2xl border border-border/70 bg-muted/20">
-                    <img src={safeAssetUrl(item.photoUrl)} alt={item.name} className="h-40 w-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-                  </div>
-                ) : null}
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <CardDescription>{item.code ?? item.id}</CardDescription>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('items.detail.kind', 'Type')}: {item.kind === 'stock' ? t('items.kind.stock', 'Quantity Item') : t('items.kind.single', 'Individual Item')}</div>
-                  <div>{t('items.detail.status', 'Status')}: {item.status}</div>
-                  <div>{t('items.detail.containerPrefix', 'Container')}: {item.containerId ? (containerNameById.get(item.containerId) ?? item.containerId) : '-'}</div>
-                  <div>{t('items.detail.holderPrefix', 'Holder')}: {item.currentHolderId ?? '-'}</div>
-                </div>
-                <ItemCardActions wsId={wsId} item={item} onEdit={setEditItem} />
-                <Button asChild variant="outline" size="sm" className="w-full rounded-full sm:w-auto">
-                  <Link to={ROUTES.workspaceItemDetail(wsId, item.id)}>
-                    <OpenIcon className="h-4 w-4" />
-                    {t('items.list.open', 'Open')}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {rows.length === 0 ? <EmptyState title={hasActiveFilters ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีของในคลัง'} description="รายการที่เพิ่มผ่านการรับเข้าคลังจะแสดงเป็นทรัพย์สินหรือสต็อกที่นี่" icon={<ItemIcon className="h-5 w-5" />} /> : (
+        <Card className="overflow-hidden border-border/80 shadow-sm">
+          <CardContent className="overflow-x-auto p-0">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead className="bg-muted/60 text-left text-xs font-semibold text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-4">ชื่อของ</th>
+                  <th className="px-5 py-4">ประเภท</th>
+                  <th className="px-5 py-4">สถานะ</th>
+                  <th className="px-5 py-4 text-right">จำนวน</th>
+                  <th className="px-5 py-4">จุดจัดเก็บ</th>
+                  <th className="px-5 py-4 text-right">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/70">
+                {visibleRows.map((row) => (
+                  <tr key={`${row.type}-${row.id}`} className="transition-colors hover:bg-muted/30">
+                    <td className="px-5 py-4 font-medium text-foreground">{row.name}</td>
+                    <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${row.type === 'asset' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{row.type === 'asset' ? 'ทรัพย์สิน' : 'สต็อก'}</span></td>
+                    <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(row.status)}`}>{row.status}</span></td>
+                    <td className="px-5 py-4 text-right font-medium">{row.quantity} <span className="font-normal text-muted-foreground">{row.unit}</span></td>
+                    <td className="px-5 py-4 text-muted-foreground">{row.storage}</td>
+                    <td className="px-5 py-4 text-right"><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={row.detailPath}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex flex-col gap-3 border-t border-border/70 px-5 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <span>{rows.length === 0 ? '0 รายการ' : `${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, rows.length)} จาก ${rows.length} รายการ`}</span>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1}>ก่อนหน้า</Button>
+                <span className="min-w-16 text-center text-foreground">หน้า {page} / {pageCount}</span>
+                <Button type="button" variant="outline" size="sm" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount}>ถัดไป</Button>
+                <Select className="w-24" value={String(pageSize)} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}><option value="10">10 / หน้า</option><option value="25">25 / หน้า</option><option value="50">50 / หน้า</option></Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
-
-      <CreateItemDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />
-      {editItem ? (
-        <UpdateItemDialog
-          wsId={wsId}
-          item={editItem}
-          open={Boolean(editItem)}
-          onOpenChange={(open) => {
-            if (!open) {
-              setEditItem(null);
-            }
-          }}
-        />
-      ) : null}
     </PageShell>
   );
 }

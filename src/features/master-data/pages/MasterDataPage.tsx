@@ -26,6 +26,7 @@ import { ProductFormDialog } from '@/features/master-data/components/ProductForm
 import { CategoryFormDialog } from '@/features/master-data/components/CategoryFormDialog';
 import { SiteFormDialog } from '@/features/master-data/components/SiteFormDialog';
 import { LocationFormDialog } from '@/features/master-data/components/LocationFormDialog';
+import { client } from '@/api/client';
 
 function trackingTypeColor(trackingType: string) {
   const normalized = trackingType.toLowerCase();
@@ -64,9 +65,13 @@ function MasterDataPagination({
   );
 }
 
-function BulkSelectionToolbar({ count }: { count: number }) {
+function BulkSelectionToolbar({ count, onDelete = () => undefined, isDeleting = false }: { count: number; onDelete?: () => void; isDeleting?: boolean }) {
   if (!count) return null;
-  return <div className="mb-3 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2"><span className="text-sm font-medium">เลือกแล้ว {count} รายการ</span><Button size="sm" variant="destructive" disabled title="รอเชื่อมต่อ Bulk Delete API">ลบรายการที่เลือก</Button></div>;
+  return <div className="mb-3 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2"><span className="text-sm font-medium">เลือกแล้ว {count} รายการ</span><Button size="sm" variant="destructive" disabled={isDeleting} onClick={onDelete}>{isDeleting ? 'กำลังลบ...' : 'ลบรายการที่เลือก'}</Button></div>;
+}
+
+async function bulkDeleteMasterData(wsId: string, resource: string, ids: string[]) {
+  return client.post(`/workspaces/${encodeURIComponent(wsId)}/${resource}/bulk-delete`, { ids });
 }
 
 function flattenLocationNodes(nodes: LocationTreeNode[], depth = 0): Array<{ value: string; label: string }> {
@@ -84,6 +89,10 @@ function flattenLocationRows(nodes: LocationTreeNode[], expandedIds: Set<string>
     { node, depth, parentLocationId },
     ...(expandedIds.has(node.id) ? flattenLocationRows(node.children, expandedIds, depth + 1, node.id) : []),
   ]);
+}
+
+function collectLocationIds(node: LocationTreeNode): string[] {
+  return [node.id, ...node.children.flatMap(collectLocationIds)];
 }
 
 function findLocationNode(nodes: LocationTreeNode[], id: string): LocationTreeNode | undefined {
@@ -564,11 +573,14 @@ export function MasterDataPage() {
   const [categoryPageSize, setCategoryPageSize] = useState(10);
   const [sitePage, setSitePage] = useState(1);
   const [sitePageSize, setSitePageSize] = useState(10);
+  const [locationPage, setLocationPage] = useState(1);
+  const [locationPageSize, setLocationPageSize] = useState(10);
   const [expandedLocationIds, setExpandedLocationIds] = useState<Set<string>>(new Set());
   const [selectedLocationIds, setSelectedLocationIds] = useState<Set<string>>(new Set());
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const [selectedSiteIds, setSelectedSiteIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [editLocation, setEditLocation] = useState<Location | null>(null);
   const [createLocationOpen, setCreateLocationOpen] = useState(false);
 
@@ -595,11 +607,26 @@ export function MasterDataPage() {
   }, [selectedSiteLocationTree]);
 
   const locationRows = useMemo(() => flattenLocationRows(selectedSiteLocationTree, expandedLocationIds), [expandedLocationIds, selectedSiteLocationTree]);
+  const visibleLocationRows = locationRows.slice((locationPage - 1) * locationPageSize, locationPage * locationPageSize);
   const locationLookup = useMemo(() => new Map(selectedSiteLocations.map((location) => [location.id, location] as const)), [selectedSiteLocations]);
   const lookupData = lookupsQuery.data;
   const visibleProducts = products.slice((productPage - 1) * productPageSize, productPage * productPageSize);
   const visibleCategories = categories.slice((categoryPage - 1) * categoryPageSize, categoryPage * categoryPageSize);
   const visibleSites = sites.slice((sitePage - 1) * sitePageSize, sitePage * sitePageSize);
+
+  const deleteSelected = async (resource: string, ids: Set<string>, clear: () => void, refresh: () => void) => {
+    if (!ids.size || !window.confirm(`ยืนยันการลบ ${ids.size} รายการหรือไม่?`)) return;
+    setBulkDeleting(true);
+    try {
+      const response = await bulkDeleteMasterData(wsId, resource, [...ids]);
+      const result = response.data?.data as { deletedIds?: string[]; failed?: Array<{ message?: string }> } | undefined;
+      clear();
+      refresh();
+      if (result?.failed?.length) window.alert(`ลบสำเร็จ ${result.deletedIds?.length ?? 0} รายการ และลบไม่ได้ ${result.failed.length} รายการ`);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   const stats = useMemo(() => [
     { label: t('masterData.stats.products', 'Products'), value: products.length },
@@ -634,7 +661,7 @@ export function MasterDataPage() {
         />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]">
-          <BulkSelectionToolbar count={selectedProductIds.size} />
+          <BulkSelectionToolbar count={selectedProductIds.size} isDeleting={bulkDeleting} onDelete={() => void deleteSelected('products', selectedProductIds, () => setSelectedProductIds(new Set()), () => void productsQuery.refetch())} />
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-muted/55 text-sm text-foreground"><tr>
               <th className="w-12 px-4 py-3 font-medium"><input type="checkbox" aria-label="เลือกสินค้าทั้งหมด" checked={visibleProducts.length > 0 && visibleProducts.every((item) => selectedProductIds.has(item.id))} onChange={(event) => setSelectedProductIds(event.target.checked ? new Set(visibleProducts.map((item) => item.id)) : new Set())} /></th>
@@ -769,12 +796,12 @@ export function MasterDataPage() {
                 {selectedLocationIds.size > 0 ? (
                   <div className="mb-3 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
                     <span className="text-sm font-medium">เลือกแล้ว {selectedLocationIds.size} รายการ</span>
-                    <Button size="sm" variant="destructive" disabled title="รอเชื่อมต่อ Bulk Delete API">ลบรายการที่เลือก</Button>
+                    <Button size="sm" variant="destructive" disabled={bulkDeleting} onClick={() => void deleteSelected('locations', selectedLocationIds, () => setSelectedLocationIds(new Set()), () => { void selectedSiteLocationsQuery.refetch(); void selectedSiteLocationTreeQuery.refetch(); })}>{bulkDeleting ? 'กำลังลบ...' : 'ลบรายการที่เลือก'}</Button>
                   </div>
                 ) : null}
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="bg-muted/55 text-sm text-foreground"><tr>
-                    <th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกตำแหน่งทั้งหมด" checked={locationRows.length > 0 && locationRows.every(({ node }) => selectedLocationIds.has(node.id))} onChange={(event) => setSelectedLocationIds(event.target.checked ? new Set(locationRows.map(({ node }) => node.id)) : new Set())} /></th>
+                    <th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกตำแหน่งทั้งหมด" checked={visibleLocationRows.length > 0 && visibleLocationRows.every(({ node }) => selectedLocationIds.has(node.id))} onChange={(event) => setSelectedLocationIds(event.target.checked ? new Set([...selectedLocationIds, ...visibleLocationRows.flatMap(({ node }) => collectLocationIds(node))]) : new Set([...selectedLocationIds].filter((id) => !visibleLocationRows.some(({ node }) => collectLocationIds(node).includes(id)))))} /></th>
                     <th className="px-4 py-3 font-semibold">ชื่อตำแหน่ง</th>
                     <th className="px-4 py-3 font-semibold">รหัส</th>
                     <th className="px-4 py-3 font-semibold">ประเภท</th>
@@ -782,7 +809,7 @@ export function MasterDataPage() {
                     <th className="px-4 py-3 font-semibold">จัดการ</th>
                   </tr></thead>
                   <tbody className="divide-y divide-border/60">
-                    {locationRows.map(({ node, depth, parentLocationId }) => {
+                    {visibleLocationRows.map(({ node, depth, parentLocationId }) => {
                       const location = locationLookup.get(node.id) ?? {
                         id: node.id,
                         workspaceId: wsId,
@@ -800,7 +827,7 @@ export function MasterDataPage() {
                       const isExpanded = expandedLocationIds.has(node.id);
                       return (
                         <tr key={node.id} className="transition-colors hover:bg-primary/5">
-                          <td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${node.name}`} checked={selectedLocationIds.has(node.id)} onChange={() => setSelectedLocationIds((current) => { const next = new Set(current); if (next.has(node.id)) next.delete(node.id); else next.add(node.id); return next; })} /></td>
+                          <td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${node.name}`} checked={selectedLocationIds.has(node.id)} onChange={(event) => setSelectedLocationIds((current) => { const next = new Set(current); const ids = collectLocationIds(node); if (event.target.checked) ids.forEach((id) => next.add(id)); else ids.forEach((id) => next.delete(id)); return next; })} /></td>
                           <td className="px-4 py-3 font-medium" style={{ paddingLeft: `${16 + depth * 28}px` }}>
                             {hasChildren ? (
                               <button
@@ -827,6 +854,7 @@ export function MasterDataPage() {
                     })}
                   </tbody>
                 </table>
+                <MasterDataPagination page={locationPage} pageSize={locationPageSize} total={locationRows.length} onChange={(page, pageSize) => { setLocationPage(page); setLocationPageSize(pageSize); }} />
               </div>
             )}
           </CardContent>

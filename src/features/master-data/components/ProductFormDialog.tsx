@@ -64,6 +64,7 @@ export function ProductFormDialog({
   const { t } = useI18n();
   const [values, setValues] = useState<ProductFormValues>(EMPTY_VALUES);
   const [imageError, setImageError] = useState('');
+  const [unitError, setUnitError] = useState('');
   const [isDraggingImage, setIsDraggingImage] = useState(false);
 
   const setImageFile = (file: File | null) => {
@@ -108,6 +109,7 @@ export function ProductFormDialog({
       isActive: initialValues?.isActive === false ? 'false' : 'true',
     });
     setImageError('');
+    setUnitError('');
     setIsDraggingImage(false);
   }, [initialValues, open]);
 
@@ -118,11 +120,17 @@ export function ProductFormDialog({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const unitCode = values.unitCode.trim();
+    if (!unitCode) {
+      setUnitError('กรุณาระบุหน่วยสินค้า');
+      return;
+    }
+    setUnitError('');
     await onSubmit({
       ...values,
       name: values.name.trim(),
       categoryId: values.categoryId.trim(),
-      unitCode: values.unitCode.trim(),
+      unitCode,
       code: values.code.trim(),
       sku: values.sku.trim(),
       description: values.description.trim(),
@@ -131,7 +139,7 @@ export function ProductFormDialog({
     });
   };
 
-  const canSubmit = Boolean(values.name.trim()) && !isSubmitting;
+  const canSubmit = Boolean(values.name.trim() && values.unitCode.trim()) && !isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
@@ -215,11 +223,15 @@ export function ProductFormDialog({
             </div>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={`${t('products.form.unitCode', 'หน่วย')} (ไม่บังคับ)`} htmlFor="product-unit" description="ใช้เป็นหน่วยแสดงผลในการรับเข้าและดูสต็อก">
+              <FormField label={`${t('products.form.unitCode', 'หน่วย')} *`} htmlFor="product-unit" required description="ใช้เป็นหน่วยแสดงผลในการรับเข้าและดูสต็อก" error={unitError}>
                 <Input
                   id="product-unit"
                   value={values.unitCode}
-                  onChange={(event) => setValues((current) => ({ ...current, unitCode: event.target.value }))}
+                  required
+                  onChange={(event) => {
+                    setUnitError('');
+                    setValues((current) => ({ ...current, unitCode: event.target.value }));
+                  }}
                   placeholder={t('products.form.unitPlaceholder', 'เช่น pcs')}
                   autoComplete="off"
                 />
