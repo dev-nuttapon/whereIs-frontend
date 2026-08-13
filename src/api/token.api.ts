@@ -16,6 +16,27 @@ interface ApiErrorResponse {
 type TokenSession = Omit<AuthSession, 'user'>;
 
 let refreshSessionPromise: Promise<TokenSession> | null = null;
+const refreshLockKey = 'whereis-auth-refresh-lock';
+const refreshLockTtlMs = 10_000;
+
+async function acquireRefreshLock(): Promise<() => void> {
+  while (true) {
+    const now = Date.now();
+    const current = Number(localStorage.getItem(refreshLockKey) ?? '0');
+    if (!Number.isFinite(current) || current <= now) {
+      localStorage.setItem(refreshLockKey, String(now + refreshLockTtlMs));
+      if (Number(localStorage.getItem(refreshLockKey)) === now + refreshLockTtlMs) {
+        return () => {
+          if (Number(localStorage.getItem(refreshLockKey)) === now + refreshLockTtlMs) {
+            localStorage.removeItem(refreshLockKey);
+          }
+        };
+      }
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+}
 
 const tokenClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -65,7 +86,14 @@ export async function refreshTokenSession(refreshToken?: string): Promise<TokenS
 }
 
 export function refreshTokenSessionSingleFlight(): Promise<TokenSession> {
-  refreshSessionPromise ??= refreshTokenSession().finally(() => {
+  refreshSessionPromise ??= (async () => {
+    const release = await acquireRefreshLock();
+    try {
+      return await refreshTokenSession();
+    } finally {
+      release();
+    }
+  })().finally(() => {
     refreshSessionPromise = null;
   });
 
