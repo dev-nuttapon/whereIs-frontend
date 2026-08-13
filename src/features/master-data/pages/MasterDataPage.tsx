@@ -406,7 +406,7 @@ function EditProductDialog({ wsId, product, categories, onClose }: { wsId: strin
           code: values.code || null,
           sku: values.sku || null,
           minStockAlert: values.minStockAlert ? Number(values.minStockAlert) : null,
-          imageUrl: values.imageUrl || null,
+          image: values.image,
           isActive: values.isActive === 'true',
         });
         onClose();
@@ -881,7 +881,7 @@ export function MasterDataPage() {
             sku: values.sku || null,
             trackingType: values.trackingType,
             minStockAlert: values.minStockAlert ? Number(values.minStockAlert) : null,
-            imageUrl: values.imageUrl || null,
+            image: values.image,
             description: values.description || null,
           });
           setCreateProductOpen(false);

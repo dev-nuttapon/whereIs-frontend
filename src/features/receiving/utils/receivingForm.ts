@@ -1,6 +1,6 @@
 import type { CreateReceivingReceiptInput } from '@/api/receiving.api';
 
-export type ReceivingTrackingType = 'stock' | 'asset';
+export type ReceivingTrackingType = 'stock' | 'asset' | '';
 
 export interface ReceivingFormLine {
   id: number;
@@ -22,6 +22,8 @@ function optionalNumber(value: string): number | null {
 
 export function getReceivingLineError(line: ReceivingFormLine): string {
   if (!line.productId) return 'ต้องเลือกสินค้าที่มีอยู่ในระบบก่อนบันทึกเข้าคลัง';
+  if (!line.trackingType) return 'สินค้านี้ยังไม่ได้กำหนดประเภทการติดตามใน Master';
+  if (!line.unit.trim()) return 'สินค้านี้ยังไม่ได้กำหนดหน่วยใน Master';
   if (!line.quantity || Number(line.quantity) <= 0) return 'จำนวนต้องมากกว่า 0';
   if (!line.storage.trim()) return 'เลือกจุดจัดเก็บ';
   if (line.trackingType === 'asset' && !Number.isInteger(Number(line.quantity))) return 'ทรัพย์สินต้องมีจำนวนเป็นจำนวนเต็ม';

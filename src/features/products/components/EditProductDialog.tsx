@@ -36,7 +36,7 @@ export function EditProductDialog({ wsId, product, open, onOpenChange, categorie
           sku: values.sku || null,
           minStockAlert: values.minStockAlert ? Number(values.minStockAlert) : null,
           expiryLeadDaysDefault: values.expiryLeadDaysDefault ? Number(values.expiryLeadDaysDefault) : null,
-          imageUrl: values.imageUrl || null,
+          image: values.image,
           description: values.description || null,
           isActive: values.isActive === 'true',
         });

@@ -11,7 +11,7 @@ function isDraftLine(value: unknown): value is ReceivingFormLine {
     && typeof line.name === 'string'
     && typeof line.quantity === 'string'
     && typeof line.unit === 'string'
-    && (line.trackingType === 'stock' || line.trackingType === 'asset')
+    && (line.trackingType === '' || line.trackingType === 'stock' || line.trackingType === 'asset')
     && typeof line.storage === 'string'
     && typeof line.expiryDate === 'string'
     && typeof line.alertLeadDays === 'string'

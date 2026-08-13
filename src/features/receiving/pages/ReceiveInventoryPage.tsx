@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -24,8 +24,8 @@ const INITIAL_LINE: Omit<ReceivingLine, 'id'> = {
   productSearch: '',
   name: '',
   quantity: '1',
-  unit: 'ชิ้น',
-  trackingType: 'stock',
+  unit: '',
+  trackingType: '',
   storage: '',
   expiryDate: '',
   alertLeadDays: '',
@@ -40,7 +40,7 @@ export function ReceiveInventoryPage() {
   const createReceipt = useCreateReceivingReceipt(wsId);
   const receiptsQuery = useReceivingReceipts(wsId);
   const containers = containersQuery.data ?? [];
-  const products = (productsQuery.data ?? []).filter((product) => product.isActive);
+  const products = useMemo(() => (productsQuery.data ?? []).filter((product) => product.isActive), [productsQuery.data]);
   const [lines, setLines] = useState<ReceivingLine[]>([{ id: 1, ...INITIAL_LINE }]);
   const [nextId, setNextId] = useState(2);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -63,6 +63,23 @@ export function ReceiveInventoryPage() {
     }
   }, [wsId]);
 
+  useEffect(() => {
+    if (!productsQuery.data) return;
+    setLines((current) => current.map((line) => {
+      if (!line.productId) return { ...line, name: '', unit: '', trackingType: '' };
+      const product = products.find((item) => item.id === line.productId);
+      if (!product) return { ...line, productId: '', name: '', unit: '', trackingType: '' };
+      const trackingType = product.trackingType.toLowerCase();
+      return {
+        ...line,
+        name: product.name,
+        productSearch: product.name,
+        unit: product.unitCode || '',
+        trackingType: trackingType === 'asset' || trackingType === 'stock' ? trackingType : '',
+      };
+    }));
+  }, [productsQuery.data, products]);
+
   const updateLine = (id: number, patch: Partial<ReceivingLine>) => {
     setLines((current) => current.map((line) => (line.id === id ? { ...line, ...patch } : line)));
   };
@@ -78,8 +95,8 @@ export function ReceiveInventoryPage() {
       productId,
       productSearch: product.name,
       name: product.name,
-      unit: product.unitCode || 'ชิ้น',
-      trackingType: product.trackingType.toLowerCase() === 'asset' ? 'asset' : 'stock',
+      unit: product.unitCode || '',
+      trackingType: product.trackingType.toLowerCase() === 'asset' ? 'asset' : product.trackingType.toLowerCase() === 'stock' ? 'stock' : '',
       alertLeadDays: product.expiryLeadDaysDefault?.toString() ?? '',
       lowStockAlert: product.minStockAlert?.toString() ?? '',
     });
@@ -156,12 +173,12 @@ export function ReceiveInventoryPage() {
       </div>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <Card>
+          <CardHeader className="border-b border-border/70 px-5 py-5 sm:px-6">
+            <CardTitle className="text-lg">รายการของที่ซื้อ</CardTitle>
+            <CardDescription>เพิ่มหลายรายการจากการซื้อครั้งเดียวได้ที่นี่</CardDescription>
+          </CardHeader>
           <CardContent className="component-stack p-5 sm:p-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg">รายการของที่ซื้อ</CardTitle>
-                <CardDescription>เพิ่มหลายรายการจากการซื้อครั้งเดียวได้ที่นี่</CardDescription>
-              </div>
               {currentStep === 1 ? (
                 <Button type="button" variant="outline" size="sm" onClick={() => { setLines((current) => [...current, { id: nextId, ...INITIAL_LINE }]); setNextId((value) => value + 1); }}>
                   <PlusIcon className="h-4 w-4" />
@@ -204,24 +221,27 @@ export function ReceiveInventoryPage() {
                       ) : null}
                     </FormField>
 
-                    {!line.productId ? <FormGrid className="border-t border-border/60 pt-6">
-                      <FormField label="ชื่อสินค้าใหม่" htmlFor={`receive-name-${line.id}`} description="ใช้เมื่อสินค้านี้ยังไม่ถูกสร้างในระบบ">
-                        <Input id={`receive-name-${line.id}`} value={line.name} onChange={(event) => updateLine(line.id, { name: event.target.value, productId: '', productSearch: event.target.value })} placeholder="เช่น โยเกิร์ต" />
-                      </FormField>
-                      <FormField label="ประเภทการติดตาม" htmlFor={`receive-type-${line.id}`} description="กำหนดวิธีติดตามสินค้านี้ในคลัง">
-                        <Select id={`receive-type-${line.id}`} value={line.trackingType} onChange={(event) => updateLine(line.id, { trackingType: event.target.value as TrackingType })}>
-                          <option value="stock">สต็อก / นับเป็นจำนวน</option>
-                          <option value="asset">ทรัพย์สิน / ติดตามรายชิ้น</option>
-                        </Select>
-                      </FormField>
-                    </FormGrid> : null}
+                    <FormGrid className="border-t border-border/60 pt-6">
+                      <div className="space-y-1.5">
+                        <p className="text-sm font-medium">ชื่อสินค้า</p>
+                        <p className="min-h-10 w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">{line.name}</p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="text-sm font-medium">ประเภทการติดตาม</p>
+                        <p className="min-h-10 w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
+                          {line.trackingType === 'asset' ? 'ทรัพย์สิน / ติดตามรายชิ้น' : line.trackingType === 'stock' ? 'สต็อก / นับเป็นจำนวน' : null}
+                        </p>
+                      </div>
+                    </FormGrid>
 
                     <FormGrid className="border-t border-border/60 pt-6">
                       <FormField label="จำนวน" htmlFor={`receive-quantity-${line.id}`}>
                         <Input id={`receive-quantity-${line.id}`} type="number" min="1" value={line.quantity} onChange={(event) => updateLine(line.id, { quantity: event.target.value })} />
                       </FormField>
                       <FormField label="หน่วย" htmlFor={`receive-unit-${line.id}`}>
-                        <Input id={`receive-unit-${line.id}`} value={line.unit} onChange={(event) => updateLine(line.id, { unit: event.target.value })} placeholder="เช่น กล่อง, ชิ้น, ขวด" />
+                        <div id={`receive-unit-${line.id}`} className="min-h-10 w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
+                          {line.unit}
+                        </div>
                       </FormField>
                     </FormGrid>
                   </FormSection> : null}
@@ -330,7 +350,7 @@ export function ReceiveInventoryPage() {
             productSearch: product.name,
             name: product.name,
             unit: product.unitCode || 'ชิ้น',
-            trackingType: product.trackingType.toLowerCase() === 'asset' ? 'asset' : 'stock',
+            trackingType: product.trackingType.toLowerCase() === 'asset' ? 'asset' : product.trackingType.toLowerCase() === 'stock' ? 'stock' : '',
             alertLeadDays: product.expiryLeadDaysDefault?.toString() ?? '',
             lowStockAlert: product.minStockAlert?.toString() ?? '',
           });

@@ -35,7 +35,7 @@ export function CreateProductDialog({ wsId, open, onOpenChange, categories, onCr
           trackingType: values.trackingType,
           minStockAlert: values.minStockAlert ? Number(values.minStockAlert) : null,
           expiryLeadDaysDefault: values.expiryLeadDaysDefault ? Number(values.expiryLeadDaysDefault) : null,
-          imageUrl: values.imageUrl || null,
+          image: values.image,
           description: values.description || null,
         });
         onCreated?.(product);

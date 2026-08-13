@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type DragEvent, type FormEvent } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ export interface ProductFormValues {
   trackingType: 'Asset' | 'Stock';
   minStockAlert: string;
   expiryLeadDaysDefault: string;
-  imageUrl: string;
+  image: File | null;
   description: string;
   isActive: 'true' | 'false';
 }
@@ -44,7 +44,7 @@ const EMPTY_VALUES: ProductFormValues = {
   trackingType: 'Asset',
   minStockAlert: '',
   expiryLeadDaysDefault: '',
-  imageUrl: '',
+  image: null,
   description: '',
   isActive: 'true',
 };
@@ -63,6 +63,31 @@ export function ProductFormDialog({
 }: ProductFormDialogProps) {
   const { t } = useI18n();
   const [values, setValues] = useState<ProductFormValues>(EMPTY_VALUES);
+  const [imageError, setImageError] = useState('');
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+
+  const setImageFile = (file: File | null) => {
+    setImageError('');
+    if (!file) {
+      setValues((current) => ({ ...current, image: null }));
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setImageError(t('products.form.imageTypeError', 'กรุณาเลือกไฟล์รูปภาพเท่านั้น'));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError(t('products.form.imageSizeError', 'รูปภาพต้องมีขนาดไม่เกิน 5 MB'));
+      return;
+    }
+    setValues((current) => ({ ...current, image: file }));
+  };
+
+  const handleImageDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDraggingImage(false);
+    setImageFile(event.dataTransfer.files[0] ?? null);
+  };
 
   useEffect(() => {
     if (!open) {
@@ -78,10 +103,12 @@ export function ProductFormDialog({
       trackingType: (initialValues?.trackingType as ProductFormValues['trackingType']) ?? 'Asset',
       minStockAlert: initialValues?.minStockAlert?.toString() ?? '',
       expiryLeadDaysDefault: initialValues?.expiryLeadDaysDefault?.toString() ?? '',
-      imageUrl: initialValues?.imageUrl ?? '',
+      image: null,
       description: initialValues?.description ?? '',
       isActive: initialValues?.isActive === false ? 'false' : 'true',
     });
+    setImageError('');
+    setIsDraggingImage(false);
   }, [initialValues, open]);
 
   const resetAndClose = () => {
@@ -99,7 +126,6 @@ export function ProductFormDialog({
       code: values.code.trim(),
       sku: values.sku.trim(),
       description: values.description.trim(),
-      imageUrl: values.imageUrl.trim(),
       minStockAlert: values.minStockAlert.trim(),
       expiryLeadDaysDefault: values.expiryLeadDaysDefault.trim(),
     });
@@ -203,14 +229,36 @@ export function ProductFormDialog({
               </FormField>
             </div>
 
-            <FormField label={t('products.form.imageUrl', 'รูปสินค้า')} htmlFor="product-image">
-              <Input
-                id="product-image"
-                value={values.imageUrl}
-                onChange={(event) => setValues((current) => ({ ...current, imageUrl: event.target.value }))}
-                placeholder={t('products.form.imagePlaceholder', 'วาง URL รูปภาพ')}
-                autoComplete="off"
-              />
+            <FormField label={t('products.form.imageUpload', 'รูปหลักสินค้า')} htmlFor="product-image">
+              <label
+                htmlFor="product-image"
+                onDragOver={(event) => { event.preventDefault(); setIsDraggingImage(true); }}
+                onDragLeave={() => setIsDraggingImage(false)}
+                onDrop={handleImageDrop}
+                className={`relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-5 text-center transition-colors ${isDraggingImage ? 'border-primary bg-primary/10' : 'border-border/80 bg-muted/20 hover:border-primary/60 hover:bg-muted/40'}`}
+              >
+                {values.image ? (
+                  <div className="flex w-full items-center gap-4 text-left">
+                    <img src={URL.createObjectURL(values.image)} alt="" className="h-20 w-20 rounded-xl object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{values.image.name}</p>
+                      <p className="text-xs text-muted-foreground">{(values.image.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="mt-1 text-xs text-primary">{t('products.form.imageReplace', 'คลิกเพื่อเปลี่ยนรูป')}</p>
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setImageFile(null); }}>
+                      {t('common.remove', 'ลบ')}
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-2 rounded-full bg-primary/10 px-3 py-2 text-primary">↑</div>
+                    <p className="text-sm font-medium">{t('products.form.imageDropTitle', 'ลากรูปมาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์')}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">JPG, PNG หรือ WebP · สูงสุด 5 MB</p>
+                  </>
+                )}
+                <Input id="product-image" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} />
+              </label>
+              {imageError ? <p className="mt-1 text-sm text-destructive">{imageError}</p> : null}
             </FormField>
 
             <FormField label={t('products.form.description', 'รายละเอียด')} htmlFor="product-description">

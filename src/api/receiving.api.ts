@@ -56,6 +56,17 @@ export interface ReceivingReceipt {
   createdAt: string;
 }
 
+export interface ReceivingReceiptEvidence {
+  id: string;
+  receiptId: string;
+  url: string;
+  fileName?: string | null;
+  mimeType?: string | null;
+  size?: number | null;
+  uploadedByUserId?: string | null;
+  uploadedAt: string;
+}
+
 export interface ReceivingReceiptSummary {
   id: string;
   workspaceId: string;
@@ -86,6 +97,21 @@ export async function listReceivingReceipts(wsId: string, page = 1, pageSize = 5
   const response = await client.get<ApiResponse<ReceivingReceiptListResult>>(
     `/workspaces/${encodeURIComponent(wsId)}/inventory/receipts`,
     { params: { page, pageSize } },
+  );
+  return response.data.data;
+}
+
+export async function uploadReceivingEvidence(
+  wsId: string,
+  receiptId: string,
+  files: File[],
+): Promise<ReceivingReceiptEvidence[]> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append('files', file));
+  const response = await client.post<ApiResponse<ReceivingReceiptEvidence[]>>(
+    `/workspaces/${encodeURIComponent(wsId)}/inventory/receipts/${encodeURIComponent(receiptId)}/evidence`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
   );
   return response.data.data;
 }
