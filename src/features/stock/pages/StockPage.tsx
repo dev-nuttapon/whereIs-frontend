@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -205,6 +205,7 @@ function AdjustStockDialog({
 
 export function StockPage() {
   const { wsId = '' } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useI18n();
   const { can } = usePermission();
@@ -243,7 +244,7 @@ export function StockPage() {
             <TakeOutIcon className="h-4 w-4" />
             {t('stock.borrow.action', 'Create borrow order')}
           </Button> : null}
-          {can('stock.manage') ? <Button className="w-full sm:w-auto" onClick={() => setAdjustOpen(true)}>
+          {can('stock.manage') ? <Button className="w-full sm:w-auto" onClick={() => navigate(`${ROUTES.workspaceReceive(wsId)}?from=stock`)}>
             <PlusIcon className="h-4 w-4" />
             {t('stock.adjust.action', 'Adjust stock')}
           </Button> : null}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,10 @@ const INITIAL_LINE: Omit<ReceivingLine, 'id'> = {
 
 export function ReceiveInventoryPage() {
   const { wsId = '' } = useParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from');
+  const returnPath = from === 'assets' ? `/w/${wsId}/assets` : from === 'stock' ? `/w/${wsId}/stock` : null;
   const containersQuery = useContainers(wsId);
   const productsQuery = useProducts(wsId);
   const categoriesQuery = useCategories(wsId);
@@ -42,6 +46,10 @@ export function ReceiveInventoryPage() {
   const receiptsQuery = useReceivingReceipts(wsId);
   const containers = containersQuery.data ?? [];
   const products = useMemo(() => (productsQuery.data ?? []).filter((product) => product.isActive), [productsQuery.data]);
+  const selectableProducts = useMemo(() => {
+    const trackingType = from === 'assets' ? 'asset' : from === 'stock' ? 'stock' : null;
+    return trackingType ? products.filter((product) => product.trackingType.toLowerCase() === trackingType) : products;
+  }, [from, products]);
   const [lines, setLines] = useState<ReceivingLine[]>([{ id: 1, ...INITIAL_LINE }]);
   const [nextId, setNextId] = useState(2);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -51,7 +59,7 @@ export function ReceiveInventoryPage() {
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
 
   useEffect(() => {
-    const draft = window.localStorage.getItem(`whereis:receive-draft:${wsId}`);
+    const draft = returnPath ? null : window.localStorage.getItem(`whereis:receive-draft:${wsId}`);
     if (!draft) return;
 
     const parsedLines = parseReceivingDraft(draft);
@@ -86,7 +94,7 @@ export function ReceiveInventoryPage() {
   };
 
   const selectProduct = (lineId: number, productId: string) => {
-    const product = products.find((item) => item.id === productId);
+    const product = selectableProducts.find((item) => item.id === productId) ?? products.find((item) => item.id === productId);
     if (!product) {
       updateLine(lineId, { productId: '', name: '' });
       return;
@@ -126,6 +134,10 @@ export function ReceiveInventoryPage() {
       onSuccess: (receipt) => {
         if (evidenceFiles.length > 0) {
           void uploadReceivingEvidence(wsId, receipt.id, evidenceFiles);
+        }
+        if (returnPath) {
+          navigate(returnPath);
+          return;
         }
         setSubmittedReceiptId(receipt.id);
         window.localStorage.removeItem(`whereis:receive-draft:${wsId}`);
@@ -199,7 +211,7 @@ export function ReceiveInventoryPage() {
                         placeholder="พิมพ์ชื่อสินค้า รหัส หรือ SKU"
                       />
                       <datalist id={`receive-product-options-${line.id}`}>
-                        {products.map((product) => <option key={product.id} value={product.name}>{product.code || product.sku ? `${product.code ?? product.sku}` : undefined}</option>)}
+                        {selectableProducts.map((product) => <option key={product.id} value={product.name}>{product.code || product.sku ? `${product.code ?? product.sku}` : undefined}</option>)}
                       </datalist>
                       {!line.productId && line.productSearch?.trim() ? (
                         <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">

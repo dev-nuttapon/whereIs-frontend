@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { DatabaseIcon, EditIcon, FilterIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
 import { useAssets } from '@/features/assets/hooks/useAssets';
 import { CreateAssetDialog } from '@/features/assets/components/CreateAssetDialog';
+import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
 import { UpdateAssetDialog } from '@/features/assets/components/UpdateAssetDialog';
 import { useDeleteAsset } from '@/features/assets/hooks/useAssets';
 import { Popconfirm } from 'antd';
@@ -89,6 +90,7 @@ function AssetCardActions({ wsId, asset, onEdit }: AssetCardActionsProps) {
 
 export function AssetsPage() {
   const { wsId = '' } = useParams();
+  const navigate = useNavigate();
   const { t } = useI18n();
   const { can } = usePermission();
   const [filters, setFilters] = useState<AssetFilters>(DEFAULT_FILTERS);
@@ -106,8 +108,8 @@ export function AssetsPage() {
   const sites = sitesQuery.data ?? [];
   const locations = locationsQuery.data ?? [];
   const containers = containersQuery.data ?? [];
-  const [createOpen, setCreateOpen] = useState(false);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
+  const [borrowOpen, setBorrowOpen] = useState(false);
   const hasActiveFilters = Boolean(
     filters.search.trim() || filters.status || filters.siteId || filters.locationId || filters.containerId,
   );
@@ -130,12 +132,18 @@ export function AssetsPage() {
     <PageShell
       title={t('assets.title', 'Assets')}
       description={t('assets.description', 'Track individual assets, their location, status, and photos.')}
-      actions={can('asset.manage') ? (
-        <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
-          <PlusIcon className="h-4 w-4" />
-          {t('assets.create.action', 'Create asset')}
-        </Button>
-      ) : null}
+      actions={(
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setBorrowOpen(true)}>
+            <TakeOutIcon className="h-4 w-4" />
+            เบิก/ยืม
+          </Button>
+          {can('asset.manage') ? <Button className="w-full sm:w-auto" onClick={() => navigate(`${ROUTES.workspaceReceive(wsId)}?from=assets`)}>
+            <PlusIcon className="h-4 w-4" />
+            {t('assets.create.action', 'Create asset')}
+          </Button> : null}
+        </div>
+      )}
     >
       {assetsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {assetsQuery.isError ? <ErrorState message={t('assets.error', 'Unable to load assets.')} onRetry={() => assetsQuery.refetch()} /> : null}
@@ -245,7 +253,6 @@ export function AssetsPage() {
         <DataTableShell minWidth="min-w-[800px]"><DataTableHead><th className={dataTableCellClass}>สินค้า</th><th className={dataTableCellClass}>สถานะ</th><th className={dataTableCellClass}>สภาพ</th><th className={dataTableCellClass}>จุดจัดเก็บ</th><th className={`${dataTableCellClass} text-right`}>จัดการ</th></DataTableHead><tbody>{displayAssets.map((asset) => <DataTableRow key={asset.id}><td className={`${dataTableCellClass} font-medium`}>{asset.productName}</td><td className={dataTableCellClass}><MasterStatusBadge status={asset.status} kind="asset" /></td><td className={`${dataTableCellClass} text-muted-foreground`}>{asset.condition}</td><td className={`${dataTableCellClass} text-muted-foreground`}>{asset.containerName ?? asset.locationName ?? '-'}</td><td className={`${dataTableCellClass} text-right`}><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceAssetDetail(wsId, asset.id)}><OpenIcon className="h-4 w-4" />ดูรายละเอียด</Link></Button></td></DataTableRow>)}</tbody></DataTableShell>
       )}
 
-      <CreateAssetDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />
       {editAsset ? (
         <UpdateAssetDialog
           wsId={wsId}
@@ -258,6 +265,7 @@ export function AssetsPage() {
           }}
         />
       ) : null}
+      <CreateBorrowOrderDialog wsId={wsId} open={borrowOpen} onOpenChange={setBorrowOpen} />
     </PageShell>
   );
 }
