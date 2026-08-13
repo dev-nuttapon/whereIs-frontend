@@ -12,7 +12,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
 import { ROUTES } from '@/constants/routes';
 import { useI18n } from '@/hooks/useI18n';
-import { DatabaseIcon, EditIcon, FilterIcon, OpenIcon, PlusIcon } from '@/components/ui/icons';
+import { DatabaseIcon, EditIcon, FilterIcon, OpenIcon, PlusIcon, TakeOutIcon } from '@/components/ui/icons';
 import { useAssets } from '@/features/assets/hooks/useAssets';
 import { CreateAssetDialog } from '@/features/assets/components/CreateAssetDialog';
 import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';

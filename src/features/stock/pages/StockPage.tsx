@@ -242,7 +242,7 @@ export function StockPage() {
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           {can('borrow.create') ? <Button className="w-full sm:w-auto" variant="outline" onClick={() => setBorrowOpen(true)}>
             <TakeOutIcon className="h-4 w-4" />
-            {t('stock.borrow.action', 'Create borrow order')}
+            เบิก/ยืม
           </Button> : null}
           {can('stock.manage') ? <Button className="w-full sm:w-auto" onClick={() => navigate(`${ROUTES.workspaceReceive(wsId)}?from=stock`)}>
             <PlusIcon className="h-4 w-4" />
