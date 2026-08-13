@@ -143,7 +143,8 @@ export function ProductFormDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="component-stack dialog-form-body">
-            <FormField label={t('products.form.name', 'ชื่อสินค้า')} htmlFor="product-name">
+            <p className="text-xs text-muted-foreground"><span className="font-semibold text-destructive">*</span> ช่องที่มีเครื่องหมายนี้จำเป็นต้องกรอก</p>
+            <FormField label={`${t('products.form.name', 'ชื่อสินค้า')} *`} htmlFor="product-name" description="ใช้ระบุสินค้าในระบบ">
               <Input
                 id="product-name"
                 value={values.name}
@@ -154,7 +155,7 @@ export function ProductFormDialog({
             </FormField>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('products.form.category', 'หมวดหมู่')} htmlFor="product-category">
+              <FormField label={`${t('products.form.category', 'หมวดหมู่')} (ไม่บังคับ)`} htmlFor="product-category">
                 <Select
                   id="product-category"
                   value={values.categoryId}
@@ -171,7 +172,7 @@ export function ProductFormDialog({
                 </Select>
               </FormField>
 
-              <FormField label={t('products.form.trackingType', 'Tracking type')} htmlFor="product-tracking">
+              <FormField label={`${t('products.form.trackingType', 'ประเภทการติดตาม')} *`} htmlFor="product-tracking" description="กำหนดวิธีติดตามสินค้าในคลัง">
                 <Select
                   id="product-tracking"
                   value={values.trackingType}
@@ -183,12 +184,12 @@ export function ProductFormDialog({
                 </Select>
               </FormField>
             </div>
-            <FormField label={t('products.form.expiryLeadDaysDefault', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} htmlFor="product-expiry-lead-days">
+            <FormField label={`${t('products.form.expiryLeadDaysDefault', 'แจ้งเตือนก่อนหมดอายุ (วัน)')} (ไม่บังคับ)`} htmlFor="product-expiry-lead-days">
               <Input id="product-expiry-lead-days" type="number" min="0" value={values.expiryLeadDaysDefault} onChange={(event) => setValues((current) => ({ ...current, expiryLeadDaysDefault: event.target.value }))} placeholder={t('products.form.expiryLeadDaysDefaultPlaceholder', 'ไม่บังคับ')} />
             </FormField>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('products.form.code', 'รหัสสินค้า')} htmlFor="product-code">
+              <FormField label={`${t('products.form.code', 'รหัสสินค้า')} (ไม่บังคับ)`} htmlFor="product-code">
                 <Input
                   id="product-code"
                   value={values.code}
@@ -197,7 +198,7 @@ export function ProductFormDialog({
                   autoComplete="off"
                 />
               </FormField>
-              <FormField label={t('products.form.sku', 'SKU')} htmlFor="product-sku">
+              <FormField label={`${t('products.form.sku', 'SKU')} (ไม่บังคับ)`} htmlFor="product-sku">
                 <Input
                   id="product-sku"
                   value={values.sku}
@@ -209,7 +210,7 @@ export function ProductFormDialog({
             </div>
 
             <div className="grid gap-[18px] sm:grid-cols-2">
-              <FormField label={t('products.form.unitCode', 'หน่วย')} htmlFor="product-unit">
+              <FormField label={`${t('products.form.unitCode', 'หน่วย')} (ไม่บังคับ)`} htmlFor="product-unit" description="ใช้เป็นหน่วยแสดงผลในการรับเข้าและดูสต็อก">
                 <Input
                   id="product-unit"
                   value={values.unitCode}
@@ -218,7 +219,7 @@ export function ProductFormDialog({
                   autoComplete="off"
                 />
               </FormField>
-              <FormField label={t('products.form.minStockAlert', 'เตือนสต็อกขั้นต่ำ')} htmlFor="product-min-stock">
+              <FormField label={`${t('products.form.minStockAlert', 'เตือนสต็อกขั้นต่ำ')} (ไม่บังคับ)`} htmlFor="product-min-stock">
                 <Input
                   id="product-min-stock"
                   type="number"
@@ -229,7 +230,7 @@ export function ProductFormDialog({
               </FormField>
             </div>
 
-            <FormField label={t('products.form.imageUpload', 'รูปหลักสินค้า')} htmlFor="product-image">
+            <FormField label={`${t('products.form.imageUpload', 'รูปหลักสินค้า')} (ไม่บังคับ)`} htmlFor="product-image">
               <label
                 htmlFor="product-image"
                 onDragOver={(event) => { event.preventDefault(); setIsDraggingImage(true); }}
@@ -261,7 +262,7 @@ export function ProductFormDialog({
               {imageError ? <p className="mt-1 text-sm text-destructive">{imageError}</p> : null}
             </FormField>
 
-            <FormField label={t('products.form.description', 'รายละเอียด')} htmlFor="product-description">
+            <FormField label={`${t('products.form.description', 'รายละเอียด')} (ไม่บังคับ)`} htmlFor="product-description">
               <Textarea
                 id="product-description"
                 value={values.description}

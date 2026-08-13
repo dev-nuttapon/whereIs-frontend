@@ -15,6 +15,7 @@ import { CreateProductDialog } from '@/features/products/components/CreateProduc
 import { useCreateReceivingReceipt, useReceivingReceipts } from '@/features/receiving/hooks/useReceivingReceipts';
 import { buildReceivingReceiptInput, getReceivingLineError, type ReceivingFormLine } from '@/features/receiving/utils/receivingForm';
 import { parseReceivingDraft } from '@/features/receiving/utils/receivingDraft';
+import { uploadReceivingEvidence } from '@/api/receiving.api';
 
 type TrackingType = ReceivingFormLine['trackingType'];
 type ReceivingLine = ReceivingFormLine;
@@ -48,6 +49,7 @@ export function ReceiveInventoryPage() {
   const [submittedReceiptId, setSubmittedReceiptId] = useState<string | null>(null);
   const [createProductOpen, setCreateProductOpen] = useState(false);
   const [createProductForLine, setCreateProductForLine] = useState<number | null>(null);
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
 
   useEffect(() => {
     const draft = window.localStorage.getItem(`whereis:receive-draft:${wsId}`);
@@ -129,8 +131,11 @@ export function ReceiveInventoryPage() {
     setShowValidation(true);
     if (incompleteLines.length > 0 || createReceipt.isPending) return;
 
-    createReceipt.mutate(buildReceivingReceiptInput(lines, new Date()), {
+      createReceipt.mutate(buildReceivingReceiptInput(lines, new Date()), {
       onSuccess: (receipt) => {
+        if (evidenceFiles.length > 0) {
+          void uploadReceivingEvidence(wsId, receipt.id, evidenceFiles);
+        }
         setSubmittedReceiptId(receipt.id);
         window.localStorage.removeItem(`whereis:receive-draft:${wsId}`);
         setSavedAt(null);
@@ -138,6 +143,7 @@ export function ReceiveInventoryPage() {
         setNextId(2);
         setCurrentStep(1);
         setShowValidation(false);
+        setEvidenceFiles([]);
       },
     });
   };
@@ -178,6 +184,7 @@ export function ReceiveInventoryPage() {
             <CardDescription>เพิ่มหลายรายการจากการซื้อครั้งเดียวได้ที่นี่</CardDescription>
           </CardHeader>
           <CardContent className="component-stack p-5 sm:p-6">
+            <p className="text-xs text-muted-foreground"><span className="font-semibold text-destructive">*</span> ช่องที่มีเครื่องหมายนี้จำเป็นต้องกรอก</p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               {currentStep === 1 ? (
                 <Button type="button" variant="outline" size="sm" onClick={() => { setLines((current) => [...current, { id: nextId, ...INITIAL_LINE }]); setNextId((value) => value + 1); }}>
@@ -197,7 +204,7 @@ export function ReceiveInventoryPage() {
                     </Button>
                   </div>
                   {currentStep === 1 ? <FormSection>
-                    <FormField label="สินค้า" htmlFor={`receive-product-search-${line.id}`} description="พิมพ์เพื่อค้นหา หรือเลือกสินค้าจากรายการที่แนะนำ">
+                    <FormField label="สินค้า *" htmlFor={`receive-product-search-${line.id}`} description="พิมพ์เพื่อค้นหา หรือเลือกสินค้าจากรายการที่แนะนำ ต้องเลือกจากสินค้าใน Master">
                       <Input
                         id={`receive-product-search-${line.id}`}
                         list={`receive-product-options-${line.id}`}
@@ -235,7 +242,7 @@ export function ReceiveInventoryPage() {
                     </FormGrid>
 
                     <FormGrid className="border-t border-border/60 pt-6">
-                      <FormField label="จำนวน" htmlFor={`receive-quantity-${line.id}`}>
+                      <FormField label="จำนวน *" htmlFor={`receive-quantity-${line.id}`} description="ต้องมากกว่า 0">
                         <Input id={`receive-quantity-${line.id}`} type="number" min="1" value={line.quantity} onChange={(event) => updateLine(line.id, { quantity: event.target.value })} />
                       </FormField>
                       <FormField label="หน่วย" htmlFor={`receive-unit-${line.id}`}>
@@ -246,20 +253,20 @@ export function ReceiveInventoryPage() {
                     </FormGrid>
                   </FormSection> : null}
                   {currentStep === 2 ? <FormGrid>
-                    <FormField label="จุดจัดเก็บ" htmlFor={`receive-storage-${line.id}`} description={containers.length ? 'เลือกจากจุดจัดเก็บที่สร้างไว้แล้ว' : 'ยังไม่มีจุดจัดเก็บ ให้สร้างก่อนแล้วกลับมาเลือกที่นี่'}>
+                    <FormField label="จุดจัดเก็บ *" htmlFor={`receive-storage-${line.id}`} description={containers.length ? 'เลือกจากจุดจัดเก็บที่สร้างไว้แล้ว' : 'ยังไม่มีจุดจัดเก็บ ให้สร้างก่อนแล้วกลับมาเลือกที่นี่'}>
                       <Select id={`receive-storage-${line.id}`} value={line.storage} onChange={(event) => updateLine(line.id, { storage: event.target.value })} disabled={containers.length === 0}>
                         <option value="">{containers.length ? 'เลือกจุดจัดเก็บ' : 'ยังไม่มีจุดจัดเก็บ'}</option>
                         {containers.map((container) => <option key={container.id} value={container.id}>{container.name}{container.code ? ` (${container.code})` : ''}</option>)}
                       </Select>
                     </FormField>
-                    <FormField label="วันหมดอายุ" htmlFor={`receive-expiry-${line.id}`} description="เว้นว่างได้สำหรับของที่ไม่มีวันหมดอายุ">
+                    <FormField label="วันหมดอายุ (ไม่บังคับ)" htmlFor={`receive-expiry-${line.id}`} description="เว้นว่างได้สำหรับของที่ไม่มีวันหมดอายุ">
                       <Input id={`receive-expiry-${line.id}`} type="date" value={line.expiryDate} onChange={(event) => updateLine(line.id, { expiryDate: event.target.value })} />
                     </FormField>
-                    <FormField label="แจ้งเตือนก่อนหมดอายุ (วัน)" htmlFor={`receive-expiry-alert-${line.id}`}>
+                    <FormField label="แจ้งเตือนก่อนหมดอายุ (วัน) (ไม่บังคับ)" htmlFor={`receive-expiry-alert-${line.id}`}>
                       <Input id={`receive-expiry-alert-${line.id}`} type="number" min="0" value={line.alertLeadDays} onChange={(event) => updateLine(line.id, { alertLeadDays: event.target.value })} placeholder="เช่น 7" />
                     </FormField>
                     {line.trackingType === 'stock' ? (
-                      <FormField label="แจ้งเตือนเมื่อเหลือต่ำกว่า" htmlFor={`receive-low-stock-${line.id}`}>
+                      <FormField label="แจ้งเตือนเมื่อเหลือต่ำกว่า (ไม่บังคับ)" htmlFor={`receive-low-stock-${line.id}`}>
                         <Input id={`receive-low-stock-${line.id}`} type="number" min="0" value={line.lowStockAlert} onChange={(event) => updateLine(line.id, { lowStockAlert: event.target.value })} placeholder="เช่น 3" />
                       </FormField>
                     ) : null}
@@ -274,7 +281,7 @@ export function ReceiveInventoryPage() {
                 </div>
               ))}
             </div>
-            {currentStep === 3 ? (
+            {
               <div className="space-y-3 rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
                 <div>
                   <p className="text-sm font-semibold text-foreground">ตรวจสอบรายการก่อนบันทึก</p>
@@ -287,7 +294,28 @@ export function ReceiveInventoryPage() {
                   </div>
                 ))}
               </div>
-            ) : null}
+            }
+            <FormSection>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold">รูปหลักฐานการรับเข้าครั้งนี้ (ไม่บังคับ)</p>
+                  <p className="text-xs text-muted-foreground">แยกจากรูป Master ของสินค้า และอัปโหลดได้หลายรูป เช่น ใบส่งของ กล่อง หรือสภาพสินค้า</p>
+                </div>
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-muted/20 p-5 text-center hover:border-primary/60">
+                  <span className="text-sm font-medium">คลิกเพื่อเลือกไฟล์รูปภาพ</span>
+                  <span className="mt-1 text-xs text-muted-foreground">เลือกได้หลายไฟล์ · JPG, PNG, WebP</span>
+                  <Input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={(event) => setEvidenceFiles((current) => [...current, ...Array.from(event.target.files ?? [])])} />
+                </label>
+                {evidenceFiles.length > 0 ? (
+                  <div className="space-y-2">
+                    {evidenceFiles.map((file, index) => (
+                      <div key={`${file.name}-${file.lastModified}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 px-3 py-2 text-sm">
+                        <span className="min-w-0 truncate">{file.name}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setEvidenceFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>ลบ</Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+            </FormSection>
             <div className="flex flex-col gap-2 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <Button type="button" variant="outline" onClick={() => setCurrentStep((step) => Math.max(1, step - 1) as 1 | 2 | 3)} disabled={currentStep === 1}>ย้อนกลับ</Button>
               {currentStep < 3 ? <Button type="button" onClick={goNext}>ถัดไป</Button> : <Button type="button" onClick={submitReceipt} loading={createReceipt.isPending} disabled={incompleteLines.length > 0}>บันทึกเข้าคลัง</Button>}
