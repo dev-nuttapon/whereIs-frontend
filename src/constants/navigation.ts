@@ -16,7 +16,6 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { labelKey: 'nav.activity', labelFallback: 'Activity', iconKey: 'activity', to: (wsId) => `/w/${wsId}/activity`, roles: ['viewer', 'member', 'admin', 'owner'], permissions: ['activity.view'] },
   { labelKey: 'nav.receive', labelFallback: 'Add to inventory', iconKey: 'receive', to: (wsId) => `/w/${wsId}/receive`, roles: ['member', 'admin', 'owner'], permissions: ['stock.manage', 'asset.manage'] },
   { labelKey: 'nav.inventory', labelFallback: 'All inventory', iconKey: 'items', to: (wsId) => `/w/${wsId}/search`, roles: ['viewer', 'member', 'admin', 'owner'] },
-  { labelKey: 'nav.products', labelFallback: 'Products', iconKey: 'items', to: (wsId) => `/w/${wsId}/products`, roles: ['member', 'admin', 'owner'], permissions: ['product.view'] },
   { labelKey: 'nav.assets', labelFallback: 'Assets', iconKey: 'items', to: (wsId) => `/w/${wsId}/assets`, roles: ['member', 'admin', 'owner'], permissions: ['asset.view'] },
   { labelKey: 'nav.stock', labelFallback: 'Stock', iconKey: 'stock', to: (wsId) => `/w/${wsId}/stock`, roles: ['member', 'admin', 'owner'], permissions: ['stock.view'] },
   { labelKey: 'nav.containers', labelFallback: 'Containers', iconKey: 'containers', to: (wsId) => `/w/${wsId}/containers`, roles: ['member', 'admin', 'owner'], permissions: ['container.view'] },

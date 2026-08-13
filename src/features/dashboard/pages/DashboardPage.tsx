@@ -94,7 +94,7 @@ export function DashboardPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {products.length === 0 && can('product.view') ? <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-background/70 p-3 text-sm">
                     <span><strong className="block">สร้างสินค้า</strong><span className="text-xs text-muted-foreground">เช่น สบู่ หรือไมโครเวฟ</span></span>
-                    <Button asChild size="sm" variant="outline"><Link to={ROUTES.workspaceProducts(wsId)}>ไปที่สินค้า</Link></Button>
+                    <Button asChild size="sm" variant="outline"><Link to={ROUTES.workspaceMasterData(wsId)}>ไปที่ Master Data</Link></Button>
                   </div> : null}
                   {containers.length === 0 && can('container.view') ? <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-background/70 p-3 text-sm">
                     <span><strong className="block">สร้างจุดจัดเก็บ</strong><span className="text-xs text-muted-foreground">เช่น ตู้เย็น หรือชั้นห้องน้ำ</span></span>
@@ -128,9 +128,9 @@ export function DashboardPage() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="justify-start">
-                    <Link to={ROUTES.workspaceProducts(wsId)}>
+                    <Link to={ROUTES.workspaceMasterData(wsId)}>
                       <ItemIcon className="h-4 w-4" />
-                      {t('nav.products')}
+                      Master Data
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="justify-start">
