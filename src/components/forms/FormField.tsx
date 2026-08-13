@@ -13,9 +13,8 @@ export interface FormFieldProps {
 
 export function formatFieldLabel(label: string, requirement?: 'required' | 'optional') {
   const cleanLabel = label.replace(/\s*\*\s*$/, '').replace(/\s*\((?:ไม่บังคับ|จำเป็น)\)\s*$/, '').trim();
-  if (requirement === 'required') return `${cleanLabel} (จำเป็น)`;
-  if (requirement === 'optional') return `${cleanLabel} (ไม่บังคับ)`;
-  return label;
+  if (requirement === 'required') return `${cleanLabel}*`;
+  return cleanLabel;
 }
 
 export function FormField({ label, htmlFor, required, optional, error, description, children }: FormFieldProps) {
@@ -25,7 +24,7 @@ export function FormField({ label, htmlFor, required, optional, error, descripti
       ? 'optional'
       : undefined;
   const requirement = required ? 'required' : optional ? 'optional' : inferredRequirement;
-  const displayLabel = requirement ? formatFieldLabel(label, requirement) : label;
+  const displayLabel = formatFieldLabel(label, requirement);
 
   return (
     <div className="form-field">

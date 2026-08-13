@@ -59,7 +59,7 @@ export function LoginPage() {
       </div>
       {error ? <Alert className="mb-4" type="error" showIcon message={t('auth.login.error')} description={error} /> : null}
       <Form.Item
-        label={`${t('auth.email')} (จำเป็น)`}
+        label={`${t('auth.email')}*`}
         name="email"
         rules={[
           { required: true, message: t('auth.email.required') },
@@ -70,7 +70,7 @@ export function LoginPage() {
       </Form.Item>
       <Form.Item
         className="!mb-3"
-        label={`${t('auth.password')} (จำเป็น)`}
+        label={`${t('auth.password')}*`}
         name="password"
         rules={[{ required: true, message: t('auth.password.required') }]}
       >

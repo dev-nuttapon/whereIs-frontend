@@ -131,7 +131,7 @@ export function ProfilePage() {
             <div className="space-y-2">
               <Typography.Text className="flex items-center gap-2 font-medium">
                 <UserIcon className="h-4 w-4" />
-                <span>{t('profile.name')} (จำเป็น)</span>
+                <span>{t('profile.name')}*</span>
               </Typography.Text>
               <Controller
                 name="name"
@@ -150,7 +150,7 @@ export function ProfilePage() {
               {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
             </div>
             <div className="space-y-2">
-              <Typography.Text className="text-sm font-medium">{t('profile.email')} (ข้อมูลบัญชี)</Typography.Text>
+              <Typography.Text className="text-sm font-medium">{t('profile.email')}</Typography.Text>
               <Controller
                 name="email"
                 control={control}
