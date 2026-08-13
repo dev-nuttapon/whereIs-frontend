@@ -156,9 +156,9 @@ function CreateBorrowDialog({
 }) {
   const { t } = useI18n();
   const createBorrow = useCreateBorrowOrder(wsId);
-  const assetsQuery = useAssets(wsId, { pageSize: 1000 });
+  const assetsQuery = useAssets(wsId, { pageSize: 20 });
   const productsQuery = useProducts(wsId);
-  const stockQuery = useStockEntries(wsId, { pageSize: 1000 });
+  const stockQuery = useStockEntries(wsId, { pageSize: 20 });
 
   const assets = (assetsQuery.data ?? []).filter((asset) => !['borrowed', 'disposed'].includes(asset.status.toLowerCase()));
   const products = (productsQuery.data ?? []).filter((product) => product.trackingType.toLowerCase() === 'stock');

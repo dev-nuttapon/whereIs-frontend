@@ -8,11 +8,9 @@ import { FormField } from '@/components/forms/FormField';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from '@/components/ui/icons';
 import { useI18n } from '@/hooks/useI18n';
-import { useAssets } from '@/features/assets/hooks/useAssets';
-import { useProducts } from '@/features/products/hooks/useProducts';
-import { useStockEntries } from '@/features/stock/hooks/useStock';
 import { useCreateBorrowOrder } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import type { CreateBorrowOrderInput } from '@/api/borrow-order.api';
+import { RemoteSelect } from '@/features/common/components/RemoteSelect';
 
 type BorrowLineDraft =
   | { id: string; kind: 'asset'; assetId: string }
@@ -59,19 +57,6 @@ export function CreateBorrowOrderDialog({
 }: CreateBorrowOrderDialogProps) {
   const { t } = useI18n();
   const createBorrow = useCreateBorrowOrder(wsId);
-  const assetsQuery = useAssets(wsId, { pageSize: 1000 });
-  const productsQuery = useProducts(wsId);
-  const stockQuery = useStockEntries(wsId, { pageSize: 1000 });
-
-  const assets = useMemo(
-    () => (assetsQuery.data ?? []).filter((asset) => !['borrowed', 'disposed'].includes(asset.status.toLowerCase())),
-    [assetsQuery.data],
-  );
-  const products = useMemo(
-    () => (productsQuery.data ?? []).filter((product) => product.trackingType.toLowerCase() === 'stock'),
-    [productsQuery.data],
-  );
-  const stockEntries = stockQuery.data?.items ?? [];
   const [purpose, setPurpose] = useState('');
   const [needByDate, setNeedByDate] = useState('');
   const [returnByDate, setReturnByDate] = useState('');
@@ -188,32 +173,31 @@ export function CreateBorrowOrderDialog({
 
                 {line.kind === 'asset' ? (
                   <FormField label={t('borrowOrders.asset', 'ทรัพย์สิน')} htmlFor={`borrow-asset-${line.id}`}>
-                    <Select
+                    <RemoteSelect
                       id={`borrow-asset-${line.id}`}
+                      wsId={wsId}
+                      resource="assets"
+                      disabled={!open}
                       value={line.assetId}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         setLines((current) =>
-                          current.map((entry) => (entry.id === line.id ? { ...entry, assetId: event.target.value } : entry)),
+                          current.map((entry) => (entry.id === line.id ? { ...entry, assetId: value } : entry)),
                         )
                       }
                       className="w-full"
-                    >
-                      <option value="">{t('borrowOrders.assetPlaceholder', 'เลือกทรัพย์สิน')}</option>
-                      {assets.map((asset) => (
-                        <option key={asset.id} value={asset.id}>
-                          {asset.productName} - {asset.serialNumber ?? asset.barcode ?? asset.id}
-                        </option>
-                      ))}
-                    </Select>
+                      placeholder={t('borrowOrders.assetPlaceholder', 'เลือกทรัพย์สิน')}
+                    />
                   </FormField>
                 ) : (
                   <div className="grid gap-[18px] sm:grid-cols-3">
                     <FormField label={t('borrowOrders.product', 'สินค้า')} htmlFor={`borrow-product-${line.id}`}>
-                      <Select
+                      <RemoteSelect
                         id={`borrow-product-${line.id}`}
+                        wsId={wsId}
+                        resource="products"
+                        disabled={!open}
                         value={line.productId}
-                        onChange={(event) => {
-                          const productId = event.target.value;
+                        onChange={(productId) => {
                           setLines((current) =>
                             current.map((entry) => {
                               if (entry.id !== line.id) return entry;
@@ -222,36 +206,25 @@ export function CreateBorrowOrderDialog({
                           );
                         }}
                         className="w-full"
-                      >
-                        <option value="">{t('borrowOrders.productPlaceholder', 'เลือกสินค้า')}</option>
-                        {products.map((product) => (
-                          <option key={product.id} value={product.id}>
-                            {product.name}
-                          </option>
-                        ))}
-                      </Select>
+                        placeholder={t('borrowOrders.productPlaceholder', 'เลือกสินค้า')}
+                      />
                     </FormField>
 
                     <FormField label={t('borrowOrders.stockEntry', 'Stock entry')} htmlFor={`borrow-stock-${line.id}`}>
-                      <Select
+                      <RemoteSelect
                         id={`borrow-stock-${line.id}`}
+                        wsId={wsId}
+                        resource="stock"
+                        disabled={!open}
                         value={line.stockEntryId}
-                        onChange={(event) =>
+                        onChange={(value) =>
                           setLines((current) =>
-                            current.map((entry) => (entry.id === line.id ? { ...entry, stockEntryId: event.target.value } : entry)),
+                            current.map((entry) => (entry.id === line.id ? { ...entry, stockEntryId: value } : entry)),
                           )
                         }
                         className="w-full"
-                      >
-                        <option value="">{t('borrowOrders.stockPlaceholder', 'เลือกของในคลัง')}</option>
-                        {stockEntries
-                          .filter((entry) => !line.productId || entry.productId === line.productId)
-                          .map((entry) => (
-                            <option key={entry.id} value={entry.id}>
-                              {entry.productName} - {entry.quantity} @ {entry.locationName ?? entry.containerName ?? '-'}
-                            </option>
-                          ))}
-                      </Select>
+                        placeholder={t('borrowOrders.stockPlaceholder', 'เลือกของในคลัง')}
+                      />
                     </FormField>
 
                     <FormField label={t('borrowOrders.quantity', 'Quantity')} htmlFor={`borrow-quantity-${line.id}`}>
