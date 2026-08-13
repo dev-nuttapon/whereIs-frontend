@@ -5,12 +5,13 @@ import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Tabs } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { StatCard } from '@/components/common/StatCard';
-import { PlusIcon, EditIcon, DatabaseIcon, SiteIcon, LocationIcon } from '@/components/ui/icons';
+import { PlusIcon, EditIcon, DatabaseIcon, SiteIcon, LocationIcon, FilterIcon } from '@/components/ui/icons';
 import { PermissionGuard } from '@/components/common/PermissionGuard';
 import { useI18n } from '@/hooks/useI18n';
 import type { Category, Location, Product, Site, WorkspaceRole } from '@/types/domain.types';
@@ -576,6 +577,8 @@ export function MasterDataPage() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const [selectedSiteIds, setSelectedSiteIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [masterSearch, setMasterSearch] = useState('');
+  const [masterStatus, setMasterStatus] = useState('');
   const [editLocation, setEditLocation] = useState<Location | null>(null);
   const [createLocationOpen, setCreateLocationOpen] = useState(false);
   const productsQuery = useProducts(wsId, 1, productPage * productPageSize);
@@ -611,9 +614,13 @@ export function MasterDataPage() {
   const visibleLocationRows = locationRows.slice((locationPage - 1) * locationPageSize, locationPage * locationPageSize);
   const locationLookup = useMemo(() => new Map(selectedSiteLocations.map((location) => [location.id, location] as const)), [selectedSiteLocations]);
   const lookupData = lookupsQuery.data;
-  const visibleProducts = products.slice((productPage - 1) * productPageSize, productPage * productPageSize);
-  const visibleCategories = categories.slice((categoryPage - 1) * categoryPageSize, categoryPage * categoryPageSize);
-  const visibleSites = sites.slice((sitePage - 1) * sitePageSize, sitePage * sitePageSize);
+  const searchTerm = masterSearch.trim().toLowerCase();
+  const filteredProducts = products.filter((product) => (!searchTerm || `${product.name} ${product.code ?? ''} ${product.sku ?? ''}`.toLowerCase().includes(searchTerm)) && (!masterStatus || (masterStatus === 'active' ? product.isActive : !product.isActive)));
+  const filteredCategories = categories.filter((category) => (!searchTerm || `${category.name} ${category.description ?? ''}`.toLowerCase().includes(searchTerm)) && (!masterStatus || (masterStatus === 'active' ? category.isActive : !category.isActive)));
+  const filteredSites = sites.filter((site) => (!searchTerm || `${site.name} ${site.type ?? ''} ${site.address ?? ''}`.toLowerCase().includes(searchTerm)) && (!masterStatus || (masterStatus === 'active' ? site.isActive : !site.isActive)));
+  const visibleProducts = filteredProducts.slice((productPage - 1) * productPageSize, productPage * productPageSize);
+  const visibleCategories = filteredCategories.slice((categoryPage - 1) * categoryPageSize, categoryPage * categoryPageSize);
+  const visibleSites = filteredSites.slice((sitePage - 1) * sitePageSize, sitePage * sitePageSize);
 
   const deleteSelected = async (resource: string, ids: Set<string>, clear: () => void, refresh: () => void) => {
     if (!ids.size || !window.confirm(`ยืนยันการลบ ${ids.size} รายการหรือไม่?`)) return;
@@ -629,12 +636,44 @@ export function MasterDataPage() {
     }
   };
 
-  const stats = useMemo(() => [
-    { label: t('masterData.stats.products', 'Products'), value: products.length },
-    { label: t('masterData.stats.stockProducts', 'Stock products'), value: products.filter((product) => product.trackingType === 'Stock').length },
-    { label: t('masterData.stats.categories', 'Categories'), value: categories.length },
-    { label: t('masterData.stats.sites', 'Sites'), value: sites.length },
-  ], [categories.length, products, sites.length, t]);
+  const filterBar = <Card className="shadow-sm"><CardContent className="space-y-4 p-4 sm:p-6"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาข้อมูลของแท็บนี้ตามชื่อ รหัส หรือคำอธิบาย</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => { setMasterSearch(''); setMasterStatus(''); setProductPage(1); setCategoryPage(1); setSitePage(1); }} disabled={!masterSearch && !masterStatus}>ล้างตัวกรอง</Button></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อ/รหัส/คำอธิบาย)</label><Input className="w-full rounded-full" value={masterSearch} onChange={(event) => { setMasterSearch(event.target.value); setProductPage(1); setCategoryPage(1); setSitePage(1); }} placeholder="ค้นหาข้อมูล" /></div><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะ</label><Select className="w-full" value={masterStatus} onChange={(event) => { setMasterStatus(event.target.value); setProductPage(1); setCategoryPage(1); setSitePage(1); }}><option value="">ทุกสถานะ</option><option value="active">ใช้งานอยู่</option><option value="inactive">ไม่ใช้งาน</option></Select></div></div></CardContent></Card>;
+
+  const locationFilterBar = (
+    <Card className="shadow-sm">
+      <CardContent className="space-y-4 p-4 sm:p-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <FilterIcon className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">ค้นหาและกรอง</p>
+              <p className="text-xs text-muted-foreground">เลือกสถานที่ก่อน แล้วค้นหาตำแหน่งจัดเก็บภายในสถานที่นั้น</p>
+            </div>
+          </div>
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => { setSelectedSiteId(sites[0]?.id ?? ''); setMasterSearch(''); setMasterStatus(''); setLocationPage(1); }} disabled={!masterSearch && !masterStatus && selectedSiteId === (sites[0]?.id ?? '')}>ล้างตัวกรอง</Button>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="min-w-0 space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground">สถานที่</label>
+            <Select value={selectedSiteId} onChange={(event) => { setSelectedSiteId(event.target.value); setLocationPage(1); }} className="w-full">
+              {sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}
+            </Select>
+          </div>
+          <div className="min-w-0 space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อตำแหน่ง/รหัส/คำอธิบาย)</label>
+            <Input className="w-full rounded-full" value={masterSearch} onChange={(event) => { setMasterSearch(event.target.value); setLocationPage(1); }} placeholder="ค้นหาตำแหน่งจัดเก็บ" />
+          </div>
+          <div className="min-w-0 space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground">สถานะ</label>
+            <Select className="w-full" value={masterStatus} onChange={(event) => { setMasterStatus(event.target.value); setLocationPage(1); }}>
+              <option value="">ทุกสถานะ</option>
+              <option value="active">ใช้งานอยู่</option>
+              <option value="inactive">ไม่ใช้งาน</option>
+            </Select>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   const productTab = (
     <div className="component-stack">
@@ -650,6 +689,9 @@ export function MasterDataPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {filterBar}
+      <div className="grid gap-[18px] md:grid-cols-3"><StatCard label="สินค้า" value={filteredProducts.length} /><StatCard label="สินค้าสต็อก" value={filteredProducts.filter((product) => product.trackingType === 'Stock').length} /><StatCard label="สินค้าใช้งานอยู่" value={filteredProducts.filter((product) => product.isActive).length} /></div>
 
       {productsQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {productsQuery.isError ? <ErrorState message={t('masterData.products.error', 'Unable to load products.')} onRetry={() => productsQuery.refetch()} /> : null}
@@ -673,7 +715,7 @@ export function MasterDataPage() {
               <td className="px-4 py-3 font-medium">{product.name}{product.code ?? product.sku ? <div className="text-xs font-normal text-muted-foreground">{product.code ?? product.sku}</div> : null}</td><td className="px-4 py-3">{product.categoryName ?? '-'}</td><td className="px-4 py-3">{product.unitCode ?? '-'}</td><td className="px-4 py-3"><Tag color={trackingTypeColor(product.trackingType)}>{product.trackingType}</Tag></td><td className="px-4 py-3">{product.assetCount}</td><td className="px-4 py-3">{product.totalStock}</td><td className="px-4 py-3"><Tag color={statusColor(product.isActive)}>{product.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><ProductCardActions wsId={wsId} product={product} onEdit={setEditProduct} /></td>
             </tr>)}</tbody>
           </table>
-          <MasterDataPagination page={productPage} pageSize={productPageSize} total={products.length} onChange={(page, pageSize) => { setProductPage(page); setProductPageSize(pageSize); }} />
+          <MasterDataPagination page={productPage} pageSize={productPageSize} total={filteredProducts.length} onChange={(page, pageSize) => { setProductPage(page); setProductPageSize(pageSize); }} />
         </div>
       )}
     </div>
@@ -694,6 +736,9 @@ export function MasterDataPage() {
         </CardContent>
       </Card>
 
+      {filterBar}
+      <div className="grid gap-[18px] md:grid-cols-3"><StatCard label="หมวดหมู่ทั้งหมด" value={filteredCategories.length} /><StatCard label="ใช้งานอยู่" value={filteredCategories.filter((category) => category.isActive).length} /><StatCard label="สินค้าในหมวดหมู่" value={filteredCategories.reduce((sum, category) => sum + category.productCount, 0)} /></div>
+
       {categoriesQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {categoriesQuery.isError ? <ErrorState message={t('masterData.categories.error', 'Unable to load categories.')} onRetry={() => categoriesQuery.refetch()} /> : null}
 
@@ -704,7 +749,7 @@ export function MasterDataPage() {
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><BulkSelectionToolbar count={selectedCategoryIds.size} /><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกหมวดหมู่ทั้งหมด" checked={visibleCategories.length > 0 && visibleCategories.every((item) => selectedCategoryIds.has(item.id))} onChange={(event) => setSelectedCategoryIds(event.target.checked ? new Set(visibleCategories.map((item) => item.id)) : new Set())} /></th><th className="px-4 py-3 font-semibold">ชื่อหมวดหมู่</th><th className="px-4 py-3 font-semibold">คำอธิบาย</th><th className="px-4 py-3 font-semibold">จำนวนสินค้า</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleCategories.map((category) => <tr key={category.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${category.name}`} checked={selectedCategoryIds.has(category.id)} onChange={() => setSelectedCategoryIds((current) => { const next = new Set(current); if (next.has(category.id)) next.delete(category.id); else next.add(category.id); return next; })} /></td><td className="px-4 py-3 font-medium">{category.name}</td><td className="px-4 py-3">{category.description ?? '-'}</td><td className="px-4 py-3">{category.productCount}</td><td className="px-4 py-3"><Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><CategoryCardActions wsId={wsId} category={category} onEdit={setEditCategory} /></td></tr>)}</tbody></table><MasterDataPagination page={categoryPage} pageSize={categoryPageSize} total={categories.length} onChange={(page, pageSize) => { setCategoryPage(page); setCategoryPageSize(pageSize); }} /></div>
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><BulkSelectionToolbar count={selectedCategoryIds.size} /><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกหมวดหมู่ทั้งหมด" checked={visibleCategories.length > 0 && visibleCategories.every((item) => selectedCategoryIds.has(item.id))} onChange={(event) => setSelectedCategoryIds(event.target.checked ? new Set(visibleCategories.map((item) => item.id)) : new Set())} /></th><th className="px-4 py-3 font-semibold">ชื่อหมวดหมู่</th><th className="px-4 py-3 font-semibold">คำอธิบาย</th><th className="px-4 py-3 font-semibold">จำนวนสินค้า</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleCategories.map((category) => <tr key={category.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${category.name}`} checked={selectedCategoryIds.has(category.id)} onChange={() => setSelectedCategoryIds((current) => { const next = new Set(current); if (next.has(category.id)) next.delete(category.id); else next.add(category.id); return next; })} /></td><td className="px-4 py-3 font-medium">{category.name}</td><td className="px-4 py-3">{category.description ?? '-'}</td><td className="px-4 py-3">{category.productCount}</td><td className="px-4 py-3"><Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><CategoryCardActions wsId={wsId} category={category} onEdit={setEditCategory} /></td></tr>)}</tbody></table><MasterDataPagination page={categoryPage} pageSize={categoryPageSize} total={filteredCategories.length} onChange={(page, pageSize) => { setCategoryPage(page); setCategoryPageSize(pageSize); }} /></div>
       )}
     </div>
   );
@@ -724,6 +769,9 @@ export function MasterDataPage() {
         </CardContent>
       </Card>
 
+      {filterBar}
+      <div className="grid gap-[18px] md:grid-cols-3"><StatCard label="สถานที่ทั้งหมด" value={filteredSites.length} /><StatCard label="ใช้งานอยู่" value={filteredSites.filter((site) => site.isActive).length} /><StatCard label="ตำแหน่งจัดเก็บ" value={filteredSites.reduce((sum, site) => sum + site.locationCount, 0)} /></div>
+
       {sitesQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {sitesQuery.isError ? <ErrorState message={t('masterData.sites.error', 'Unable to load sites.')} onRetry={() => sitesQuery.refetch()} /> : null}
 
@@ -734,7 +782,7 @@ export function MasterDataPage() {
           icon={<SiteIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><BulkSelectionToolbar count={selectedSiteIds.size} /><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกสถานที่ทั้งหมด" checked={visibleSites.length > 0 && visibleSites.every((item) => selectedSiteIds.has(item.id))} onChange={(event) => setSelectedSiteIds(event.target.checked ? new Set(visibleSites.map((item) => item.id)) : new Set())} /></th><th className="px-4 py-3 font-semibold">ชื่อสถานที่</th><th className="px-4 py-3 font-semibold">ประเภท</th><th className="px-4 py-3 font-semibold">ที่อยู่</th><th className="px-4 py-3 font-semibold">จำนวนตำแหน่ง</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleSites.map((site) => <tr key={site.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${site.name}`} checked={selectedSiteIds.has(site.id)} onChange={() => setSelectedSiteIds((current) => { const next = new Set(current); if (next.has(site.id)) next.delete(site.id); else next.add(site.id); return next; })} /></td><td className="px-4 py-3 font-medium">{site.name}</td><td className="px-4 py-3">{site.type ?? '-'}</td><td className="px-4 py-3">{site.address ?? '-'}</td><td className="px-4 py-3">{site.locationCount}</td><td className="px-4 py-3"><Tag color={statusColor(site.isActive)}>{site.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><SiteCardActions wsId={wsId} site={site} onEdit={setEditSite} /></td></tr>)}</tbody></table><MasterDataPagination page={sitePage} pageSize={sitePageSize} total={sites.length} onChange={(page, pageSize) => { setSitePage(page); setSitePageSize(pageSize); }} /></div>
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><BulkSelectionToolbar count={selectedSiteIds.size} /><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกสถานที่ทั้งหมด" checked={visibleSites.length > 0 && visibleSites.every((item) => selectedSiteIds.has(item.id))} onChange={(event) => setSelectedSiteIds(event.target.checked ? new Set(visibleSites.map((item) => item.id)) : new Set())} /></th><th className="px-4 py-3 font-semibold">ชื่อสถานที่</th><th className="px-4 py-3 font-semibold">ประเภท</th><th className="px-4 py-3 font-semibold">ที่อยู่</th><th className="px-4 py-3 font-semibold">จำนวนตำแหน่ง</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleSites.map((site) => <tr key={site.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${site.name}`} checked={selectedSiteIds.has(site.id)} onChange={() => setSelectedSiteIds((current) => { const next = new Set(current); if (next.has(site.id)) next.delete(site.id); else next.add(site.id); return next; })} /></td><td className="px-4 py-3 font-medium">{site.name}</td><td className="px-4 py-3">{site.type ?? '-'}</td><td className="px-4 py-3">{site.address ?? '-'}</td><td className="px-4 py-3">{site.locationCount}</td><td className="px-4 py-3"><Tag color={statusColor(site.isActive)}>{site.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><SiteCardActions wsId={wsId} site={site} onEdit={setEditSite} /></td></tr>)}</tbody></table><MasterDataPagination page={sitePage} pageSize={sitePageSize} total={filteredSites.length} onChange={(page, pageSize) => { setSitePage(page); setSitePageSize(pageSize); }} /></div>
       )}
     </div>
   );
@@ -754,6 +802,9 @@ export function MasterDataPage() {
         </CardContent>
       </Card>
 
+      {locationFilterBar}
+      <div className="grid gap-[18px] md:grid-cols-3"><StatCard label="ตำแหน่งจัดเก็บ" value={selectedSiteLocations.length} /><StatCard label="ตำแหน่งหลัก" value={selectedSiteLocationTree.length} /><StatCard label="สถานที่" value={selectedSite?.name ?? '-'} /></div>
+
       {sites.length === 0 ? (
         <EmptyState
           title={t('masterData.locations.noSitesTitle', 'Create a site first')}
@@ -763,26 +814,6 @@ export function MasterDataPage() {
       ) : (
         <Card className="shadow-sm">
           <CardContent className="space-y-3 p-4">
-            <div className="grid gap-3 md:grid-cols-[minmax(0,20rem)_1fr]">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{t('masterData.locations.siteSelector', 'Selected site')}</p>
-                <Select
-                  value={selectedSiteId}
-                  onChange={(event) => setSelectedSiteId(event.target.value)}
-                  className="w-full"
-                >
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>{site.name}</option>
-                  ))}
-                </Select>
-              </div>
-              <div className="grid gap-[18px] sm:grid-cols-3">
-                <StatCard label={t('masterData.locations.siteLocations', 'Locations')} value={selectedSiteLocations.length} />
-                <StatCard label={t('masterData.locations.siteRoots', 'Roots')} value={selectedSiteLocationTree.length} />
-                <StatCard label={t('masterData.locations.siteName', 'Site')} value={selectedSite?.name ?? '-'} />
-              </div>
-            </div>
-
             {selectedSiteLocationTreeQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
             {selectedSiteLocationTreeQuery.isError ? <ErrorState message={t('masterData.locations.error', 'Unable to load locations.')} onRetry={() => selectedSiteLocationTreeQuery.refetch()} /> : null}
 
@@ -930,12 +961,6 @@ export function MasterDataPage() {
       title={t('masterData.title', 'Master data')}
       description={t('masterData.description', 'Manage the base records used by items, containers, borrow flows, and stock.')}
     >
-      <div className="grid gap-[18px] md:grid-cols-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.label} label={stat.label} value={stat.value} />
-        ))}
-      </div>
-
       <Tabs
         defaultActiveKey="products"
         items={[
@@ -943,7 +968,7 @@ export function MasterDataPage() {
           { key: 'categories', label: t('masterData.categories.tab', 'Categories'), children: categoryTab },
           { key: 'sites', label: t('masterData.sites.tab', 'Sites'), children: siteTab },
           { key: 'locations', label: t('masterData.locations.tab', 'Locations'), children: locationTab },
-          { key: 'containers', label: 'ภาชนะจัดเก็บ', children: <ContainersPage /> },
+          { key: 'containers', label: 'ภาชนะจัดเก็บ', children: <ContainersPage embedded /> },
         ]}
       />
 

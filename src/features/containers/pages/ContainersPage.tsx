@@ -87,7 +87,7 @@ function ContainerTreeCard({
   );
 }
 
-export function ContainersPage() {
+export function ContainersPage({ embedded = false }: { embedded?: boolean }) {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
   const { can } = usePermission();
@@ -122,25 +122,33 @@ export function ContainersPage() {
   const updateSearch = (value: string) => { setSearch(value); setPage(1); };
   const updateStatus = (value: string) => { setStatus(value); setPage(1); };
 
-  return (
-    <PageShell
-      title={t('containers.list.title')}
-      description={t('containers.list.description')}
-      actions={can('container.create') ? (
-        <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
-          <PlusIcon className="h-4 w-4" />
-          {t('containers.list.create', 'สร้าง container')}
-        </Button>
+  const content = (
+    <>
+      {embedded ? (
+        <Card className="shadow-sm">
+          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+            <div className="space-y-1">
+              <CardTitle className="text-lg">ภาชนะจัดเก็บ</CardTitle>
+              <CardDescription>{t('containers.list.description', 'จัดการภาชนะจัดเก็บสำหรับเก็บรายการ')}</CardDescription>
+            </div>
+            {can('container.create') ? (
+              <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
+                <PlusIcon className="h-4 w-4" />
+                {t('containers.list.create', 'สร้างภาชนะจัดเก็บ')}
+              </Button>
+            ) : null}
+          </CardContent>
+        </Card>
       ) : null}
-    >
+
       {containersQuery.isLoading ? <LoadingState label={t('common.loading')} /> : null}
       {containersQuery.isError ? <ErrorState message={t('containers.list.error', 'Unable to load containers.')} onRetry={() => containersQuery.refetch()} /> : null}
       <Card className="shadow-sm"><CardContent className="space-y-4 p-4 sm:p-6"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาชื่อ รหัส ประเภท หรือกรองตามรายการ</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => { setSearch(''); setStatus(''); setPage(1); }} disabled={!search && !status}>ล้างตัวกรอง</Button></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (ชื่อ/รหัส/ประเภท)</label><Input className="w-full rounded-full" value={search} onChange={(event) => updateSearch(event.target.value)} placeholder="ค้นหาภาชนะจัดเก็บ" /></div><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะรายการ</label><Select className="w-full" value={status} onChange={(event) => updateStatus(event.target.value)}><option value="">ทุกรายการ</option><option value="with_items">มีรายการ</option><option value="empty">ว่าง</option></Select></div></div></CardContent></Card>
 
       <div className="grid gap-[18px] md:grid-cols-3">
-        <StatCard label={t('containers.list.itemCount')} value={visibleContainers.reduce((sum, container) => sum + (container.itemCount ?? 0), 0)} />
+        <StatCard label={t('containers.list.itemCount')} value={filteredContainers.reduce((sum, container) => sum + (container.itemCount ?? 0), 0)} />
         <StatCard label={t('containers.list.total')} value={filteredContainers.length} />
-        <StatCard label={t('containers.list.childCount')} value={visibleContainers.reduce((sum, container) => sum + (container.childContainerCount ?? 0), 0)} />
+        <StatCard label={t('containers.list.childCount')} value={filteredContainers.reduce((sum, container) => sum + (container.childContainerCount ?? 0), 0)} />
       </div>
 
       {filteredContainers.length === 0 ? (
@@ -154,6 +162,23 @@ export function ContainersPage() {
       )}
 
       <CreateContainerDialog wsId={wsId} open={createOpen} onOpenChange={setCreateOpen} />
+    </>
+  );
+
+  return embedded ? (
+    <div className="component-stack">{content}</div>
+  ) : (
+    <PageShell
+      title={t('containers.list.title')}
+      description={t('containers.list.description')}
+      actions={can('container.create') ? (
+        <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
+          <PlusIcon className="h-4 w-4" />
+          {t('containers.list.create', 'สร้างภาชนะจัดเก็บ')}
+        </Button>
+      ) : null}
+    >
+      {content}
     </PageShell>
   );
 }
