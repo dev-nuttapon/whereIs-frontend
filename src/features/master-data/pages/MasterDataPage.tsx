@@ -64,6 +64,11 @@ function MasterDataPagination({
   );
 }
 
+function BulkSelectionToolbar({ count }: { count: number }) {
+  if (!count) return null;
+  return <div className="mb-3 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2"><span className="text-sm font-medium">เลือกแล้ว {count} รายการ</span><Button size="sm" variant="destructive" disabled title="รอเชื่อมต่อ Bulk Delete API">ลบรายการที่เลือก</Button></div>;
+}
+
 function flattenLocationNodes(nodes: LocationTreeNode[], depth = 0): Array<{ value: string; label: string }> {
   return nodes.flatMap((node) => [
     {
@@ -71,6 +76,13 @@ function flattenLocationNodes(nodes: LocationTreeNode[], depth = 0): Array<{ val
       label: `${'— '.repeat(depth)}${node.name}${node.code ? ` (${node.code})` : ''}`,
     },
     ...flattenLocationNodes(node.children, depth + 1),
+  ]);
+}
+
+function flattenLocationRows(nodes: LocationTreeNode[], expandedIds: Set<string>, depth = 0, parentLocationId: string | null = null): Array<{ node: LocationTreeNode; depth: number; parentLocationId: string | null }> {
+  return nodes.flatMap((node) => [
+    { node, depth, parentLocationId },
+    ...(expandedIds.has(node.id) ? flattenLocationRows(node.children, expandedIds, depth + 1, node.id) : []),
   ]);
 }
 
@@ -388,7 +400,7 @@ function LocationTreeCard({
             <div>{t('masterData.locations.type', 'ประเภท')}: <span className="text-foreground">{node.type ?? '-'}</span></div>
             <div>{t('masterData.locations.descriptionLabel', 'คำอธิบาย')}: <span className="text-foreground">{lookup.get(node.id)?.description ?? '-'}</span></div>
           </div>
-          {!isNested && location ? <LocationNodeActions wsId={wsId} siteId={siteId} location={location} onEdit={onEdit} /> : null}
+          {location ? <LocationNodeActions wsId={wsId} siteId={siteId} location={location} onEdit={onEdit} /> : null}
         </CardContent>
       </Card>
       {node.children.length > 0 ? (
@@ -552,6 +564,11 @@ export function MasterDataPage() {
   const [categoryPageSize, setCategoryPageSize] = useState(10);
   const [sitePage, setSitePage] = useState(1);
   const [sitePageSize, setSitePageSize] = useState(10);
+  const [expandedLocationIds, setExpandedLocationIds] = useState<Set<string>>(new Set());
+  const [selectedLocationIds, setSelectedLocationIds] = useState<Set<string>>(new Set());
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const [selectedSiteIds, setSelectedSiteIds] = useState<Set<string>>(new Set());
   const [editLocation, setEditLocation] = useState<Location | null>(null);
   const [createLocationOpen, setCreateLocationOpen] = useState(false);
 
@@ -572,6 +589,12 @@ export function MasterDataPage() {
   const selectedSiteLocations = selectedSiteLocationsQuery.data ?? [];
   const selectedSiteLocationTreeQuery = useLocationTree(wsId, selectedSiteId);
   const selectedSiteLocationTree = selectedSiteLocationTreeQuery.data ?? [];
+  useEffect(() => {
+    setExpandedLocationIds(new Set(selectedSiteLocationTree.map((node) => node.id)));
+    setSelectedLocationIds(new Set());
+  }, [selectedSiteLocationTree]);
+
+  const locationRows = useMemo(() => flattenLocationRows(selectedSiteLocationTree, expandedLocationIds), [expandedLocationIds, selectedSiteLocationTree]);
   const locationLookup = useMemo(() => new Map(selectedSiteLocations.map((location) => [location.id, location] as const)), [selectedSiteLocations]);
   const lookupData = lookupsQuery.data;
   const visibleProducts = products.slice((productPage - 1) * productPageSize, productPage * productPageSize);
@@ -611,11 +634,14 @@ export function MasterDataPage() {
         />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]">
+          <BulkSelectionToolbar count={selectedProductIds.size} />
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-muted/55 text-sm text-foreground"><tr>
+              <th className="w-12 px-4 py-3 font-medium"><input type="checkbox" aria-label="เลือกสินค้าทั้งหมด" checked={visibleProducts.length > 0 && visibleProducts.every((item) => selectedProductIds.has(item.id))} onChange={(event) => setSelectedProductIds(event.target.checked ? new Set(visibleProducts.map((item) => item.id)) : new Set())} /></th>
               <th className="px-4 py-3 font-medium">{t('masterData.products.nameLabel', 'สินค้า')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.category', 'หมวดหมู่')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.unit', 'หน่วย')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.trackingLabel', 'ประเภท')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.assetCount', 'ทรัพย์สิน')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.totalStock', 'สต็อก')}</th><th className="px-4 py-3 font-medium">{t('common.status', 'สถานะ')}</th><th className="px-4 py-3 font-medium">{t('common.actions', 'จัดการ')}</th>
             </tr></thead>
             <tbody className="divide-y divide-border/60">{visibleProducts.map((product) => <tr key={product.id} className="transition-colors hover:bg-primary/5">
+              <td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${product.name}`} checked={selectedProductIds.has(product.id)} onChange={() => setSelectedProductIds((current) => { const next = new Set(current); if (next.has(product.id)) next.delete(product.id); else next.add(product.id); return next; })} /></td>
               <td className="px-4 py-3 font-medium">{product.name}{product.code ?? product.sku ? <div className="text-xs font-normal text-muted-foreground">{product.code ?? product.sku}</div> : null}</td><td className="px-4 py-3">{product.categoryName ?? '-'}</td><td className="px-4 py-3">{product.unitCode ?? '-'}</td><td className="px-4 py-3"><Tag color={trackingTypeColor(product.trackingType)}>{product.trackingType}</Tag></td><td className="px-4 py-3">{product.assetCount}</td><td className="px-4 py-3">{product.totalStock}</td><td className="px-4 py-3"><Tag color={statusColor(product.isActive)}>{product.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><ProductCardActions wsId={wsId} product={product} onEdit={setEditProduct} /></td>
             </tr>)}</tbody>
           </table>
@@ -650,7 +676,7 @@ export function MasterDataPage() {
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="px-4 py-3 font-semibold">ชื่อหมวดหมู่</th><th className="px-4 py-3 font-semibold">คำอธิบาย</th><th className="px-4 py-3 font-semibold">จำนวนสินค้า</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleCategories.map((category) => <tr key={category.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3 font-medium">{category.name}</td><td className="px-4 py-3">{category.description ?? '-'}</td><td className="px-4 py-3">{category.productCount}</td><td className="px-4 py-3"><Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><CategoryCardActions wsId={wsId} category={category} onEdit={setEditCategory} /></td></tr>)}</tbody></table><MasterDataPagination page={categoryPage} pageSize={categoryPageSize} total={categories.length} onChange={(page, pageSize) => { setCategoryPage(page); setCategoryPageSize(pageSize); }} /></div>
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><BulkSelectionToolbar count={selectedCategoryIds.size} /><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกหมวดหมู่ทั้งหมด" checked={visibleCategories.length > 0 && visibleCategories.every((item) => selectedCategoryIds.has(item.id))} onChange={(event) => setSelectedCategoryIds(event.target.checked ? new Set(visibleCategories.map((item) => item.id)) : new Set())} /></th><th className="px-4 py-3 font-semibold">ชื่อหมวดหมู่</th><th className="px-4 py-3 font-semibold">คำอธิบาย</th><th className="px-4 py-3 font-semibold">จำนวนสินค้า</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleCategories.map((category) => <tr key={category.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${category.name}`} checked={selectedCategoryIds.has(category.id)} onChange={() => setSelectedCategoryIds((current) => { const next = new Set(current); if (next.has(category.id)) next.delete(category.id); else next.add(category.id); return next; })} /></td><td className="px-4 py-3 font-medium">{category.name}</td><td className="px-4 py-3">{category.description ?? '-'}</td><td className="px-4 py-3">{category.productCount}</td><td className="px-4 py-3"><Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><CategoryCardActions wsId={wsId} category={category} onEdit={setEditCategory} /></td></tr>)}</tbody></table><MasterDataPagination page={categoryPage} pageSize={categoryPageSize} total={categories.length} onChange={(page, pageSize) => { setCategoryPage(page); setCategoryPageSize(pageSize); }} /></div>
       )}
     </div>
   );
@@ -680,7 +706,7 @@ export function MasterDataPage() {
           icon={<SiteIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="px-4 py-3 font-semibold">ชื่อสถานที่</th><th className="px-4 py-3 font-semibold">ประเภท</th><th className="px-4 py-3 font-semibold">ที่อยู่</th><th className="px-4 py-3 font-semibold">จำนวนตำแหน่ง</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleSites.map((site) => <tr key={site.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3 font-medium">{site.name}</td><td className="px-4 py-3">{site.type ?? '-'}</td><td className="px-4 py-3">{site.address ?? '-'}</td><td className="px-4 py-3">{site.locationCount}</td><td className="px-4 py-3"><Tag color={statusColor(site.isActive)}>{site.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><SiteCardActions wsId={wsId} site={site} onEdit={setEditSite} /></td></tr>)}</tbody></table><MasterDataPagination page={sitePage} pageSize={sitePageSize} total={sites.length} onChange={(page, pageSize) => { setSitePage(page); setSitePageSize(pageSize); }} /></div>
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><BulkSelectionToolbar count={selectedSiteIds.size} /><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกสถานที่ทั้งหมด" checked={visibleSites.length > 0 && visibleSites.every((item) => selectedSiteIds.has(item.id))} onChange={(event) => setSelectedSiteIds(event.target.checked ? new Set(visibleSites.map((item) => item.id)) : new Set())} /></th><th className="px-4 py-3 font-semibold">ชื่อสถานที่</th><th className="px-4 py-3 font-semibold">ประเภท</th><th className="px-4 py-3 font-semibold">ที่อยู่</th><th className="px-4 py-3 font-semibold">จำนวนตำแหน่ง</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleSites.map((site) => <tr key={site.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${site.name}`} checked={selectedSiteIds.has(site.id)} onChange={() => setSelectedSiteIds((current) => { const next = new Set(current); if (next.has(site.id)) next.delete(site.id); else next.add(site.id); return next; })} /></td><td className="px-4 py-3 font-medium">{site.name}</td><td className="px-4 py-3">{site.type ?? '-'}</td><td className="px-4 py-3">{site.address ?? '-'}</td><td className="px-4 py-3">{site.locationCount}</td><td className="px-4 py-3"><Tag color={statusColor(site.isActive)}>{site.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><SiteCardActions wsId={wsId} site={site} onEdit={setEditSite} /></td></tr>)}</tbody></table><MasterDataPagination page={sitePage} pageSize={sitePageSize} total={sites.length} onChange={(page, pageSize) => { setSitePage(page); setSitePageSize(pageSize); }} /></div>
       )}
     </div>
   );
@@ -739,17 +765,68 @@ export function MasterDataPage() {
                 icon={<LocationIcon className="h-5 w-5" />}
               />
             ) : (
-              <div className="space-y-3">
-                {selectedSiteLocationTree.map((node) => (
-                  <LocationTreeCard
-                    key={node.id}
-                    node={node}
-                    lookup={locationLookup}
-                    wsId={wsId}
-                    siteId={selectedSiteId}
-                    onEdit={setEditLocation}
-                  />
-                ))}
+              <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]">
+                {selectedLocationIds.size > 0 ? (
+                  <div className="mb-3 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
+                    <span className="text-sm font-medium">เลือกแล้ว {selectedLocationIds.size} รายการ</span>
+                    <Button size="sm" variant="destructive" disabled title="รอเชื่อมต่อ Bulk Delete API">ลบรายการที่เลือก</Button>
+                  </div>
+                ) : null}
+                <table className="w-full min-w-[760px] text-left text-sm">
+                  <thead className="bg-muted/55 text-sm text-foreground"><tr>
+                    <th className="w-12 px-4 py-3 font-semibold"><input type="checkbox" aria-label="เลือกตำแหน่งทั้งหมด" checked={locationRows.length > 0 && locationRows.every(({ node }) => selectedLocationIds.has(node.id))} onChange={(event) => setSelectedLocationIds(event.target.checked ? new Set(locationRows.map(({ node }) => node.id)) : new Set())} /></th>
+                    <th className="px-4 py-3 font-semibold">ชื่อตำแหน่ง</th>
+                    <th className="px-4 py-3 font-semibold">รหัส</th>
+                    <th className="px-4 py-3 font-semibold">ประเภท</th>
+                    <th className="px-4 py-3 font-semibold">คำอธิบาย</th>
+                    <th className="px-4 py-3 font-semibold">จัดการ</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-border/60">
+                    {locationRows.map(({ node, depth, parentLocationId }) => {
+                      const location = locationLookup.get(node.id) ?? {
+                        id: node.id,
+                        workspaceId: wsId,
+                        siteId: selectedSiteId,
+                        parentLocationId,
+                        name: node.name,
+                        type: node.type ?? undefined,
+                        code: node.code ?? undefined,
+                        sortOrder: node.sortOrder,
+                        description: undefined,
+                        childCount: node.children.length,
+                        createdAt: '',
+                      };
+                      const hasChildren = node.children.length > 0;
+                      const isExpanded = expandedLocationIds.has(node.id);
+                      return (
+                        <tr key={node.id} className="transition-colors hover:bg-primary/5">
+                          <td className="px-4 py-3"><input type="checkbox" aria-label={`เลือก ${node.name}`} checked={selectedLocationIds.has(node.id)} onChange={() => setSelectedLocationIds((current) => { const next = new Set(current); if (next.has(node.id)) next.delete(node.id); else next.add(node.id); return next; })} /></td>
+                          <td className="px-4 py-3 font-medium" style={{ paddingLeft: `${16 + depth * 28}px` }}>
+                            {hasChildren ? (
+                              <button
+                                type="button"
+                                className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                                aria-label={isExpanded ? 'หุบตำแหน่งย่อย' : 'ขยายตำแหน่งย่อย'}
+                                onClick={() => setExpandedLocationIds((current) => {
+                                  const next = new Set(current);
+                                  if (next.has(node.id)) next.delete(node.id); else next.add(node.id);
+                                  return next;
+                                })}
+                              >
+                                {isExpanded ? '▾' : '▸'}
+                              </button>
+                            ) : <span className="mr-2 inline-block w-6" />}
+                            {depth > 0 ? <span className="mr-2 text-muted-foreground">↳</span> : null}{node.name}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{node.code ?? '-'}</td>
+                          <td className="px-4 py-3">{node.type ?? '-'}</td>
+                          <td className="px-4 py-3">{location?.description ?? '-'}</td>
+                          <td className="px-4 py-3"><LocationNodeActions wsId={wsId} siteId={selectedSiteId} location={location} onEdit={setEditLocation} /></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
@@ -837,7 +914,6 @@ export function MasterDataPage() {
           { key: 'categories', label: t('masterData.categories.tab', 'Categories'), children: categoryTab },
           { key: 'sites', label: t('masterData.sites.tab', 'Sites'), children: siteTab },
           { key: 'locations', label: t('masterData.locations.tab', 'Locations'), children: locationTab },
-          { key: 'reference', label: t('masterData.reference.tab', 'Reference'), children: referenceTab },
         ]}
       />
 
