@@ -46,9 +46,9 @@ function toCategory(dto: CategoryDto): Category {
   };
 }
 
-export async function listCategories(wsId: string): Promise<Category[]> {
+export async function listCategories(wsId: string, page = 1, pageSize = 100): Promise<Category[]> {
   const response = await client.get<ApiResponse<PagedResult<CategoryDto>>>(`/workspaces/${encodeURIComponent(wsId)}/categories`, {
-    params: { page: 1, pageSize: 100 },
+    params: { page, pageSize },
   });
   return response.data.data.items.map(toCategory);
 }

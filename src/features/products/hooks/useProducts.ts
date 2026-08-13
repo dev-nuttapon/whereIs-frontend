@@ -4,10 +4,10 @@ import { queryKeys } from '@/lib/queryKeys';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 
-export function useProducts(wsId: string) {
+export function useProducts(wsId: string, page = 1, pageSize = 100) {
   return useQuery({
-    queryKey: queryKeys.products(wsId),
-    queryFn: () => listProducts(wsId),
+    queryKey: [...queryKeys.products(wsId), page, pageSize],
+    queryFn: () => listProducts(wsId, page, pageSize),
     enabled: Boolean(wsId),
   });
 }

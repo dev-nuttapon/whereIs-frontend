@@ -85,9 +85,9 @@ function toProduct(dto: ProductDto): Product {
   };
 }
 
-export async function listProducts(wsId: string): Promise<Product[]> {
+export async function listProducts(wsId: string, page = 1, pageSize = 100): Promise<Product[]> {
   const response = await client.get<ApiResponse<PagedResult<ProductDto>>>(`/workspaces/${encodeURIComponent(wsId)}/products`, {
-    params: { page: 1, pageSize: 100 },
+    params: { page, pageSize },
   });
   return response.data.data.items.map(toProduct);
 }

@@ -5,10 +5,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 
-export function useSites(wsId: string) {
+export function useSites(wsId: string, page = 1, pageSize = 100) {
   return useQuery({
-    queryKey: queryKeys.sites(wsId),
-    queryFn: () => listSites(wsId),
+    queryKey: [...queryKeys.sites(wsId), page, pageSize],
+    queryFn: () => listSites(wsId, page, pageSize),
     enabled: Boolean(wsId),
   });
 }

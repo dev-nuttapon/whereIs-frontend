@@ -5,10 +5,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/hooks/useI18n';
 import { pushNotification } from '@/stores/notification.store';
 
-export function useLocations(wsId: string, siteId?: string | null) {
+export function useLocations(wsId: string, siteId?: string | null, page = 1, pageSize = 100) {
   return useQuery({
-    queryKey: queryKeys.locations.bySite(wsId, siteId ?? ''),
-    queryFn: () => listLocations(wsId, siteId),
+    queryKey: [...queryKeys.locations.bySite(wsId, siteId ?? ''), page, pageSize],
+    queryFn: () => listLocations(wsId, siteId, page, pageSize),
     enabled: Boolean(wsId),
   });
 }

@@ -29,8 +29,9 @@ export function ItemsPage() {
   const [filters, setFilters] = useState<InventoryFilters>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const assetsQuery = useAssets(wsId, { page: 1, pageSize: 100 });
-  const stockQuery = useStockEntries(wsId, { page: 1, pageSize: 100 });
+  const requestedPageSize = page * pageSize;
+  const assetsQuery = useAssets(wsId, { page: 1, pageSize: requestedPageSize });
+  const stockQuery = useStockEntries(wsId, { page: 1, pageSize: requestedPageSize });
   const assets = assetsQuery.data ?? [];
   const stockEntries = stockQuery.data?.items ?? [];
   const isLoading = assetsQuery.isLoading || stockQuery.isLoading;

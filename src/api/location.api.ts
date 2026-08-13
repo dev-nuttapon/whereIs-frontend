@@ -92,9 +92,9 @@ function toLocationTreeNode(dto: LocationTreeNodeDto): LocationTreeNode {
   };
 }
 
-export async function listLocations(wsId: string, siteId?: string | null): Promise<Location[]> {
+export async function listLocations(wsId: string, siteId?: string | null, page = 1, pageSize = 100): Promise<Location[]> {
   const response = await client.get<ApiResponse<PagedResult<LocationDto>>>(`/workspaces/${encodeURIComponent(wsId)}/locations`, {
-    params: { siteId: siteId ?? undefined, page: 1, pageSize: 100 },
+    params: { siteId: siteId ?? undefined, page, pageSize },
   });
   return response.data.data.items.map(toLocation);
 }

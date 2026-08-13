@@ -550,16 +550,10 @@ export function MasterDataPage() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
   const lookupsQuery = useLookups();
-  const productsQuery = useProducts(wsId);
-  const categoriesQuery = useCategories(wsId);
-  const sitesQuery = useSites(wsId);
   const createProduct = useCreateProduct(wsId);
   const createCategory = useCreateCategory(wsId);
   const createSite = useCreateSite(wsId);
   const createLocation = useCreateLocation(wsId);
-  const products = productsQuery.data ?? [];
-  const categories = categoriesQuery.data ?? [];
-  const sites = sitesQuery.data ?? [];
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [createProductOpen, setCreateProductOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<Category | null>(null);
@@ -583,6 +577,12 @@ export function MasterDataPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [editLocation, setEditLocation] = useState<Location | null>(null);
   const [createLocationOpen, setCreateLocationOpen] = useState(false);
+  const productsQuery = useProducts(wsId, 1, productPage * productPageSize);
+  const categoriesQuery = useCategories(wsId, 1, categoryPage * categoryPageSize);
+  const sitesQuery = useSites(wsId, 1, sitePage * sitePageSize);
+  const products = productsQuery.data ?? [];
+  const categories = categoriesQuery.data ?? [];
+  const sites = sitesQuery.data ?? [];
 
   useEffect(() => {
     if (!selectedSiteId && sites.length > 0) {
@@ -597,7 +597,7 @@ export function MasterDataPage() {
   }, [selectedSiteId, sites]);
 
   const selectedSite = sites.find((site) => site.id === selectedSiteId) ?? null;
-  const selectedSiteLocationsQuery = useLocations(wsId, selectedSiteId);
+  const selectedSiteLocationsQuery = useLocations(wsId, selectedSiteId, 1, locationPage * locationPageSize);
   const selectedSiteLocations = selectedSiteLocationsQuery.data ?? [];
   const selectedSiteLocationTreeQuery = useLocationTree(wsId, selectedSiteId);
   const selectedSiteLocationTree = selectedSiteLocationTreeQuery.data ?? [];

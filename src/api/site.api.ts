@@ -53,9 +53,9 @@ function toSite(dto: SiteDto): Site {
   };
 }
 
-export async function listSites(wsId: string): Promise<Site[]> {
+export async function listSites(wsId: string, page = 1, pageSize = 100): Promise<Site[]> {
   const response = await client.get<ApiResponse<PagedResult<SiteDto>>>(`/workspaces/${encodeURIComponent(wsId)}/sites`, {
-    params: { page: 1, pageSize: 100 },
+    params: { page, pageSize },
   });
   return response.data.data.items.map(toSite);
 }
