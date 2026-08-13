@@ -1,5 +1,6 @@
 import { client } from '@/api/client';
 import type { ContainerAccessScope, Workspace } from '@/types/domain.types';
+import { normalizeWorkspaceRole } from '@/lib/workspace-role';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -39,7 +40,7 @@ function toWorkspace(dto: WorkspaceDto): Workspace {
     ownerUserId: dto.ownerUserId,
     isActive: dto.isActive,
     description: undefined,
-    myRole: dto.myRoleCode as Workspace['myRole'],
+    myRole: normalizeWorkspaceRole(dto.myRoleCode),
     permissions: dto.permissions ?? [],
     containerAccessScope: dto.containerAccessScope ?? null,
     createdAt: dto.createdAt,

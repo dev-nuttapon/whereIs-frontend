@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { authStore } from '@/stores/auth.store';
 import { workspaceStore } from '@/stores/workspace.store';
@@ -6,22 +6,34 @@ import { queryClient } from '@/lib/queryClient';
 import { getCurrentUser, refreshAuthSession } from '@/api/auth.api';
 
 export function AuthBootstrap() {
+  const [hasHydrated, setHasHydrated] = useState(() => authStore.persist.hasHydrated());
   const query = useCurrentUser();
   const isAuthenticated = authStore((state) => state.isAuthenticated);
+  const refreshToken = authStore((state) => state.refreshToken);
   const setAuth = authStore((state) => state.setAuth);
   const updateUser = authStore((state) => state.updateUser);
   const startBootstrap = authStore((state) => state.startBootstrap);
   const markUnauthenticated = authStore((state) => state.markUnauthenticated);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (hasHydrated) {
+      return;
+    }
+
+    return authStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+  }, [hasHydrated]);
+
+  useEffect(() => {
+    if (!hasHydrated || isAuthenticated) {
       return;
     }
 
     let active = true;
     startBootstrap();
     workspaceStore.getState().clear();
-    void refreshAuthSession()
+    void refreshAuthSession(refreshToken ?? undefined)
       .then(async (session) => {
         const user = await getCurrentUser();
         if (!active) {
@@ -40,7 +52,7 @@ export function AuthBootstrap() {
     return () => {
       active = false;
     };
-  }, [isAuthenticated, markUnauthenticated, setAuth, startBootstrap]);
+  }, [hasHydrated, isAuthenticated, markUnauthenticated, refreshToken, setAuth, startBootstrap]);
 
   useEffect(() => {
     if (query.data) {

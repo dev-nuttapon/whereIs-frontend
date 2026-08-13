@@ -45,7 +45,7 @@ export interface SidebarProps {
 const SECTIONS: Array<{ titleKey: string; titleFallback: string; items: Array<NavItem['labelKey']> }> = [
   { titleKey: 'nav.group.main', titleFallback: 'Main', items: ['nav.dashboard', 'nav.activity'] },
   { titleKey: 'nav.group.inventory', titleFallback: 'Inventory', items: ['nav.receive', 'nav.inventory', 'nav.products', 'nav.assets', 'nav.stock', 'nav.containers', 'nav.borrowOrders'] },
-  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.reports', 'nav.notifications', 'nav.members'] },
+  { titleKey: 'nav.group.management', titleFallback: 'Management', items: ['nav.masterData', 'nav.reports', 'nav.notifications', 'nav.members'] },
 ] as const;
 
 export function Sidebar({ onNavigate }: SidebarProps) {

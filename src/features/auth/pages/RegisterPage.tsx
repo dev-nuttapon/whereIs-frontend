@@ -61,7 +61,7 @@ export function RegisterPage() {
       </div>
       {error ? <Alert className="mb-4" type="error" showIcon message={t('auth.register.error')} description={error} /> : null}
       <Form.Item
-        label={t('auth.email')}
+        label={`${t('auth.email')} (จำเป็น)`}
         name="email"
         rules={[
           { required: true, message: t('auth.email.required') },
@@ -70,11 +70,11 @@ export function RegisterPage() {
       >
         <Input autoComplete="email" placeholder={t('auth.email.placeholder')} />
       </Form.Item>
-      <Form.Item label={t('auth.name')} name="displayName">
+      <Form.Item label={`${t('auth.name')} (จำเป็น)`} name="displayName">
         <Input autoComplete="name" placeholder={t('auth.name.placeholder')} />
       </Form.Item>
       <Form.Item
-        label={t('auth.password')}
+        label={`${t('auth.password')} (จำเป็น)`}
         name="password"
         rules={[{ required: true, message: t('auth.password.required') }]}
       >
@@ -82,7 +82,7 @@ export function RegisterPage() {
       </Form.Item>
       <Form.Item
         className="!mb-3"
-        label={t('auth.confirmPassword')}
+        label={`${t('auth.confirmPassword')} (จำเป็น)`}
         name="confirmPassword"
         dependencies={['password']}
         rules={[

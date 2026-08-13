@@ -130,7 +130,7 @@ export function AppRoutes() {
               <Route path="notifications" element={<PermissionGuard perm="notification.view"><NotificationsPage /></PermissionGuard>} />
               <Route path="borrow-orders" element={<PermissionGuard perm="borrow.view"><BorrowOrdersPage /></PermissionGuard>} />
               <Route path="borrow-orders/:orderId" element={<PermissionGuard perm="borrow.view"><BorrowOrderDetailPage /></PermissionGuard>} />
-              <Route path="master-data" element={<PermissionGuard perm="category.manage"><MasterDataPage /></PermissionGuard>} />
+              <Route path="master-data" element={<PermissionGuard perm={['product.view', 'category.manage']} mode="any"><MasterDataPage /></PermissionGuard>} />
               <Route path="containers/:containerId" element={<PermissionGuard perm="container.view"><ContainerDetailPage /></PermissionGuard>} />
               <Route path="members" element={<PermissionGuard perm="member.view"><MembersPage /></PermissionGuard>} />
               <Route path="members/:memberId" element={<PermissionGuard perm="member.view"><MemberDetailPage /></PermissionGuard>} />
