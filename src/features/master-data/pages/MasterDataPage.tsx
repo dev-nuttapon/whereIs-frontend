@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Popconfirm, Tag } from 'antd';
+import { Pagination, Popconfirm, Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -36,6 +36,32 @@ function trackingTypeColor(trackingType: string) {
 
 function statusColor(isActive: boolean) {
   return isActive ? 'green' : 'default';
+}
+
+function MasterDataPagination({
+  page,
+  pageSize,
+  total,
+  onChange,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onChange: (page: number, pageSize: number) => void;
+}) {
+  return (
+    <div className="flex justify-end border-t border-border/60 pt-3">
+      <Pagination
+        current={page}
+        pageSize={pageSize}
+        total={total}
+        showSizeChanger
+        pageSizeOptions={[10, 20, 50]}
+        showTotal={(count, range) => `${range[0]}-${range[1]} จาก ${count} รายการ`}
+        onChange={onChange}
+      />
+    </div>
+  );
 }
 
 function flattenLocationNodes(nodes: LocationTreeNode[], depth = 0): Array<{ value: string; label: string }> {
@@ -338,33 +364,37 @@ function LocationTreeCard({
   wsId,
   siteId,
   onEdit,
+  isNested = false,
 }: {
   node: LocationTreeNode;
   lookup: Map<string, Location>;
   wsId: string;
   siteId: string;
   onEdit: (location: Location) => void;
+  isNested?: boolean;
 }) {
+  const { t } = useI18n();
   const location = lookup.get(node.id);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <Card className="hover:-translate-y-0.5 hover:shadow-md">
-        <CardContent className="space-y-4 p-5 sm:p-6">
+        <CardContent className="space-y-2 p-3 sm:p-4">
           <div className="space-y-1">
             <CardTitle className="text-lg">{node.name}</CardTitle>
-            <CardDescription>{node.code ?? node.type ?? node.id}</CardDescription>
+            {node.code ? <CardDescription>{node.code}</CardDescription> : null}
           </div>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <div>{lookup.get(node.id)?.description ?? '-'}</div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <div>{t('masterData.locations.type', 'ประเภท')}: <span className="text-foreground">{node.type ?? '-'}</span></div>
+            <div>{t('masterData.locations.descriptionLabel', 'คำอธิบาย')}: <span className="text-foreground">{lookup.get(node.id)?.description ?? '-'}</span></div>
           </div>
-          {location ? <LocationNodeActions wsId={wsId} siteId={siteId} location={location} onEdit={onEdit} /> : null}
+          {!isNested && location ? <LocationNodeActions wsId={wsId} siteId={siteId} location={location} onEdit={onEdit} /> : null}
         </CardContent>
       </Card>
       {node.children.length > 0 ? (
-        <div className="ml-4 space-y-3 border-l border-border/60 pl-4">
+        <div className="ml-3 space-y-2 border-l border-border/60 pl-3">
           {node.children.map((child) => (
-            <LocationTreeCard key={child.id} node={child} lookup={lookup} wsId={wsId} siteId={siteId} onEdit={onEdit} />
+            <LocationTreeCard key={child.id} node={child} lookup={lookup} wsId={wsId} siteId={siteId} onEdit={onEdit} isNested />
           ))}
         </div>
       ) : null}
@@ -516,6 +546,12 @@ export function MasterDataPage() {
   const [editSite, setEditSite] = useState<Site | null>(null);
   const [createSiteOpen, setCreateSiteOpen] = useState(false);
   const [selectedSiteId, setSelectedSiteId] = useState('');
+  const [productPage, setProductPage] = useState(1);
+  const [productPageSize, setProductPageSize] = useState(10);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categoryPageSize, setCategoryPageSize] = useState(10);
+  const [sitePage, setSitePage] = useState(1);
+  const [sitePageSize, setSitePageSize] = useState(10);
   const [editLocation, setEditLocation] = useState<Location | null>(null);
   const [createLocationOpen, setCreateLocationOpen] = useState(false);
 
@@ -538,6 +574,9 @@ export function MasterDataPage() {
   const selectedSiteLocationTree = selectedSiteLocationTreeQuery.data ?? [];
   const locationLookup = useMemo(() => new Map(selectedSiteLocations.map((location) => [location.id, location] as const)), [selectedSiteLocations]);
   const lookupData = lookupsQuery.data;
+  const visibleProducts = products.slice((productPage - 1) * productPageSize, productPage * productPageSize);
+  const visibleCategories = categories.slice((categoryPage - 1) * categoryPageSize, categoryPage * categoryPageSize);
+  const visibleSites = sites.slice((sitePage - 1) * sitePageSize, sitePage * sitePageSize);
 
   const stats = useMemo(() => [
     { label: t('masterData.stats.products', 'Products'), value: products.length },
@@ -571,29 +610,16 @@ export function MasterDataPage() {
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {products.map((product) => (
-            <Card key={product.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{product.name}</CardTitle>
-                  <CardDescription>{product.code ?? product.sku ?? product.id}</CardDescription>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Tag color={trackingTypeColor(product.trackingType)}>{product.trackingType}</Tag>
-                  <Tag color={statusColor(product.isActive)}>{product.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Tag>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('masterData.products.category', 'Category')}: {product.categoryName ?? '-'}</div>
-                  <div>{t('masterData.products.unit', 'Unit')}: {product.unitCode ?? '-'}</div>
-                  <div>{t('masterData.products.assetCount', 'Items')}: {product.assetCount}</div>
-                  <div>{t('masterData.products.totalStock', 'Stock')}: {product.totalStock}</div>
-                  <div>{t('masterData.products.minStockAlert', 'Min stock alert')}: {product.minStockAlert ?? '-'}</div>
-                </div>
-                <ProductCardActions wsId={wsId} product={product} onEdit={setEditProduct} />
-              </CardContent>
-            </Card>
-          ))}
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="bg-muted/55 text-sm text-foreground"><tr>
+              <th className="px-4 py-3 font-medium">{t('masterData.products.nameLabel', 'สินค้า')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.category', 'หมวดหมู่')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.unit', 'หน่วย')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.trackingLabel', 'ประเภท')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.assetCount', 'ทรัพย์สิน')}</th><th className="px-4 py-3 font-medium">{t('masterData.products.totalStock', 'สต็อก')}</th><th className="px-4 py-3 font-medium">{t('common.status', 'สถานะ')}</th><th className="px-4 py-3 font-medium">{t('common.actions', 'จัดการ')}</th>
+            </tr></thead>
+            <tbody className="divide-y divide-border/60">{visibleProducts.map((product) => <tr key={product.id} className="transition-colors hover:bg-primary/5">
+              <td className="px-4 py-3 font-medium">{product.name}{product.code ?? product.sku ? <div className="text-xs font-normal text-muted-foreground">{product.code ?? product.sku}</div> : null}</td><td className="px-4 py-3">{product.categoryName ?? '-'}</td><td className="px-4 py-3">{product.unitCode ?? '-'}</td><td className="px-4 py-3"><Tag color={trackingTypeColor(product.trackingType)}>{product.trackingType}</Tag></td><td className="px-4 py-3">{product.assetCount}</td><td className="px-4 py-3">{product.totalStock}</td><td className="px-4 py-3"><Tag color={statusColor(product.isActive)}>{product.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><ProductCardActions wsId={wsId} product={product} onEdit={setEditProduct} /></td>
+            </tr>)}</tbody>
+          </table>
+          <MasterDataPagination page={productPage} pageSize={productPageSize} total={products.length} onChange={(page, pageSize) => { setProductPage(page); setProductPageSize(pageSize); }} />
         </div>
       )}
     </div>
@@ -624,26 +650,7 @@ export function MasterDataPage() {
           icon={<DatabaseIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {categories.map((category) => (
-            <Card key={category.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{category.name}</CardTitle>
-                  <CardDescription>{category.description ?? category.id}</CardDescription>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-muted-foreground">{category.description ?? t('masterData.categories.noDescription', 'No description')}</span>
-                  <Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Tag>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('masterData.categories.productCount', 'Products')}: {category.productCount}</div>
-                </div>
-                <CategoryCardActions wsId={wsId} category={category} onEdit={setEditCategory} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="px-4 py-3 font-semibold">ชื่อหมวดหมู่</th><th className="px-4 py-3 font-semibold">คำอธิบาย</th><th className="px-4 py-3 font-semibold">จำนวนสินค้า</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleCategories.map((category) => <tr key={category.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3 font-medium">{category.name}</td><td className="px-4 py-3">{category.description ?? '-'}</td><td className="px-4 py-3">{category.productCount}</td><td className="px-4 py-3"><Tag color={statusColor(category.isActive)}>{category.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><CategoryCardActions wsId={wsId} category={category} onEdit={setEditCategory} /></td></tr>)}</tbody></table><MasterDataPagination page={categoryPage} pageSize={categoryPageSize} total={categories.length} onChange={(page, pageSize) => { setCategoryPage(page); setCategoryPageSize(pageSize); }} /></div>
       )}
     </div>
   );
@@ -673,26 +680,7 @@ export function MasterDataPage() {
           icon={<SiteIcon className="h-5 w-5" />}
         />
       ) : (
-        <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-          {sites.map((site) => (
-            <Card key={site.id} className="hover:-translate-y-0.5 hover:shadow-md">
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{site.name}</CardTitle>
-                  <CardDescription>{site.type ?? site.id}</CardDescription>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Tag color={statusColor(site.isActive)}>{site.isActive ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Tag>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>{t('masterData.sites.address', 'Address')}: {site.address ?? '-'}</div>
-                  <div>{t('masterData.sites.locationCount', 'Locations')}: {site.locationCount}</div>
-                </div>
-                <SiteCardActions wsId={wsId} site={site} onEdit={setEditSite} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="overflow-x-auto rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.55)]"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-muted/55 text-sm text-foreground"><tr><th className="px-4 py-3 font-semibold">ชื่อสถานที่</th><th className="px-4 py-3 font-semibold">ประเภท</th><th className="px-4 py-3 font-semibold">ที่อยู่</th><th className="px-4 py-3 font-semibold">จำนวนตำแหน่ง</th><th className="px-4 py-3 font-semibold">สถานะ</th><th className="px-4 py-3 font-semibold">จัดการ</th></tr></thead><tbody className="divide-y divide-border/60">{visibleSites.map((site) => <tr key={site.id} className="transition-colors hover:bg-primary/5"><td className="px-4 py-3 font-medium">{site.name}</td><td className="px-4 py-3">{site.type ?? '-'}</td><td className="px-4 py-3">{site.address ?? '-'}</td><td className="px-4 py-3">{site.locationCount}</td><td className="px-4 py-3"><Tag color={statusColor(site.isActive)}>{site.isActive ? t('common.active', 'ใช้งานอยู่') : t('common.inactive', 'ไม่ใช้งาน')}</Tag></td><td className="px-4 py-3"><SiteCardActions wsId={wsId} site={site} onEdit={setEditSite} /></td></tr>)}</tbody></table><MasterDataPagination page={sitePage} pageSize={sitePageSize} total={sites.length} onChange={(page, pageSize) => { setSitePage(page); setSitePageSize(pageSize); }} /></div>
       )}
     </div>
   );
@@ -720,7 +708,7 @@ export function MasterDataPage() {
         />
       ) : (
         <Card className="shadow-sm">
-          <CardContent className="space-y-4 p-5 sm:p-6">
+          <CardContent className="space-y-3 p-4">
             <div className="grid gap-3 md:grid-cols-[minmax(0,20rem)_1fr]">
               <div className="space-y-1">
                 <p className="text-sm font-medium">{t('masterData.locations.siteSelector', 'Selected site')}</p>
@@ -751,7 +739,7 @@ export function MasterDataPage() {
                 icon={<LocationIcon className="h-5 w-5" />}
               />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {selectedSiteLocationTree.map((node) => (
                   <LocationTreeCard
                     key={node.id}
