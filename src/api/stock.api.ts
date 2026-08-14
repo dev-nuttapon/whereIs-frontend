@@ -26,6 +26,8 @@ interface StockEntryDto {
   containerId: string | null;
   containerName: string | null;
   quantity: number;
+  reservedQuantity?: number | null;
+  availableQuantity?: number | null;
   lotCode: string | null;
   expiryDate: string | null;
   alertLeadDays: number | null;
@@ -59,6 +61,8 @@ function toStockEntry(dto: StockEntryDto): StockEntry {
     containerId: dto.containerId ?? undefined,
     containerName: dto.containerName ?? undefined,
     quantity: dto.quantity,
+    reservedQuantity: dto.reservedQuantity ?? undefined,
+    availableQuantity: dto.availableQuantity ?? undefined,
     lotCode: dto.lotCode ?? undefined,
     expiryDate: dto.expiryDate ?? undefined,
     alertLeadDays: dto.alertLeadDays ?? undefined,

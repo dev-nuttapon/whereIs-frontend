@@ -47,11 +47,12 @@ export function useCreateBorrowOrder(wsId: string) {
       pushNotification({ variant: 'success', title: t('notifications.borrowOrderCreated', 'สร้าง borrow order แล้ว') });
     },
     onError: (error) => {
-      const response = (error as { response?: { data?: { message?: string; error?: string } } }).response;
+      const response = (error as { response?: { data?: { message?: string; error?: string; errors?: Array<{ message?: string }> } } }).response;
+      const message = response?.data?.message ?? response?.data?.errors?.find((item) => item.message)?.message ?? response?.data?.error;
       pushNotification({
         variant: 'error',
         title: 'บันทึกข้อมูลไม่สำเร็จ',
-        description: response?.data?.message ?? response?.data?.error ?? (error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง'),
+        description: message ?? (error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง'),
       });
     },
   });

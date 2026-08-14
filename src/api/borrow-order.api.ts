@@ -18,6 +18,7 @@ interface BorrowOrderDto {
   workspaceId: string;
   requestType?: 'borrow' | 'issue' | null;
   requestedBy: string;
+  reservationExpiresAt?: string | null;
   purpose: string | null;
   needByDate: string;
   returnByDate: string | null;
@@ -99,6 +100,7 @@ function toBorrowOrder(dto: BorrowOrderDto): BorrowOrder {
     workspaceId: dto.workspaceId,
     requestType: dto.requestType ?? 'borrow',
     requestedBy: dto.requestedBy,
+    reservationExpiresAt: dto.reservationExpiresAt ?? null,
     purpose: dto.purpose ?? undefined,
     needByDate: dto.needByDate,
     returnByDate: dto.returnByDate ?? null,

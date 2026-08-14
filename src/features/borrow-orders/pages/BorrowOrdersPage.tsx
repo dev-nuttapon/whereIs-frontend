@@ -65,8 +65,8 @@ function todayInputValue() {
 
 function apiErrorMessage(error: unknown) {
   if (typeof error === 'object' && error !== null && 'response' in error) {
-    const response = (error as { response?: { data?: { message?: string; error?: string } } }).response;
-    const message = response?.data?.message ?? response?.data?.error;
+    const response = (error as { response?: { data?: { message?: string; error?: string; errors?: Array<{ message?: string }> } } }).response;
+    const message = response?.data?.message ?? response?.data?.errors?.find((item) => item.message)?.message ?? response?.data?.error;
     if (message) return message;
   }
   return error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง';
@@ -276,7 +276,7 @@ function CreateBorrowDialog({
               const otherLinesQuantity = line.kind === 'stock' && line.stockEntryId
                 ? lines.reduce((sum, otherLine) => sum + (otherLine.id !== line.id && otherLine.kind === 'stock' && otherLine.stockEntryId === line.stockEntryId ? Number(otherLine.quantity) || 0 : 0), 0)
                 : 0;
-              const availableQuantity = selectedStock ? Math.max(0, selectedStock.quantity - otherLinesQuantity) : undefined;
+              const availableQuantity = selectedStock ? Math.max(0, (selectedStock.availableQuantity ?? selectedStock.quantity) - otherLinesQuantity) : undefined;
               return (
               <div key={line.id} className="space-y-5 rounded-2xl border border-border/70 bg-background p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
@@ -356,10 +356,10 @@ function CreateBorrowDialog({
                       >
                         <option value="">{t('borrowOrders.stockPlaceholder', 'เลือกของในคลัง')}</option>
                         {stockEntries
-                          .filter((entry) => entry.quantity > 0 && (!line.productId || entry.productId === line.productId))
+                          .filter((entry) => (entry.availableQuantity ?? entry.quantity) > 0 && (!line.productId || entry.productId === line.productId))
                           .map((entry) => (
                             <option key={entry.id} value={entry.id}>
-                              {entry.productName} - คงเหลือ {entry.quantity} @ {entry.locationName ?? entry.containerName ?? '-'}
+                              {entry.productName} - คงเหลือ {entry.availableQuantity ?? entry.quantity} @ {entry.locationName ?? entry.containerName ?? '-'}
                             </option>
                           ))}
                       </Select>
@@ -424,7 +424,8 @@ function CreateBorrowDialog({
                 if (line.kind === 'asset') return !line.assetId;
                 const stockEntry = stockEntries.find((entry) => entry.id === line.stockEntryId);
                 const otherQuantity = lines.reduce((sum, otherLine) => sum + (otherLine.id !== line.id && otherLine.kind === 'stock' && otherLine.stockEntryId === line.stockEntryId ? Number(otherLine.quantity) || 0 : 0), 0);
-                return !line.productId || !line.stockEntryId || Number(line.quantity) <= 0 || !stockEntry || Number(line.quantity) + otherQuantity > stockEntry.quantity;
+                const availableQuantity = stockEntry ? (stockEntry.availableQuantity ?? stockEntry.quantity) : 0;
+                return !line.productId || !line.stockEntryId || Number(line.quantity) <= 0 || !stockEntry || Number(line.quantity) + otherQuantity > availableQuantity;
               });
               if (invalidLine) {
                 const message = requestType === 'borrow' ? 'กรุณาเลือกทรัพย์สินให้ครบถ้วน' : 'กรุณาเลือกสินค้า จุดจัดเก็บ และระบุจำนวนไม่เกินยอดคงเหลือ';
@@ -532,7 +533,12 @@ function BorrowOrderCard({
       <td className={dataTableCellClass}>{requesterName}</td>
       <td className={`${dataTableCellClass} whitespace-nowrap`}>{formatDate(order.needByDate)}</td>
       <td className={`${dataTableCellClass} whitespace-nowrap`}>{order.requestType === 'borrow' ? formatDate(order.returnByDate) : '-'}</td>
-      <td className={dataTableCellClass}><MasterStatusBadge status={order.status} kind="borrow" /></td>
+      <td className={dataTableCellClass}>
+        <div className="space-y-1">
+          <MasterStatusBadge status={order.status} kind="borrow" />
+          {order.requestType === 'issue' && order.status.toLowerCase().includes('pending') && order.reservationExpiresAt ? <p className="text-xs text-muted-foreground">หมดอายุ: {formatDate(order.reservationExpiresAt)}</p> : null}
+        </div>
+      </td>
       <td className={dataTableCellClass}>
         <div className="max-w-[18rem] space-y-1">
           {order.lines.slice(0, 3).map((line) => <div key={line.id} className="truncate text-sm">{formatLineLabel(line, names)}</div>)}

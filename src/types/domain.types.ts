@@ -225,6 +225,7 @@ export interface BorrowOrder {
   workspaceId: string;
   requestType: 'borrow' | 'issue';
   requestedBy: string;
+  reservationExpiresAt?: string | null;
   purpose?: string | null;
   needByDate: string;
   returnByDate?: string | null;
@@ -260,6 +261,8 @@ export interface StockEntry {
   containerId?: string | null;
   containerName?: string | null;
   quantity: number;
+  reservedQuantity?: number;
+  availableQuantity?: number;
   lotCode?: string | null;
   expiryDate?: string | null;
   alertLeadDays?: number | null;
