@@ -55,9 +55,9 @@ export function ItemDetailPage() {
 
         {item ? (
           <>
-            <Card>
+            <Card className="overflow-hidden border-border/80 shadow-sm">
               <CardContent className="space-y-4 p-5 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="-mx-5 -mt-5 flex flex-col gap-3 border-b border-border/70 bg-muted/30 p-5 sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{item.name}</CardTitle>
                     <CardDescription>{item.code ?? item.id}</CardDescription>
@@ -91,7 +91,7 @@ export function ItemDetailPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-[18px] md:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <StatCard label={t('items.detail.kind', 'ประเภท')} value={item.kind === 'stock' ? t('items.kind.stock', 'แบบจำนวน') : t('items.kind.single', 'แบบชิ้นเดียว')} />
                   <StatCard label={t('items.detail.status', 'สถานะ')} value={item.status} />
                   <StatCard label={t('items.detail.containerPrefix', 'คอนเทนเนอร์')} value={containerLabel} />

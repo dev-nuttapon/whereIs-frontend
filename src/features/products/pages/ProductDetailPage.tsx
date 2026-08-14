@@ -55,9 +55,9 @@ export function ProductDetailPage() {
 
         {product ? (
           <>
-            <Card>
+            <Card className="overflow-hidden border-border/80 shadow-sm">
               <CardContent className="space-y-4 p-5 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="-mx-5 -mt-5 flex flex-col gap-3 border-b border-border/70 bg-muted/30 p-5 sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{product.name}</CardTitle>
                     <CardDescription>{product.code ?? product.sku ?? product.id}</CardDescription>
@@ -87,7 +87,7 @@ export function ProductDetailPage() {
                   </div>
                 ) : null}
 
-                <div className="grid gap-[18px] md:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <StatCard label={t('products.stats.asset', 'ทรัพย์สิน')} value={assetCount} />
                   <StatCard label={t('products.stats.stock', 'สต็อก')} value={stockCount} />
                   <StatCard label={t('products.detail.minStockAlert', 'แจ้งเตือนขั้นต่ำ')} value={product.minStockAlert ?? '-'} />

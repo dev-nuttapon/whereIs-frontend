@@ -93,9 +93,9 @@ export function StockDetailPage() {
       )}
     >
       <div className="component-stack">
-        <Card>
+        <Card className="overflow-hidden border-border/80 shadow-sm">
           <CardContent className="space-y-4 p-5 sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="-mx-5 -mt-5 flex flex-col gap-3 border-b border-border/70 bg-muted/30 p-5 sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-start sm:justify-between sm:p-6">
               <div className="space-y-1">
                 <CardTitle className="text-lg">{entry.productName}</CardTitle>
                 <CardDescription>{entry.unitCode ?? entry.productId}</CardDescription>
@@ -106,7 +106,7 @@ export function StockDetailPage() {
               </div>
             </div>
 
-            <div className="grid gap-[18px] md:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard label={t('stock.quantity', 'จำนวนคงเหลือ')} value={`${entry.quantity} ${entry.unitCode ?? ''}`.trim()} />
               <StatCard label={t('stock.location', 'จุดจัดเก็บ')} value={entry.locationName ?? entry.containerName ?? '-'} />
               <StatCard label={t('stock.detail.relatedOrders', 'รายการยืมที่เกี่ยวข้อง')} value={relatedOrders.length} />
@@ -136,7 +136,7 @@ export function StockDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/80 shadow-sm">
           <CardContent className="space-y-4 p-5 sm:p-6">
             <CardTitle className="text-base">{t('stock.detail.relatedBorrowOrders', 'รายการยืมที่เกี่ยวข้อง')}</CardTitle>
             {relatedOrders.length === 0 ? (
@@ -172,7 +172,7 @@ export function StockDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/80 shadow-sm">
           <CardContent className="space-y-4 p-5 sm:p-6">
             <CardTitle className="text-base">{t('stock.detail.timelineTitle', 'ประวัติสต็อก')}</CardTitle>
             <p className="text-sm text-muted-foreground">{t('stock.detail.timelineDescription', 'การรับเข้าและกิจกรรมการยืมของสต็อกนี้')}</p>
