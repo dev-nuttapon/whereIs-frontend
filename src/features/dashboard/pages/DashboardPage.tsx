@@ -14,6 +14,7 @@ import { workspaceStore } from '@/stores/workspace.store';
 import { ROUTES } from '@/constants/routes';
 import { Button } from '@/components/ui/button';
 import { usePermission } from '@/hooks/usePermission';
+import { useDashboardSummary } from '@/features/dashboard/hooks/useDashboardSummary';
 import { ActivityIcon, ItemIcon, MemberIcon, SearchIcon, PlusIcon, BorrowIcon, BellIcon } from '@/components/ui/icons';
 
 export function DashboardPage() {
@@ -24,6 +25,7 @@ export function DashboardPage() {
   const membersQuery = useMembers(wsId);
   const productsQuery = useProducts(wsId);
   const notificationsQuery = useNotifications(wsId);
+  const dashboardQuery = useDashboardSummary(wsId);
   const { can } = usePermission();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
 
@@ -32,29 +34,10 @@ export function DashboardPage() {
   const members = membersQuery.data ?? [];
   const products = productsQuery.data ?? [];
   const notifications = notificationsQuery.data?.items ?? [];
+  const summary = dashboardQuery.data;
   const isLoading = workspaceQuery.isLoading || containersQuery.isLoading || membersQuery.isLoading;
   const hasError = workspaceQuery.isError || containersQuery.isError || membersQuery.isError;
   const isReady = !isLoading && !hasError;
-
-  const summaryCards = [
-    {
-      label: t('dashboard.members', 'Members'),
-      value: members.length,
-      description: t('dashboard.membersDescription', 'People with access to this workspace.'),
-      to: ROUTES.workspaceMembers(wsId),
-    },
-    {
-      label: t('dashboard.containers', 'Containers'),
-      value: containers.length,
-      description: t('dashboard.containersDescription', 'Places where inventory is organized.'),
-      to: ROUTES.workspaceContainers(wsId),
-    },
-    {
-      label: t('dashboard.role', 'Your role'),
-      value: workspace?.myRole ?? '-',
-      description: t('dashboard.roleDescription', 'Your access level in this workspace.'),
-    },
-  ];
 
   return (
     <PageShell
@@ -78,11 +61,38 @@ export function DashboardPage() {
 
       {isReady && workspace ? (
         <div className="component-stack">
-          <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
-            {summaryCards.map((card) => (
-              <StatCard key={card.label} label={card.label} value={card.value} description={card.description} to={card.to} />
-            ))}
+          <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="ของทั้งหมด" value={summary?.totalItems ?? '-'} description="จำนวนรายการที่มองเห็นใน workspace" to={ROUTES.workspaceSearch(wsId)} />
+            <StatCard label="จัดเก็บอยู่" value={summary?.stored ?? '-'} description="รายการที่อยู่ในจุดจัดเก็บ" to={ROUTES.workspaceSearch(wsId)} />
+            <StatCard label="ถูกยืม/นำออก" value={summary?.borrowed ?? '-'} description="รายการที่อยู่กับผู้ยืมหรือถูกนำออก" to={ROUTES.workspaceBorrowOrders(wsId)} />
+            <StatCard label="ต้องติดตาม" value={summary?.reminderCount ?? '-'} description="การแจ้งเตือนและงานที่รอดำเนินการ" to={ROUTES.workspaceNotifications(wsId)} />
           </div>
+
+          {dashboardQuery.isError ? <ErrorState message="โหลดสรุปสถานะคลังไม่สำเร็จ" onRetry={() => dashboardQuery.refetch()} /> : null}
+
+          {dashboardQuery.isSuccess ? (
+            <Card className="border-amber-200 bg-amber-50/45">
+              <CardContent className="space-y-4 p-5 sm:p-6">
+                <div className="space-y-1">
+                  <CardTitle className="text-base">คำแนะนำที่ควรดำเนินการ</CardTitle>
+                  <CardDescription>รายการที่มีความสำคัญต่อการดูแลคลังในขณะนี้</CardDescription>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    { label: 'สต็อกต่ำ', value: dashboardQuery.data.lowStock, to: ROUTES.workspaceStock(wsId) },
+                    { label: 'ของหมด', value: dashboardQuery.data.outOfStock, to: ROUTES.workspaceStock(wsId) },
+                    { label: 'ยืมเกินกำหนด', value: dashboardQuery.data.overdueReturn, to: ROUTES.workspaceBorrowOrders(wsId) },
+                    { label: 'รออนุมัติ/จอง', value: dashboardQuery.data.reservationWaiting, to: ROUTES.workspaceBorrowOrders(wsId) },
+                  ].map((item) => (
+                    <Link key={item.label} to={item.to} className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-background/70 p-3 transition-colors hover:bg-background">
+                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-lg font-semibold">{item.value}</span>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {(products.length === 0 || containers.length === 0) && (can('product.view') || can('container.view')) ? (
             <Card className="border-amber-200 bg-amber-50/45">
