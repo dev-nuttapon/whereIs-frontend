@@ -15,6 +15,7 @@ import { ROUTES } from '@/constants/routes';
 import { Button } from '@/components/ui/button';
 import { usePermission } from '@/hooks/usePermission';
 import { useDashboardSummary } from '@/features/dashboard/hooks/useDashboardSummary';
+import { useActivity } from '@/features/activity/hooks/useActivity';
 import { ActivityIcon, ItemIcon, MemberIcon, SearchIcon, PlusIcon, BorrowIcon, BellIcon } from '@/components/ui/icons';
 
 export function DashboardPage() {
@@ -26,6 +27,7 @@ export function DashboardPage() {
   const productsQuery = useProducts(wsId);
   const notificationsQuery = useNotifications(wsId);
   const dashboardQuery = useDashboardSummary(wsId);
+  const activityQuery = useActivity(wsId, { limit: 5 });
   const { can } = usePermission();
   const currentWorkspace = workspaceStore((state) => state.currentWorkspace);
 
@@ -35,6 +37,15 @@ export function DashboardPage() {
   const products = productsQuery.data ?? [];
   const notifications = notificationsQuery.data?.items ?? [];
   const summary = dashboardQuery.data;
+  const summaryValue = (value: number | undefined) => dashboardQuery.isLoading ? '…' : value ?? '-';
+  const actionRecommendations = summary ? [
+    { label: 'สต็อกต่ำ', value: summary.lowStock, to: ROUTES.workspaceStock(wsId) },
+    { label: 'ของหมด', value: summary.outOfStock, to: ROUTES.workspaceStock(wsId) },
+    { label: 'ยืมเกินกำหนด', value: summary.overdueReturn, to: ROUTES.workspaceBorrowOrders(wsId) },
+    { label: 'รออนุมัติ/จอง', value: summary.reservationWaiting, to: ROUTES.workspaceBorrowOrders(wsId) },
+    { label: 'ของหาย', value: summary.missing, to: ROUTES.workspaceSearch(wsId) },
+    { label: 'รอซ่อม', value: summary.repair, to: ROUTES.workspaceSearch(wsId) },
+  ].filter((item) => item.value > 0) : [];
   const isLoading = workspaceQuery.isLoading || containersQuery.isLoading || membersQuery.isLoading;
   const hasError = workspaceQuery.isError || containersQuery.isError || membersQuery.isError;
   const isReady = !isLoading && !hasError;
@@ -62,10 +73,10 @@ export function DashboardPage() {
       {isReady && workspace ? (
         <div className="component-stack">
           <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="ของทั้งหมด" value={summary?.totalItems ?? '-'} description="จำนวนรายการที่มองเห็นใน workspace" to={ROUTES.workspaceSearch(wsId)} />
-            <StatCard label="จัดเก็บอยู่" value={summary?.stored ?? '-'} description="รายการที่อยู่ในจุดจัดเก็บ" to={ROUTES.workspaceSearch(wsId)} />
-            <StatCard label="ถูกยืม/นำออก" value={summary?.borrowed ?? '-'} description="รายการที่อยู่กับผู้ยืมหรือถูกนำออก" to={ROUTES.workspaceBorrowOrders(wsId)} />
-            <StatCard label="ต้องติดตาม" value={summary?.reminderCount ?? '-'} description="การแจ้งเตือนและงานที่รอดำเนินการ" to={ROUTES.workspaceNotifications(wsId)} />
+            <StatCard label="ของทั้งหมด" value={summaryValue(summary?.totalItems)} description="จำนวนรายการที่มองเห็นใน workspace" to={ROUTES.workspaceSearch(wsId)} />
+            <StatCard label="จัดเก็บอยู่" value={summaryValue(summary?.stored)} description="รายการที่อยู่ในจุดจัดเก็บ" to={ROUTES.workspaceSearch(wsId)} />
+            <StatCard label="ถูกยืม/นำออก" value={summaryValue(summary?.borrowed)} description="รายการที่อยู่กับผู้ยืมหรือถูกนำออก" to={ROUTES.workspaceBorrowOrders(wsId)} />
+            <StatCard label="ต้องติดตาม" value={summaryValue(summary?.reminderCount)} description="การแจ้งเตือนและงานที่รอดำเนินการ" to={ROUTES.workspaceNotifications(wsId)} />
           </div>
 
           {dashboardQuery.isError ? <ErrorState message="โหลดสรุปสถานะคลังไม่สำเร็จ" onRetry={() => dashboardQuery.refetch()} /> : null}
@@ -77,22 +88,47 @@ export function DashboardPage() {
                   <CardTitle className="text-base">คำแนะนำที่ควรดำเนินการ</CardTitle>
                   <CardDescription>รายการที่มีความสำคัญต่อการดูแลคลังในขณะนี้</CardDescription>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {[
-                    { label: 'สต็อกต่ำ', value: dashboardQuery.data.lowStock, to: ROUTES.workspaceStock(wsId) },
-                    { label: 'ของหมด', value: dashboardQuery.data.outOfStock, to: ROUTES.workspaceStock(wsId) },
-                    { label: 'ยืมเกินกำหนด', value: dashboardQuery.data.overdueReturn, to: ROUTES.workspaceBorrowOrders(wsId) },
-                    { label: 'รออนุมัติ/จอง', value: dashboardQuery.data.reservationWaiting, to: ROUTES.workspaceBorrowOrders(wsId) },
-                  ].map((item) => (
+                {actionRecommendations.length === 0 ? <p className="text-sm text-muted-foreground">ขณะนี้ไม่มีรายการเร่งด่วน ทุกอย่างอยู่ในสถานะปกติ</p> : null}
+                {actionRecommendations.length > 0 ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {actionRecommendations.map((item) => (
                     <Link key={item.label} to={item.to} className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-background/70 p-3 transition-colors hover:bg-background">
                       <span className="text-sm font-medium">{item.label}</span>
                       <span className="text-lg font-semibold">{item.value}</span>
                     </Link>
                   ))}
-                </div>
+                </div> : null}
               </CardContent>
             </Card>
           ) : null}
+
+          {dashboardQuery.isSuccess ? <Card>
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              <div className="space-y-1">
+                <CardTitle className="text-base">ภาพรวมสถานะคลัง</CardTitle>
+                <CardDescription>สถานะสำคัญที่ควรรู้ของ workspace</CardDescription>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  ['จองแล้ว', summary?.reserved],
+                  ['ของหาย', summary?.missing],
+                  ['รอซ่อม', summary?.repair],
+                ].map(([label, value]) => <div key={String(label)} className="rounded-xl border border-border/70 p-3"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>)}
+              </div>
+            </CardContent>
+          </Card> : null}
+
+          <Card>
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-1"><CardTitle className="text-base">กิจกรรมล่าสุด</CardTitle><CardDescription>การเปลี่ยนแปลงล่าสุดใน workspace</CardDescription></div>
+                <Button asChild variant="outline" size="sm"><Link to={ROUTES.workspaceActivity(wsId)}>ดูทั้งหมด</Link></Button>
+              </div>
+              {activityQuery.isLoading ? <LoadingState label="กำลังโหลดกิจกรรม..." /> : null}
+              {activityQuery.isError ? <ErrorState message="โหลดกิจกรรมล่าสุดไม่สำเร็จ" onRetry={() => activityQuery.refetch()} /> : null}
+              {activityQuery.isSuccess && activityQuery.data.items.length === 0 ? <p className="text-sm text-muted-foreground">ยังไม่มีกิจกรรมล่าสุด</p> : null}
+              {activityQuery.isSuccess && activityQuery.data.items.length > 0 ? <div className="divide-y divide-border/70 rounded-xl border border-border/70">{activityQuery.data.items.map((event) => <Link key={event.id} to={ROUTES.workspaceActivity(wsId)} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-muted/50"><span><strong>{event.actor.name}</strong> · {event.eventType}</span><span className="text-xs text-muted-foreground">{new Date(event.createdAt).toLocaleString()}</span></Link>)}</div> : null}
+            </CardContent>
+          </Card>
 
           {(products.length === 0 || containers.length === 0) && (can('product.view') || can('container.view')) ? (
             <Card className="border-amber-200 bg-amber-50/45">
