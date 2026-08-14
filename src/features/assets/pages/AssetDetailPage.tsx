@@ -19,6 +19,7 @@ import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders'
 import { EditIcon, OpenIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
 import { PermissionGuard } from '@/components/common/PermissionGuard';
 import { safeAssetUrl } from '@/lib/safe-url';
+import { formatDetailDate, statusLabel } from '@/components/common/detailPresentation';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -80,7 +81,7 @@ export function AssetDetailPage() {
                   <CardDescription>{asset.serialNumber ?? asset.barcode ?? asset.id}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Tag color={statusColor(asset.status)}>{asset.status}</Tag>
+                  <Tag color={statusColor(asset.status)}>{statusLabel(asset.status)}</Tag>
                   <Tag color="blue">{asset.condition}</Tag>
                 </div>
               </div>
@@ -194,8 +195,8 @@ export function AssetDetailPage() {
                     <div className="space-y-1 text-sm text-muted-foreground">
                       <div>{t('assets.detail.serialNumber', 'หมายเลขซีเรียล')}: {asset.serialNumber ?? '-'}</div>
                       <div>{t('assets.detail.barcode', 'บาร์โค้ด')}: {asset.barcode ?? '-'}</div>
-                      <div>{t('assets.detail.acquiredDate', 'วันที่ได้มา')}: {asset.acquiredDate ? new Date(asset.acquiredDate).toLocaleDateString() : '-'}</div>
-                      <div>{t('assets.detail.expiryDate', 'วันหมดอายุ')}: {asset.expiryDate ? new Date(asset.expiryDate).toLocaleDateString() : '-'}</div>
+                      <div>{t('assets.detail.acquiredDate', 'วันที่ได้มา')}: {formatDetailDate(asset.acquiredDate)}</div>
+                      <div>{t('assets.detail.expiryDate', 'วันหมดอายุ')}: {formatDetailDate(asset.expiryDate)}</div>
                       <div>{t('assets.detail.alertLeadDays', 'แจ้งเตือนล่วงหน้า')}: {asset.alertLeadDays ?? '-'} {t('common.days', 'วัน')}</div>
                     </div>
                   </div>
@@ -226,7 +227,7 @@ export function AssetDetailPage() {
                           {t('borrowOrders.requestedBy', 'ผู้ขอ')}: {order.requestedBy}
                         </p>
                             </div>
-                            <Tag color={statusColor(order.status)}>{order.status}</Tag>
+                            <Tag color={statusColor(order.status)}>{statusLabel(order.status)}</Tag>
                           </div>
                           <div className="mt-3 flex flex-wrap gap-2">
                             <Button asChild variant="outline" size="sm" className="rounded-full">

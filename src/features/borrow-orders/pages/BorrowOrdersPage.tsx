@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Popconfirm, Tag } from 'antd';
+import { Tag } from 'antd';
 import { PageShell } from '@/components/common/PageShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { FormField } from '@/components/forms/FormField';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { useI18n } from '@/hooks/useI18n';
-import { ClipboardCheckIcon, FilterIcon, PlusIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
+import { ClipboardCheckIcon, FilterIcon, PlusIcon } from '@/components/ui/icons';
 import { OpenIcon } from '@/components/ui/icons';
 import { ROUTES } from '@/constants/routes';
 import { useAssets } from '@/features/assets/hooks/useAssets';
@@ -31,6 +31,10 @@ import type { BorrowOrder, BorrowOrderLine } from '@/types/domain.types';
 import type { CreateBorrowOrderInput } from '@/api/borrow-order.api';
 import { MasterStatusBadge } from '@/components/common/MasterStatusBadge';
 import { pushNotification } from '@/stores/notification.store';
+import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
+import { DropdownMenu } from '@/components/ui/dropdown-menu';
+import { MenuIcon } from '@/components/ui/icons';
+import { useMembers } from '@/features/members/hooks/useMembers';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -68,11 +72,18 @@ function apiErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง';
 }
 
-function formatLineLabel(line: BorrowOrderLine) {
+function formatLineLabel(
+  line: BorrowOrderLine,
+  names?: { assetNameById?: Map<string, string>; productNameById?: Map<string, string>; stockNameById?: Map<string, string> },
+) {
   if (line.assetId) {
-    return `${line.assetSerialNumber ?? line.assetId}`;
+    return `${names?.assetNameById?.get(line.assetId) ?? line.productName ?? 'ทรัพย์สิน'}${line.assetSerialNumber ? ` (${line.assetSerialNumber})` : ''}`;
   }
-  return `${line.productName ?? line.productId ?? line.stockEntryId ?? '-'}${line.quantity ? ` x ${line.quantity}` : ''}`;
+  const productName = line.productName
+    ?? (line.productId ? names?.productNameById?.get(line.productId) : undefined)
+    ?? (line.stockEntryId ? names?.stockNameById?.get(line.stockEntryId) : undefined)
+    ?? 'สินค้าในคลัง';
+  return `${productName}${line.quantity ? ` x ${line.quantity}` : ''}`;
 }
 
 function ReturnDialog({
@@ -338,7 +349,7 @@ function CreateBorrowDialog({
                         value={line.stockEntryId}
                         onChange={(event) =>
                           setLines((current) =>
-                            current.map((entry) => (entry.id === line.id ? { ...entry, stockEntryId: event.target.value } : entry)),
+                            current.map((entry) => (entry.id === line.id ? { ...entry, stockEntryId: event.target.value, quantity: '1' } : entry)),
                           )
                         }
                         className="w-full"
@@ -361,6 +372,8 @@ function CreateBorrowDialog({
                         min={1}
                         max={availableQuantity}
                         value={line.quantity}
+                        disabled={!selectedStock || availableQuantity === 0}
+                        placeholder={selectedStock ? 'ระบุจำนวน' : 'เลือกจุดจัดเก็บก่อน'}
                         onChange={(event) =>
                           setLines((current) =>
                             current.map((entry) => {
@@ -371,7 +384,7 @@ function CreateBorrowDialog({
                           )
                         }
                       />
-                      {selectedStock ? <p className="text-xs text-muted-foreground">คงเหลือให้เบิก: {availableQuantity ?? 0}</p> : null}
+                      {selectedStock ? <p className="text-xs text-muted-foreground">คงเหลือให้เบิก: {availableQuantity ?? 0}</p> : <p className="text-xs text-muted-foreground">กรุณาเลือกจุดจัดเก็บก่อนระบุจำนวน</p>}
                     </FormField>
                   </div>
                 )}
@@ -456,9 +469,13 @@ function CreateBorrowDialog({
 function BorrowOrderCard({
   order,
   onReturn,
+  requesterName,
+  names,
 }: {
   order: BorrowOrder;
   onReturn: (order: BorrowOrder) => void;
+  requesterName: string;
+  names: { assetNameById: Map<string, string>; productNameById: Map<string, string>; stockNameById: Map<string, string> };
 }) {
   const { t } = useI18n();
   const approve = useApproveBorrowOrder(order.workspaceId, order.id);
@@ -470,132 +487,74 @@ function BorrowOrderCard({
   const isApproved = order.status.toLowerCase().includes('approved');
   const isActive = order.status.toLowerCase().includes('active');
 
+  const actionItems = [
+    {
+      key: 'approve',
+      label: approve.isPending ? 'กำลังอนุมัติ...' : 'อนุมัติ',
+      disabled: !isPendingApproval || approve.isPending,
+      onClick: () => { if (window.confirm('ยืนยันการอนุมัติรายการนี้หรือไม่?')) void approve.mutateAsync({}); },
+    },
+    {
+      key: 'reject',
+      label: reject.isPending ? 'กำลังปฏิเสธ...' : 'ปฏิเสธ',
+      disabled: !isPendingApproval || reject.isPending,
+      onClick: () => { if (window.confirm('ยืนยันการปฏิเสธรายการนี้หรือไม่?')) void reject.mutateAsync({}); },
+    },
+    {
+      key: 'checkout',
+      label: checkout.isPending ? 'กำลังเบิกจ่าย...' : order.requestType === 'issue' ? 'เบิกจ่าย' : 'รับของออก',
+      disabled: !isApproved || checkout.isPending,
+      onClick: () => { if (window.confirm('ยืนยันการดำเนินรายการนี้หรือไม่?')) void checkout.mutateAsync(); },
+    },
+    {
+      key: 'return',
+      label: 'คืนรายการ',
+      disabled: !isActive || order.requestType !== 'borrow',
+      onClick: () => onReturn(order),
+    },
+    {
+      key: 'cancel',
+      label: cancel.isPending ? 'กำลังยกเลิก...' : 'ยกเลิกรายการ',
+      danger: true,
+      disabled: !(isPendingApproval || isApproved || isActive) || cancel.isPending,
+      onClick: () => { if (window.confirm('ยืนยันการยกเลิกรายการนี้หรือไม่?')) void cancel.mutateAsync({}); },
+    },
+  ];
+
   return (
-    <Card className="hover:-translate-y-0.5 hover:shadow-md">
-      <CardContent className="component-stack p-5 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'Borrow order')}</CardTitle>
-            <CardDescription>{order.requestType === 'issue' ? 'เบิกสินค้าในคลัง' : 'ยืมทรัพย์สิน'} · {order.id}</CardDescription>
-          </div>
-          <MasterStatusBadge status={order.status} kind="borrow" />
+    <DataTableRow>
+      <td className={dataTableCellClass}>
+        <div className="space-y-1">
+          <p className="font-medium">{order.purpose ?? t('borrowOrders.untitled', 'รายการเบิก/ยืม')}</p>
         </div>
-
-        <div className="grid gap-[18px] md:grid-cols-2">
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <div>{t('borrowOrders.requestedBy', 'ผู้ขอรายการ')}: {order.requestedBy}</div>
-            <div>{t('borrowOrders.needByDate', 'Need by')}: {formatDate(order.needByDate)}</div>
-            {order.requestType === 'borrow' ? <div>{t('borrowOrders.returnByDate', 'กำหนดคืน')}: {formatDate(order.returnByDate)}</div> : null}
-            <div>{t('borrowOrders.requiresApproval', 'Requires approval')}: {order.requiresApproval ? t('common.yes', 'Yes') : t('common.no', 'No')}</div>
-          </div>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <div>{t('borrowOrders.lineCount', 'Lines')}: {order.lines.length}</div>
-            <div>{t('borrowOrders.approvedBy', 'Approved by')}: {order.approvedBy ?? '-'}</div>
-            <div>{t('borrowOrders.approvedAt', 'Approved at')}: {order.approvedAt ? formatDate(order.approvedAt) : '-'}</div>
-            <div>{t('borrowOrders.reviewNote', 'Review note')}: {order.reviewNote ?? '-'}</div>
-          </div>
+      </td>
+      <td className={dataTableCellClass}>{order.requestType === 'issue' ? 'เบิกสินค้าในคลัง' : 'ยืมทรัพย์สิน'}</td>
+      <td className={dataTableCellClass}>{requesterName}</td>
+      <td className={`${dataTableCellClass} whitespace-nowrap`}>{formatDate(order.needByDate)}</td>
+      <td className={`${dataTableCellClass} whitespace-nowrap`}>{order.requestType === 'borrow' ? formatDate(order.returnByDate) : '-'}</td>
+      <td className={dataTableCellClass}><MasterStatusBadge status={order.status} kind="borrow" /></td>
+      <td className={dataTableCellClass}>
+        <div className="max-w-[18rem] space-y-1">
+          {order.lines.slice(0, 3).map((line) => <div key={line.id} className="truncate text-sm">{formatLineLabel(line, names)}</div>)}
+          {order.lines.length > 3 ? <div className="text-xs text-muted-foreground">และอีก {order.lines.length - 3} รายการ</div> : null}
         </div>
-
-        <div className="space-y-2">
-          <CardTitle className="text-sm">{t('borrowOrders.linesTitle', 'Lines')}</CardTitle>
-          <div className="space-y-2">
-            {order.lines.map((line) => (
-              <div key={line.id} className="rounded-2xl border border-border/70 bg-background/60 px-4 py-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-medium">{formatLineLabel(line)}</span>
-                  <MasterStatusBadge status={line.status} kind="borrow" />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {line.assetId ? t('borrowOrders.assetLine', 'รายการทรัพย์สิน') : t('borrowOrders.stockLine', 'รายการของในคลัง')}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <Button asChild variant="outline" className="rounded-full">
+      </td>
+      <td className={`${dataTableCellClass} text-right`}>
+        <div className="flex min-w-[18rem] flex-wrap justify-end gap-2">
+          <Button asChild variant="outline" size="sm" className="rounded-full">
             <Link to={ROUTES.workspaceBorrowOrderDetail(order.workspaceId, order.id)}>
               <OpenIcon className="h-4 w-4" />
               {t('borrowOrders.openDetail', 'Open detail')}
             </Link>
           </Button>
 
-          {isPendingApproval ? (
-            <>
-              <Popconfirm
-                title={t('borrowOrders.approveConfirmTitle', 'Approve this borrow order?')}
-                description={t('borrowOrders.approveConfirmDescription', 'Approved orders can be checked out next.')}
-                okText={t('borrowOrders.approve', 'Approve')}
-                cancelText={t('common.cancel', 'Cancel')}
-                onConfirm={async () => {
-                  await approve.mutateAsync({});
-                }}
-              >
-                <Button className="rounded-full" disabled={approve.isPending}>
-                  <TakeOutIcon className="h-4 w-4" />
-                  {approve.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.approve', 'Approve')}
-                </Button>
-              </Popconfirm>
-              <Popconfirm
-                title={t('borrowOrders.rejectConfirmTitle', 'Reject this borrow order?')}
-                description={t('borrowOrders.rejectConfirmDescription', 'Rejected orders will not be checked out.')}
-                okText={t('borrowOrders.reject', 'Reject')}
-                cancelText={t('common.cancel', 'Cancel')}
-                okButtonProps={{ danger: true }}
-                onConfirm={async () => {
-                  await reject.mutateAsync({});
-                }}
-              >
-                <Button variant="outline" className="rounded-full" disabled={reject.isPending}>
-                  {reject.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.reject', 'Reject')}
-                </Button>
-              </Popconfirm>
-            </>
-          ) : null}
-
-          {isApproved ? (
-            <Popconfirm
-              title={t('borrowOrders.checkoutConfirmTitle', 'Check out this borrow order?')}
-              description={t('borrowOrders.checkoutConfirmDescription', 'Stock and asset status will be updated.')}
-              okText={t('borrowOrders.checkout', 'Check out')}
-              cancelText={t('common.cancel', 'Cancel')}
-              onConfirm={async () => {
-                await checkout.mutateAsync();
-              }}
-            >
-              <Button className="rounded-full" disabled={checkout.isPending}>
-                {checkout.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.checkout', 'Check out')}
-              </Button>
-            </Popconfirm>
-          ) : null}
-
-          {isActive && order.requestType === 'borrow' ? (
-            <Button variant="outline" className="rounded-full" onClick={() => onReturn(order)}>
-              <ReturnIcon className="h-4 w-4" />
-              {t('borrowOrders.return', 'Return')}
-            </Button>
-          ) : null}
-
-          {isPendingApproval || isApproved || isActive ? (
-            <Popconfirm
-              title={t('borrowOrders.cancelConfirmTitle', 'Cancel this borrow order?')}
-              description={t('borrowOrders.cancelConfirmDescription', 'This will stop the order and release any checked-out assets or stock.')}
-              okText={t('borrowOrders.cancel', 'Cancel order')}
-              cancelText={t('common.cancel', 'Cancel')}
-              okButtonProps={{ danger: true }}
-              onConfirm={async () => {
-                await cancel.mutateAsync({});
-              }}
-            >
-              <Button variant="destructive" className="rounded-full" disabled={cancel.isPending}>
-                {cancel.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.cancel', 'Cancel order')}
-              </Button>
-            </Popconfirm>
-          ) : null}
+          <DropdownMenu
+            trigger={<Button variant="outline" size="sm" className="rounded-full"><MenuIcon className="h-4 w-4" />ตัวเลือก</Button>}
+            items={actionItems}
+          />
         </div>
-      </CardContent>
-    </Card>
+      </td>
+    </DataTableRow>
   );
 }
 
@@ -603,7 +562,15 @@ export function BorrowOrdersPage() {
   const { wsId = '' } = useParams();
   const { t } = useI18n();
   const query = useBorrowOrders(wsId, { pageSize: 100 });
+  const membersQuery = useMembers(wsId);
+  const assetsQuery = useAssets(wsId, { pageSize: 100 });
+  const productsQuery = useProducts(wsId);
+  const stockQuery = useStockEntries(wsId, { pageSize: 100 });
   const orders = query.data?.items ?? [];
+  const requesterNameById = useMemo(() => new Map((membersQuery.data ?? []).flatMap((member) => [[member.user.id, member.user.name], [member.id, member.user.name]])), [membersQuery.data]);
+  const assetNameById = useMemo(() => new Map((assetsQuery.data ?? []).map((asset) => [asset.id, asset.productName])), [assetsQuery.data]);
+  const productNameById = useMemo(() => new Map((productsQuery.data ?? []).map((product) => [product.id, product.name])), [productsQuery.data]);
+  const stockNameById = useMemo(() => new Map((stockQuery.data?.items ?? []).map((entry) => [entry.id, entry.productName])), [stockQuery.data]);
   const [returnOrder, setReturnOrder] = useState<BorrowOrder | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -669,11 +636,23 @@ export function BorrowOrdersPage() {
         </Card>
       ) : null}
 
-      <div className="component-stack">
-        {visibleOrders.map((order) => (
-          <BorrowOrderCard key={order.id} order={order} onReturn={setReturnOrder} />
-        ))}
-      </div>
+      {visibleOrders.length > 0 ? (
+        <DataTableShell minWidth="min-w-[1320px]">
+          <DataTableHead>
+            <th className={dataTableCellClass}>รายการ</th>
+            <th className={dataTableCellClass}>ประเภทคำขอ</th>
+            <th className={dataTableCellClass}>ผู้ขอ</th>
+            <th className={dataTableCellClass}>วันที่ต้องการ</th>
+            <th className={dataTableCellClass}>กำหนดคืน</th>
+            <th className={dataTableCellClass}>สถานะ</th>
+            <th className={dataTableCellClass}>รายการสินค้า/ทรัพย์สิน</th>
+            <th className={`${dataTableCellClass} text-right`}>จัดการ</th>
+          </DataTableHead>
+          <tbody>
+            {visibleOrders.map((order) => <BorrowOrderCard key={order.id} order={order} onReturn={setReturnOrder} requesterName={requesterNameById.get(order.requestedBy) ?? order.requestedBy} names={{ assetNameById, productNameById, stockNameById }} />)}
+          </tbody>
+        </DataTableShell>
+      ) : null}
 
       <div className="flex flex-col gap-3 border-t border-border/70 px-5 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><span>{filteredOrders.length === 0 ? '0 รายการ' : `${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, filteredOrders.length)} จาก ${filteredOrders.length} รายการ`}</span><div className="flex items-center gap-2"><Button type="button" variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1}>ก่อนหน้า</Button><span className="min-w-16 text-center text-foreground">หน้า {page} / {pageCount}</span><Button type="button" variant="outline" size="sm" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount}>ถัดไป</Button><Select className="w-24" value={String(pageSize)} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}><option value="10">10 / หน้า</option><option value="25">25 / หน้า</option><option value="50">50 / หน้า</option></Select></div></div>
 

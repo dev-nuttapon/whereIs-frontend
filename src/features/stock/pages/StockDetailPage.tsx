@@ -15,6 +15,7 @@ import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/Cre
 import { BorrowOrderReturnDialog } from '@/features/borrow-orders/components/BorrowOrderReturnDialog';
 import { useBorrowOrders } from '@/features/borrow-orders/hooks/useBorrowOrders';
 import { EditIcon, OpenIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/icons';
+import { formatDetailDate, statusLabel } from '@/components/common/detailPresentation';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -50,7 +51,7 @@ export function StockDetailPage() {
 
   if (!entry) {
     return (
-      <PageShell title={t('stock.detail.title', 'Stock detail')} description={t('stock.detail.description', 'View stock status and related borrow flow.')}>
+      <PageShell title={t('stock.detail.title', 'รายละเอียดสต็อก')} description={t('stock.detail.description', 'ดูจำนวน สถานที่จัดเก็บ และประวัติการใช้งานของสต็อก')}>
         <EmptyState
           title={t('stock.detail.emptyTitle', 'Stock entry not found')}
           description={t('stock.detail.emptyDescription', 'This stock entry does not exist or was removed.')}
@@ -82,12 +83,12 @@ export function StockDetailPage() {
 
   return (
     <PageShell
-      title={t('stock.detail.title', 'Stock detail')}
-      description={t('stock.detail.description', 'View stock status and related borrow flow.')}
+      title={t('stock.detail.title', 'รายละเอียดสต็อก')}
+      description={t('stock.detail.description', 'ดูจำนวน สถานที่จัดเก็บ และประวัติการใช้งานของสต็อก')}
       actions={(
         <Button variant="outline" onClick={() => navigate(ROUTES.workspaceStock(wsId))}>
           <OpenIcon className="h-4 w-4" />
-          {t('stock.detail.back', 'Back to list')}
+          {t('stock.detail.back', 'กลับไปที่รายการ')}
         </Button>
       )}
     >
@@ -100,35 +101,35 @@ export function StockDetailPage() {
                 <CardDescription>{entry.unitCode ?? entry.productId}</CardDescription>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Tag color="blue">{t('stock.detail.stockEntry', 'Stock entry')}</Tag>
-                {activeBorrowOrder ? <Tag color={statusColor(activeBorrowOrder.status)}>{activeBorrowOrder.status}</Tag> : null}
+                <Tag color="blue">{t('stock.detail.stockEntry', 'สต็อก')}</Tag>
+                {activeBorrowOrder ? <Tag color={statusColor(activeBorrowOrder.status)}>{statusLabel(activeBorrowOrder.status)}</Tag> : null}
               </div>
             </div>
 
             <div className="grid gap-[18px] md:grid-cols-3">
-              <StatCard label={t('stock.quantity', 'Quantity')} value={entry.quantity} />
-              <StatCard label={t('stock.location', 'Location')} value={entry.locationName ?? entry.containerName ?? '-'} />
-              <StatCard label={t('stock.detail.relatedOrders', 'Related orders')} value={relatedOrders.length} />
-              <StatCard label={t('stock.detail.lot', 'Lot / batch')} value={entry.lotCode ?? '-'} />
+              <StatCard label={t('stock.quantity', 'จำนวนคงเหลือ')} value={`${entry.quantity} ${entry.unitCode ?? ''}`.trim()} />
+              <StatCard label={t('stock.location', 'จุดจัดเก็บ')} value={entry.locationName ?? entry.containerName ?? '-'} />
+              <StatCard label={t('stock.detail.relatedOrders', 'รายการยืมที่เกี่ยวข้อง')} value={relatedOrders.length} />
+              <StatCard label={t('stock.detail.lot', 'ล็อต / ชุด')} value={entry.lotCode ?? '-'} />
             </div>
             <div className="text-sm text-muted-foreground">
-              {t('stock.detail.expiry', 'วันหมดอายุ')}: {entry.expiryDate ? new Date(entry.expiryDate).toLocaleDateString() : '-'}
+              {t('stock.detail.expiry', 'วันหมดอายุ')}: {formatDetailDate(entry.expiryDate)}
               {' · '}{t('stock.detail.alertLeadDays', 'แจ้งเตือนล่วงหน้า')}: {entry.alertLeadDays ?? '-'} {t('common.days', 'วัน')}
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setBorrowOpen(true)}>
                 <TakeOutIcon className="h-4 w-4" />
-                {t('stock.borrow.fromEntry', 'Borrow from this entry')}
+                {t('stock.borrow.fromEntry', 'เบิกจากสต็อกนี้')}
               </Button>
               <Button variant="outline" onClick={() => navigate(ROUTES.workspaceStock(wsId))}>
                 <EditIcon className="h-4 w-4" />
-                {t('stock.detail.adjustMore', 'Adjust stock')}
+                {t('stock.detail.adjustMore', 'ปรับยอดสต็อก')}
               </Button>
               {activeBorrowOrder ? (
                 <Button variant="outline" onClick={() => setReturnOpen(true)}>
                   <ReturnIcon className="h-4 w-4" />
-                  {t('stock.detail.returnStock', 'Return stock')}
+                  {t('stock.detail.returnStock', 'คืนสต็อก')}
                 </Button>
               ) : null}
             </div>
@@ -137,11 +138,11 @@ export function StockDetailPage() {
 
         <Card>
           <CardContent className="space-y-4 p-5 sm:p-6">
-            <CardTitle className="text-base">{t('stock.detail.relatedBorrowOrders', 'Related borrow orders')}</CardTitle>
+            <CardTitle className="text-base">{t('stock.detail.relatedBorrowOrders', 'รายการยืมที่เกี่ยวข้อง')}</CardTitle>
             {relatedOrders.length === 0 ? (
               <EmptyState
-                title={t('stock.detail.noBorrowHistory', 'No borrow orders yet')}
-                description={t('stock.detail.noBorrowHistoryDescription', 'Borrow history for this stock entry will appear here once it is requested.')}
+                title={t('stock.detail.noBorrowHistory', 'ยังไม่มีรายการยืม')}
+                description={t('stock.detail.noBorrowHistoryDescription', 'ประวัติการยืมของสต็อกนี้จะแสดงที่นี่เมื่อมีการขอใช้งาน')}
               />
             ) : (
               <div className="component-stack">
@@ -154,13 +155,13 @@ export function StockDetailPage() {
                           {t('borrowOrders.requestedBy', 'Requested by')}: {order.requestedBy}
                         </p>
                       </div>
-                      <Tag color={statusColor(order.status)}>{order.status}</Tag>
+                      <Tag color={statusColor(order.status)}>{statusLabel(order.status)}</Tag>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button asChild variant="outline" size="sm" className="rounded-full">
                         <Link to={ROUTES.workspaceBorrowOrderDetail(wsId, order.id)}>
                           <OpenIcon className="h-4 w-4" />
-                          {t('common.open', 'Open')}
+                          {t('common.open', 'เปิดรายการ')}
                         </Link>
                       </Button>
                     </div>
@@ -173,14 +174,14 @@ export function StockDetailPage() {
 
         <Card>
           <CardContent className="space-y-4 p-5 sm:p-6">
-            <CardTitle className="text-base">{t('stock.detail.timelineTitle', 'Stock timeline')}</CardTitle>
-            <p className="text-sm text-muted-foreground">{t('stock.detail.timelineDescription', 'Creation and borrow activity for this stock entry.')}</p>
+            <CardTitle className="text-base">{t('stock.detail.timelineTitle', 'ประวัติสต็อก')}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t('stock.detail.timelineDescription', 'การรับเข้าและกิจกรรมการยืมของสต็อกนี้')}</p>
             <div className="component-stack">
               {timeline.map((entryItem) => (
                 <div key={entryItem.id} className="rounded-2xl border border-border/70 bg-background/70 p-4">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm font-medium">{entryItem.title}</p>
-                    <Tag color={entryItem.type === 'created' ? 'green' : statusColor(entryItem.type)}>{entryItem.type}</Tag>
+                    <Tag color={entryItem.type === 'created' ? 'green' : statusColor(entryItem.type)}>{entryItem.type === 'created' ? 'สร้างรายการ' : statusLabel(entryItem.type)}</Tag>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{entryItem.description}</p>
                   <p className="mt-2 text-xs text-muted-foreground">{new Date(entryItem.date).toLocaleString()}</p>
