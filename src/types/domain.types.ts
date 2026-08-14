@@ -223,10 +223,11 @@ export interface BorrowOrderLine {
 export interface BorrowOrder {
   id: string;
   workspaceId: string;
+  requestType: 'borrow' | 'issue';
   requestedBy: string;
   purpose?: string | null;
   needByDate: string;
-  returnByDate: string;
+  returnByDate?: string | null;
   dueDateLeadDays?: number | null;
   requiresApproval: boolean;
   status: string;

@@ -16,10 +16,11 @@ export interface PagedResult<T> {
 interface BorrowOrderDto {
   id: string;
   workspaceId: string;
+  requestType?: 'borrow' | 'issue' | null;
   requestedBy: string;
   purpose: string | null;
   needByDate: string;
-  returnByDate: string;
+  returnByDate: string | null;
   dueDateLeadDays: number | null;
   requiresApproval: boolean;
   status: string;
@@ -51,9 +52,10 @@ export interface BorrowLineInput {
 }
 
 export interface CreateBorrowOrderInput {
+  requestType: 'borrow' | 'issue';
   purpose?: string | null;
   needByDate: string | Date;
-  returnByDate: string | Date;
+  returnByDate?: string | Date | null;
   dueDateLeadDays?: number | null;
   lines: BorrowLineInput[];
 }
@@ -95,10 +97,11 @@ function toBorrowOrder(dto: BorrowOrderDto): BorrowOrder {
   return {
     id: dto.id,
     workspaceId: dto.workspaceId,
+    requestType: dto.requestType ?? 'borrow',
     requestedBy: dto.requestedBy,
     purpose: dto.purpose ?? undefined,
     needByDate: dto.needByDate,
-    returnByDate: dto.returnByDate,
+    returnByDate: dto.returnByDate ?? null,
     dueDateLeadDays: dto.dueDateLeadDays ?? undefined,
     requiresApproval: dto.requiresApproval,
     status: dto.status,
@@ -112,12 +115,13 @@ function toBorrowOrder(dto: BorrowOrderDto): BorrowOrder {
 
 export async function listBorrowOrders(
   wsId: string,
-  params: { requestedBy?: string | null; status?: string | null; page?: number; pageSize?: number } = {},
+  params: { requestedBy?: string | null; status?: string | null; requestType?: 'borrow' | 'issue' | null; page?: number; pageSize?: number } = {},
 ): Promise<PagedResult<BorrowOrder>> {
   const response = await client.get<ApiResponse<PagedResult<BorrowOrderDto>>>(`/workspaces/${encodeURIComponent(wsId)}/borrow-orders`, {
     params: {
       requestedBy: params.requestedBy ?? undefined,
       status: params.status ?? undefined,
+      requestType: params.requestType ?? undefined,
       page: params.page ?? 1,
       pageSize: params.pageSize ?? 20,
     },
@@ -135,9 +139,10 @@ export async function getBorrowOrder(wsId: string, orderId: string): Promise<Bor
 
 export async function createBorrowOrder(wsId: string, input: CreateBorrowOrderInput): Promise<BorrowOrder> {
   const response = await client.post<ApiResponse<BorrowOrderDto>>(`/workspaces/${encodeURIComponent(wsId)}/borrow-orders`, {
+    requestType: input.requestType,
     purpose: input.purpose ?? null,
     needByDate: input.needByDate instanceof Date ? input.needByDate.toISOString() : input.needByDate,
-    returnByDate: input.returnByDate instanceof Date ? input.returnByDate.toISOString() : input.returnByDate,
+    returnByDate: input.returnByDate instanceof Date ? input.returnByDate.toISOString() : input.returnByDate ?? null,
     dueDateLeadDays: input.dueDateLeadDays ?? null,
     lines: input.lines.map((line) => ({
       assetId: line.assetId ?? null,

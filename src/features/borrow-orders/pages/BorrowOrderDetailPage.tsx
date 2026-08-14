@@ -33,7 +33,8 @@ function statusColor(status: string) {
   return 'geekblue';
 }
 
-function formatDate(value: string) {
+function formatDate(value?: string | null) {
+  if (!value) return '-';
   return new Intl.DateTimeFormat('th-TH', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -96,7 +97,7 @@ export function BorrowOrderDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'รายการยืม')}</CardTitle>
-                  <CardDescription>{order.id}</CardDescription>
+                  <CardDescription>{order.requestType === 'issue' ? 'เบิกสินค้าในคลัง' : 'ยืมทรัพย์สิน'} · {order.id}</CardDescription>
                 </div>
                 <Tag color={statusColor(order.status)}>{order.status}</Tag>
               </div>
@@ -114,12 +115,12 @@ export function BorrowOrderDetailPage() {
                     <p className="text-sm text-muted-foreground">{formatDate(order.needByDate)}</p>
                   </CardContent>
                 </Card>
-                <Card className="border-border/70 bg-background/70">
+                {order.requestType === 'borrow' ? <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
                     <CardTitle className="text-sm">{t('borrowOrders.returnByDate', 'กำหนดคืน')}</CardTitle>
                     <p className="text-sm text-muted-foreground">{formatDate(order.returnByDate)}</p>
                   </CardContent>
-                </Card>
+                </Card> : null}
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
                     <CardTitle className="text-sm">{t('borrowOrders.requiresApproval', 'ต้องอนุมัติ')}</CardTitle>
@@ -252,7 +253,7 @@ export function BorrowOrderDetailPage() {
                   </Popconfirm>
                 ) : null}
 
-                {isActive ? (
+                {isActive && order.requestType === 'borrow' ? (
                   <Button variant="outline" className="rounded-full" onClick={() => setReturnOpen(true)}>
                     <ReturnIcon className="h-4 w-4" />
                     {t('borrowOrders.return', 'คืน')}

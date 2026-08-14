@@ -19,7 +19,7 @@ import { pushNotification } from '@/stores/notification.store';
 
 export function useBorrowOrders(
   wsId: string,
-  params: { requestedBy?: string | null; status?: string | null; page?: number; pageSize?: number } = {},
+  params: { requestedBy?: string | null; status?: string | null; requestType?: 'borrow' | 'issue' | null; page?: number; pageSize?: number } = {},
 ) {
   return useQuery({
     queryKey: [...queryKeys.borrowOrders.all(wsId), params] as const,
@@ -45,6 +45,14 @@ export function useCreateBorrowOrder(wsId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.borrowOrders.all(wsId) });
       pushNotification({ variant: 'success', title: t('notifications.borrowOrderCreated', 'สร้าง borrow order แล้ว') });
+    },
+    onError: (error) => {
+      const response = (error as { response?: { data?: { message?: string; error?: string } } }).response;
+      pushNotification({
+        variant: 'error',
+        title: 'บันทึกข้อมูลไม่สำเร็จ',
+        description: response?.data?.message ?? response?.data?.error ?? (error instanceof Error ? error.message : 'กรุณาลองใหม่อีกครั้ง'),
+      });
     },
   });
 }

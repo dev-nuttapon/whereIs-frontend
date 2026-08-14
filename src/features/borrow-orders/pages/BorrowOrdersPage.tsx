@@ -30,6 +30,7 @@ import { useStockEntries } from '@/features/stock/hooks/useStock';
 import type { BorrowOrder, BorrowOrderLine } from '@/types/domain.types';
 import type { CreateBorrowOrderInput } from '@/api/borrow-order.api';
 import { MasterStatusBadge } from '@/components/common/MasterStatusBadge';
+import { pushNotification } from '@/stores/notification.store';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -42,11 +43,29 @@ function statusColor(status: string) {
   return 'geekblue';
 }
 
-function formatDate(value: string) {
+function formatDate(value?: string | null) {
+  if (!value) return '-';
   return new Intl.DateTimeFormat('th-TH', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value));
+}
+
+function todayInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function apiErrorMessage(error: unknown) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: string; error?: string } } }).response;
+    const message = response?.data?.message ?? response?.data?.error;
+    if (message) return message;
+  }
+  return error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง';
 }
 
 function formatLineLabel(line: BorrowOrderLine) {
@@ -163,16 +182,20 @@ function CreateBorrowDialog({
   const assets = (assetsQuery.data ?? []).filter((asset) => !['borrowed', 'disposed'].includes(asset.status.toLowerCase()));
   const products = (productsQuery.data ?? []).filter((product) => product.trackingType.toLowerCase() === 'stock');
   const stockEntries = stockQuery.data?.items ?? [];
+  const [requestType, setRequestType] = useState<'borrow' | 'issue'>('borrow');
   const [purpose, setPurpose] = useState('');
-  const [needByDate, setNeedByDate] = useState('');
+  const [needByDate, setNeedByDate] = useState(todayInputValue);
   const [returnByDate, setReturnByDate] = useState('');
   const [lines, setLines] = useState<BorrowLineDraft[]>([]);
+  const [formError, setFormError] = useState('');
 
   const resetAndClose = () => {
     setPurpose('');
-    setNeedByDate('');
+    setRequestType('borrow');
+    setNeedByDate(todayInputValue());
     setReturnByDate('');
     setLines([]);
+    setFormError('');
     onOpenChange(false);
   };
 
@@ -184,59 +207,66 @@ function CreateBorrowDialog({
     setLines((current) => [...current, { id: crypto.randomUUID(), kind: 'stock', stockEntryId: '', productId: '', quantity: '1' }]);
   };
 
-  const canSubmit = Boolean(needByDate && returnByDate && lines.length > 0 && lines.every((line) => {
-    if (line.kind === 'asset') return Boolean(line.assetId);
-    return Boolean(line.stockEntryId && line.productId && Number(line.quantity) > 0);
-  }));
-
   return (
     <Dialog size="wide" open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : resetAndClose())}>
       <DialogContent className="max-w-[56rem]">
         <DialogHeader>
-          <DialogTitle>{t('borrowOrders.createTitle', 'สร้างรายการเบิก/ยืม')}</DialogTitle>
-          <DialogDescription>{t('borrowOrders.createDescription', 'Add one or more assets or stock lines to create a new borrow order.')}</DialogDescription>
+          <DialogTitle>{requestType === 'borrow' ? 'สร้างรายการยืม' : 'สร้างรายการเบิก'}</DialogTitle>
+          <DialogDescription>เลือกประเภทคำขอครั้งเดียว แล้วเพิ่มรายการได้หลายรายการ</DialogDescription>
         </DialogHeader>
 
         <div className="component-stack px-5 pb-5 sm:px-6">
           <section className="space-y-5 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:p-5">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold">{t('borrowOrders.requestDetails', 'รายละเอียดการยืม')}</h3>
-              <p className="text-xs leading-5 text-muted-foreground">{t('borrowOrders.requestDetailsDescription', 'ระบุเหตุผลและกำหนดวันที่ต้องการยืม')}</p>
+              <h3 className="text-sm font-semibold">รายละเอียดคำขอ</h3>
+              <p className="text-xs leading-5 text-muted-foreground">ระบุประเภท วัตถุประสงค์ และวันที่ของคำขอ</p>
             </div>
+            {formError ? <ErrorState message={formError} /> : null}
+            <FormField label="ประเภทคำขอ" htmlFor="borrow-request-type">
+              <Select id="borrow-request-type" value={requestType} onChange={(event) => { const nextType = event.target.value as 'borrow' | 'issue'; setRequestType(nextType); setLines([]); setReturnByDate(''); }} className="w-full sm:max-w-xs">
+                <option value="borrow">ยืมทรัพย์สิน</option>
+                <option value="issue">เบิกสินค้าในคลัง</option>
+              </Select>
+            </FormField>
             <FormField label={t('borrowOrders.purpose', 'วัตถุประสงค์')} htmlFor="borrow-purpose">
               <Textarea id="borrow-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} rows={3} />
             </FormField>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label={t('borrowOrders.needByDate', 'Need by')} htmlFor="borrow-need">
+              <FormField label={requestType === 'borrow' ? 'วันที่ต้องการยืม' : 'วันที่ต้องการเบิก'} htmlFor="borrow-need">
                 <Input id="borrow-need" type="date" value={needByDate} onChange={(event) => setNeedByDate(event.target.value)} />
               </FormField>
-              <FormField label={t('borrowOrders.returnByDate', 'Return by')} htmlFor="borrow-return">
+              {requestType === 'borrow' ? <FormField label="กำหนดคืน" htmlFor="borrow-return">
                 <Input id="borrow-return" type="date" value={returnByDate} onChange={(event) => setReturnByDate(event.target.value)} />
-              </FormField>
+              </FormField> : <div className="hidden sm:block" />}
             </div>
           </section>
 
           <section className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold">{t('borrowOrders.itemsSection', 'รายการที่ต้องการยืม')}</h3>
-                <p className="text-xs leading-5 text-muted-foreground">{t('borrowOrders.itemsSectionDescription', 'เพิ่มทรัพย์สินหรือสินค้าในคลัง แล้วตรวจสอบรายละเอียดก่อนสร้างรายการ')}</p>
+                <h3 className="text-sm font-semibold">{requestType === 'borrow' ? 'ทรัพย์สินที่ต้องการยืม' : 'สินค้าในคลังที่ต้องการเบิก'}</h3>
+                <p className="text-xs leading-5 text-muted-foreground">เพิ่มรายการได้หลายรายการในคำขอเดียว</p>
               </div>
               <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={addAssetLine}>
+            {requestType === 'borrow' ? <Button type="button" variant="outline" onClick={addAssetLine}>
               <PlusIcon className="h-4 w-4" />
               {t('borrowOrders.addAssetLine', 'เพิ่มทรัพย์สิน')}
-            </Button>
-            <Button type="button" variant="outline" onClick={addStockLine}>
+            </Button> : <Button type="button" variant="outline" onClick={addStockLine}>
               <PlusIcon className="h-4 w-4" />
-              {t('borrowOrders.addStockLine', 'Add stock')}
-            </Button>
+              เพิ่มสินค้าในคลัง
+            </Button>}
               </div>
             </div>
 
             <div className="component-stack">
-            {lines.map((line, index) => (
+            {lines.map((line, index) => {
+              const selectedStock = line.kind === 'stock' ? stockEntries.find((entry) => entry.id === line.stockEntryId) : undefined;
+              const otherLinesQuantity = line.kind === 'stock' && line.stockEntryId
+                ? lines.reduce((sum, otherLine) => sum + (otherLine.id !== line.id && otherLine.kind === 'stock' && otherLine.stockEntryId === line.stockEntryId ? Number(otherLine.quantity) || 0 : 0), 0)
+                : 0;
+              const availableQuantity = selectedStock ? Math.max(0, selectedStock.quantity - otherLinesQuantity) : undefined;
+              return (
               <div key={line.id} className="space-y-5 rounded-2xl border border-border/70 bg-background p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
                   <div className="space-y-1">
@@ -255,28 +285,6 @@ function CreateBorrowDialog({
                     {t('common.delete', 'Delete')}
                   </Button>
                 </div>
-
-                <FormField label={t('borrowOrders.lineType', 'ประเภทรายการ')} htmlFor={`borrow-line-type-${line.id}`}>
-                  <Select
-                    id={`borrow-line-type-${line.id}`}
-                    value={line.kind}
-                    onChange={(event) => {
-                      const kind = event.target.value as 'asset' | 'stock';
-                      setLines((current) =>
-                        current.map((entry) => {
-                          if (entry.id !== line.id) return entry;
-                          return kind === 'asset'
-                            ? { id: entry.id, kind: 'asset', assetId: '' }
-                            : { id: entry.id, kind: 'stock', stockEntryId: '', productId: '', quantity: '1' };
-                        }),
-                      );
-                    }}
-                    className="w-full sm:max-w-xs"
-                  >
-                    <option value="asset">{t('borrowOrders.lineTypeAsset', 'ทรัพย์สิน')}</option>
-                    <option value="stock">{t('borrowOrders.lineTypeStock', 'Stock')}</option>
-                  </Select>
-                </FormField>
 
                 {line.kind === 'asset' ? (
                   <FormField label={t('borrowOrders.asset', 'ทรัพย์สิน')} htmlFor={`borrow-asset-${line.id}`}>
@@ -324,7 +332,7 @@ function CreateBorrowDialog({
                       </Select>
                     </FormField>
 
-                    <FormField label={t('borrowOrders.stockEntry', 'Stock entry')} htmlFor={`borrow-stock-${line.id}`}>
+                    <FormField label="จุดจัดเก็บ/ภาชนะจัดเก็บ" htmlFor={`borrow-stock-${line.id}`}>
                       <Select
                         id={`borrow-stock-${line.id}`}
                         value={line.stockEntryId}
@@ -337,32 +345,39 @@ function CreateBorrowDialog({
                       >
                         <option value="">{t('borrowOrders.stockPlaceholder', 'เลือกของในคลัง')}</option>
                         {stockEntries
-                          .filter((entry) => !line.productId || entry.productId === line.productId)
+                          .filter((entry) => entry.quantity > 0 && (!line.productId || entry.productId === line.productId))
                           .map((entry) => (
                             <option key={entry.id} value={entry.id}>
-                              {entry.productName} - {entry.quantity} @ {entry.locationName ?? entry.containerName ?? '-'}
+                              {entry.productName} - คงเหลือ {entry.quantity} @ {entry.locationName ?? entry.containerName ?? '-'}
                             </option>
                           ))}
                       </Select>
                     </FormField>
 
-                    <FormField label={t('borrowOrders.quantity', 'Quantity')} htmlFor={`borrow-quantity-${line.id}`}>
+                    <FormField label="จำนวน" htmlFor={`borrow-quantity-${line.id}`}>
                       <Input
                         id={`borrow-quantity-${line.id}`}
                         type="number"
                         min={1}
+                        max={availableQuantity}
                         value={line.quantity}
                         onChange={(event) =>
                           setLines((current) =>
-                            current.map((entry) => (entry.id === line.id ? { ...entry, quantity: event.target.value } : entry)),
+                            current.map((entry) => {
+                              if (entry.id !== line.id) return entry;
+                              const nextQuantity = Number(event.target.value);
+                              return { ...entry, quantity: availableQuantity !== undefined && nextQuantity > availableQuantity ? String(availableQuantity) : event.target.value };
+                            }),
                           )
                         }
                       />
+                      {selectedStock ? <p className="text-xs text-muted-foreground">คงเหลือให้เบิก: {availableQuantity ?? 0}</p> : null}
                     </FormField>
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
             </div>
           </section>
         </div>
@@ -372,12 +387,44 @@ function CreateBorrowDialog({
             {t('common.cancel', 'ยกเลิก')}
           </Button>
           <Button
-            disabled={!canSubmit || createBorrow.isPending}
+            disabled={createBorrow.isPending}
             onClick={async () => {
+              if (!needByDate) {
+                const message = requestType === 'borrow' ? 'กรุณาระบุวันที่ต้องการยืม' : 'กรุณาระบุวันที่ต้องการเบิก';
+                setFormError(message);
+                pushNotification({ variant: 'warning', title: 'กรอกข้อมูลไม่ครบ', description: message });
+                return;
+              }
+              if (requestType === 'borrow' && !returnByDate) {
+                const message = 'กรุณาระบุกำหนดคืน';
+                setFormError(message);
+                pushNotification({ variant: 'warning', title: 'กรอกข้อมูลไม่ครบ', description: message });
+                return;
+              }
+              if (!lines.length) {
+                const message = requestType === 'borrow' ? 'กรุณาเพิ่มทรัพย์สินที่ต้องการยืม' : 'กรุณาเพิ่มสินค้าในคลังที่ต้องการเบิก';
+                setFormError(message);
+                pushNotification({ variant: 'warning', title: 'กรอกข้อมูลไม่ครบ', description: message });
+                return;
+              }
+              const invalidLine = lines.find((line) => {
+                if (line.kind === 'asset') return !line.assetId;
+                const stockEntry = stockEntries.find((entry) => entry.id === line.stockEntryId);
+                const otherQuantity = lines.reduce((sum, otherLine) => sum + (otherLine.id !== line.id && otherLine.kind === 'stock' && otherLine.stockEntryId === line.stockEntryId ? Number(otherLine.quantity) || 0 : 0), 0);
+                return !line.productId || !line.stockEntryId || Number(line.quantity) <= 0 || !stockEntry || Number(line.quantity) + otherQuantity > stockEntry.quantity;
+              });
+              if (invalidLine) {
+                const message = requestType === 'borrow' ? 'กรุณาเลือกทรัพย์สินให้ครบถ้วน' : 'กรุณาเลือกสินค้า จุดจัดเก็บ และระบุจำนวนไม่เกินยอดคงเหลือ';
+                setFormError(message);
+                pushNotification({ variant: 'warning', title: 'ข้อมูลไม่ถูกต้อง', description: message });
+                return;
+              }
+              setFormError('');
               const payload: CreateBorrowOrderInput = {
+                requestType,
                 purpose: purpose.trim() || null,
                 needByDate: new Date(needByDate),
-                returnByDate: new Date(returnByDate),
+                returnByDate: requestType === 'borrow' ? new Date(returnByDate) : null,
                 lines: lines.map((line) =>
                   line.kind === 'asset'
                     ? { assetId: line.assetId, productId: null, stockEntryId: null, quantity: null }
@@ -389,8 +436,13 @@ function CreateBorrowDialog({
                       },
                 ),
               };
-              await createBorrow.mutateAsync(payload);
-              resetAndClose();
+              try {
+                await createBorrow.mutateAsync(payload);
+                resetAndClose();
+              } catch (error) {
+                const message = apiErrorMessage(error);
+                setFormError(message);
+              }
             }}
           >
             {createBorrow.isPending ? t('common.saving', 'กำลังบันทึก...') : t('borrowOrders.create', 'สร้างรายการเบิก/ยืม')}
@@ -424,7 +476,7 @@ function BorrowOrderCard({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'Borrow order')}</CardTitle>
-            <CardDescription>{order.id}</CardDescription>
+            <CardDescription>{order.requestType === 'issue' ? 'เบิกสินค้าในคลัง' : 'ยืมทรัพย์สิน'} · {order.id}</CardDescription>
           </div>
           <MasterStatusBadge status={order.status} kind="borrow" />
         </div>
@@ -433,7 +485,7 @@ function BorrowOrderCard({
           <div className="space-y-1 text-sm text-muted-foreground">
             <div>{t('borrowOrders.requestedBy', 'ผู้ขอรายการ')}: {order.requestedBy}</div>
             <div>{t('borrowOrders.needByDate', 'Need by')}: {formatDate(order.needByDate)}</div>
-            <div>{t('borrowOrders.returnByDate', 'Return by')}: {formatDate(order.returnByDate)}</div>
+            {order.requestType === 'borrow' ? <div>{t('borrowOrders.returnByDate', 'กำหนดคืน')}: {formatDate(order.returnByDate)}</div> : null}
             <div>{t('borrowOrders.requiresApproval', 'Requires approval')}: {order.requiresApproval ? t('common.yes', 'Yes') : t('common.no', 'No')}</div>
           </div>
           <div className="space-y-1 text-sm text-muted-foreground">
@@ -518,7 +570,7 @@ function BorrowOrderCard({
             </Popconfirm>
           ) : null}
 
-          {isActive ? (
+          {isActive && order.requestType === 'borrow' ? (
             <Button variant="outline" className="rounded-full" onClick={() => onReturn(order)}>
               <ReturnIcon className="h-4 w-4" />
               {t('borrowOrders.return', 'Return')}
@@ -556,15 +608,16 @@ export function BorrowOrdersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [requestTypeFilter, setRequestTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const filteredOrders = useMemo(() => {
     const term = search.trim().toLowerCase();
     return orders.filter((order) => {
       const searchable = `${order.id} ${order.requestedBy} ${order.purpose ?? ''} ${order.lines.map((line) => `${line.productName ?? ''} ${line.assetSerialNumber ?? ''}`).join(' ')}`.toLowerCase();
-      return (!term || searchable.includes(term)) && (!statusFilter || order.status.toLowerCase().includes(statusFilter));
+      return (!term || searchable.includes(term)) && (!statusFilter || order.status.toLowerCase().includes(statusFilter)) && (!requestTypeFilter || order.requestType === requestTypeFilter);
     });
-  }, [orders, search, statusFilter]);
+  }, [orders, search, statusFilter, requestTypeFilter]);
   const pageCount = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
   const visibleOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
 
@@ -588,7 +641,7 @@ export function BorrowOrdersPage() {
         </Button>
       )}
     >
-      <Card className="shadow-sm"><CardContent className="space-y-4 p-4 sm:p-6"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาเลขรายการ ผู้ยืม วัตถุประสงค์ หรือสินค้า</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => { setSearch(''); setStatusFilter(''); setPage(1); }} disabled={!search && !statusFilter}>ล้างตัวกรอง</Button></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (เลขรายการ/ผู้ยืม/สินค้า)</label><Input className="w-full rounded-full" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="ค้นหารายการยืม" /></div><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะรายการยืม</label><Select className="w-full" value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}><option value="">ทุกสถานะ</option><option value="pending">รออนุมัติ</option><option value="approved">อนุมัติแล้ว</option><option value="active">กำลังยืม</option><option value="completed">เสร็จสิ้น</option><option value="cancel">ยกเลิก</option></Select></div></div></CardContent></Card>
+      <Card className="shadow-sm"><CardContent className="space-y-4 p-4 sm:p-6"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FilterIcon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-medium">ค้นหาและกรอง</p><p className="text-xs text-muted-foreground">ค้นหาเลขรายการ ผู้ยืม วัตถุประสงค์ หรือสินค้า</p></div></div><Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => { setSearch(''); setStatusFilter(''); setRequestTypeFilter(''); setPage(1); }} disabled={!search && !statusFilter && !requestTypeFilter}>ล้างตัวกรอง</Button></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ค้นหา (เลขรายการ/ผู้ยืม/สินค้า)</label><Input className="w-full rounded-full" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="ค้นหารายการ" /></div><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">ประเภทคำขอ</label><Select className="w-full" value={requestTypeFilter} onChange={(event) => { setRequestTypeFilter(event.target.value); setPage(1); }}><option value="">ทั้งหมด</option><option value="borrow">ยืมทรัพย์สิน</option><option value="issue">เบิกสินค้าในคลัง</option></Select></div><div className="min-w-0 space-y-1"><label className="block text-xs font-medium text-muted-foreground">สถานะคำขอ</label><Select className="w-full" value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}><option value="">ทุกสถานะ</option><option value="pending">รออนุมัติ</option><option value="approved">อนุมัติแล้ว</option><option value="active">กำลังยืม</option><option value="completed">เสร็จสิ้น</option><option value="cancel">ยกเลิก</option></Select></div></div></CardContent></Card>
 
       <div className="grid gap-[18px] md:grid-cols-3">
         {stats.map((stat) => (

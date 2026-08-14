@@ -255,6 +255,7 @@ export function CreateBorrowOrderDialog({
             disabled={!canSubmit || createBorrow.isPending}
             onClick={async () => {
               const payload: CreateBorrowOrderInput = {
+                requestType: 'borrow',
                 purpose: purpose.trim() || null,
                 needByDate: new Date(needByDate),
                 returnByDate: new Date(returnByDate),
