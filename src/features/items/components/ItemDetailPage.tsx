@@ -17,6 +17,7 @@ import { UpdateItemDialog } from '@/features/items/components/UpdateItemDialog';
 import { CreateBorrowOrderDialog } from '@/features/borrow-orders/components/CreateBorrowOrderDialog';
 import { TakeOutIcon } from '@/components/ui/icons';
 import { safeAssetUrl } from '@/lib/safe-url';
+import { useMembers } from '@/features/members/hooks/useMembers';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -36,6 +37,7 @@ export function ItemDetailPage() {
   const itemQuery = useItem(wsId, itemId);
   const eventsQuery = useItemEvents(wsId, itemId);
   const containersQuery = useContainers(wsId);
+  const membersQuery = useMembers(wsId);
   const item = itemQuery.data ?? null;
   const [editOpen, setEditOpen] = useState(false);
   const [borrowOpen, setBorrowOpen] = useState(false);
@@ -45,7 +47,8 @@ export function ItemDetailPage() {
     () => new Map((containersQuery.data ?? []).map((container) => [container.id, container.name])),
     [containersQuery.data],
   );
-  const containerLabel = item?.containerId ? (containerNameById.get(item.containerId) ?? item.containerId) : t('items.detail.noContainer', 'ไม่มี container');
+  const containerLabel = item?.containerId ? (containerNameById.get(item.containerId) ?? t('items.detail.unknownContainer', 'ไม่พบชื่อจุดจัดเก็บ')) : t('items.detail.noContainer', 'ไม่มี container');
+  const holderName = item?.currentHolderId ? (membersQuery.data ?? []).find((member) => member.id === item.currentHolderId)?.user.name ?? 'สมาชิกใน workspace' : null;
 
   return (
     <PageShell title={t('items.detail.title', 'รายละเอียดรายการ')} description={t('items.detail.pageDescription', 'ดูสถานะ ข้อมูลประกอบ และประวัติของรายการนี้')}>
@@ -60,7 +63,7 @@ export function ItemDetailPage() {
                 <div className="-mx-5 -mt-5 flex flex-col gap-3 border-b border-border/70 bg-muted/30 p-5 sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{item.name}</CardTitle>
-                    <CardDescription>{item.code ?? item.id}</CardDescription>
+                    <CardDescription>{item.code ?? item.name}</CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {item.kind === 'stock' ? (
@@ -122,7 +125,7 @@ export function ItemDetailPage() {
                     <CardContent className="space-y-2 p-4">
                       <CardTitle className="text-sm">{t('items.detail.storage', 'ที่จัดเก็บ')}</CardTitle>
                       <p className="text-sm text-muted-foreground">{t('items.detail.container', 'คอนเทนเนอร์')}: {containerLabel}</p>
-                      <p className="text-sm text-muted-foreground">{t('items.detail.holderPrefix', 'ผู้ถือครอง')}: {item.currentHolderId ?? '-'}</p>
+                      <p className="text-sm text-muted-foreground">{t('items.detail.holderPrefix', 'ผู้ถือครอง')}: {holderName ?? '-'}</p>
                       <p className="text-sm text-muted-foreground">{t('items.detail.stockCount', 'จำนวน')}: {item.quantity ?? '-'}</p>
                     </CardContent>
                   </Card>
@@ -144,7 +147,7 @@ export function ItemDetailPage() {
                           ? t('items.detail.stockLifecycle', 'ติดตามตามจำนวน')
                           : t('items.detail.singleLifecycle', 'ติดตามแบบชิ้นเดียว')}
                       </p>
-                      <p className="text-sm text-muted-foreground">{item.currentHolderId ? `${t('items.detail.holderPrefix', 'ผู้ถือครอง')}: ${item.currentHolderId}` : t('items.detail.noHolder', 'ไม่มีผู้ถือครอง')}</p>
+                      <p className="text-sm text-muted-foreground">{holderName ? `${t('items.detail.holderPrefix', 'ผู้ถือครอง')}: ${holderName}` : t('items.detail.noHolder', 'ไม่มีผู้ถือครอง')}</p>
                     </CardContent>
                   </Card>
                   <Card className="border-border/70 bg-background/70">

@@ -60,7 +60,7 @@ export function ProductDetailPage() {
                 <div className="-mx-5 -mt-5 flex flex-col gap-3 border-b border-border/70 bg-muted/30 p-5 sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <CardDescription>{product.code ?? product.sku ?? product.id}</CardDescription>
+                    <CardDescription>{product.code ?? product.sku ?? product.name}</CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Tag color={product.trackingType.toLowerCase() === 'stock' ? 'blue' : 'geekblue'}>{product.trackingType}</Tag>
@@ -169,7 +169,7 @@ export function ProductDetailPage() {
                         <div key={order.id} className="rounded-2xl border border-border/70 bg-background/70 p-4">
                           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                              <p className="text-sm font-medium">{order.purpose ?? order.id}</p>
+                              <p className="text-sm font-medium">{order.purpose ?? 'รายการยืม'}</p>
                               <p className="text-xs text-muted-foreground">{order.status}</p>
                             </div>
                             <Button asChild variant="outline" size="sm" className="rounded-full">

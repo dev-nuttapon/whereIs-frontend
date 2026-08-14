@@ -20,6 +20,8 @@ import { EditIcon, OpenIcon, ReturnIcon, TakeOutIcon } from '@/components/ui/ico
 import { PermissionGuard } from '@/components/common/PermissionGuard';
 import { safeAssetUrl } from '@/lib/safe-url';
 import { formatDetailDate, statusLabel } from '@/components/common/detailPresentation';
+import { useMembers } from '@/features/members/hooks/useMembers';
+import { DetailTabs, type DetailTab } from '@/components/common/detailNavigation';
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase();
@@ -38,10 +40,12 @@ export function AssetDetailPage() {
   const assetQuery = useAsset(wsId, assetId);
   const asset = assetQuery.data ?? null;
   const borrowOrdersQuery = useBorrowOrders(wsId, { pageSize: 1000 });
+  const membersQuery = useMembers(wsId);
   const deleteAsset = useDeleteAsset(wsId, assetId);
   const [editOpen, setEditOpen] = useState(false);
   const [borrowOpen, setBorrowOpen] = useState(false);
   const [returnOpen, setReturnOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<DetailTab['id']>('overview');
 
   const photoCount = asset?.photos?.length ?? 0;
   const mainPhoto = useMemo(
@@ -56,6 +60,7 @@ export function AssetDetailPage() {
     [asset?.id, borrowOrdersQuery.data?.items],
   );
   const activeBorrowOrder = relatedBorrowOrders.find((order) => order.status.toLowerCase().includes('active') || order.status.toLowerCase().includes('approved')) ?? null;
+  const memberNameById = useMemo(() => new Map((membersQuery.data ?? []).map((member) => [member.id, member.user.name])), [membersQuery.data]);
 
   return (
     <PageShell
@@ -72,13 +77,21 @@ export function AssetDetailPage() {
       {assetQuery.isError ? <ErrorState message={t('assets.detail.error', 'ไม่สามารถโหลดทรัพย์สินได้')} onRetry={() => assetQuery.refetch()} /> : null}
 
       {asset ? (
-        <div className="component-stack">
+        <DetailTabs
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          tabs={[
+            {
+              id: 'overview',
+              label: 'ภาพรวม',
+              content: (
+                <div className="component-stack">
           <Card className="overflow-hidden border-border/80 shadow-sm">
             <CardContent className="space-y-4 p-5 sm:p-6">
               <div className="-mx-5 -mt-5 flex flex-col gap-3 border-b border-border/70 bg-muted/30 p-5 sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{asset.productName}</CardTitle>
-                  <CardDescription>{asset.serialNumber ?? asset.barcode ?? asset.id}</CardDescription>
+                  <CardDescription>{asset.serialNumber ?? asset.barcode ?? asset.productName}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Tag color={statusColor(asset.status)}>{statusLabel(asset.status)}</Tag>
@@ -160,92 +173,53 @@ export function AssetDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid gap-[18px] lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-            <Card className="overflow-hidden">
-              <CardContent className="space-y-3 p-5 sm:p-6">
-                <CardTitle className="text-base">{t('assets.detail.preview', 'ภาพตัวอย่าง')}</CardTitle>
-                {mainPhoto ? (
-                    <img
-                      src={safeAssetUrl(mainPhoto.url)}
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
-                      alt={t('assets.photo.alt', 'รูปทรัพย์สิน')}
-                      className="h-72 w-full rounded-2xl object-cover"
-                    />
-                ) : (
-                  <EmptyState
-                    title={t('assets.detail.noPhotoTitle', 'ยังไม่มีรูป')}
-                    description={t('assets.detail.noPhotoDescription', 'อัปโหลดรูปแรกจากตัวจัดการรูปภาพด้านล่าง')}
-                  />
-                )}
-              </CardContent>
-            </Card>
-
-            <div className="component-stack">
-              <Card>
-                <CardContent className="space-y-3 p-5 sm:p-6">
-                  <CardTitle className="text-base">{t('assets.detail.metadata', 'ข้อมูลประกอบ')}</CardTitle>
-                  <div className="grid gap-[18px] md:grid-cols-2">
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>{t('assets.detail.product', 'สินค้า')}: {asset.productName}</div>
-                      <div>{t('assets.detail.location', 'สถานที่')}: {asset.locationName ?? '-'}</div>
-                      <div>{t('assets.detail.container', 'คอนเทนเนอร์')}: {asset.containerName ?? '-'}</div>
-                    </div>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>{t('assets.detail.serialNumber', 'หมายเลขซีเรียล')}: {asset.serialNumber ?? '-'}</div>
-                      <div>{t('assets.detail.barcode', 'บาร์โค้ด')}: {asset.barcode ?? '-'}</div>
-                      <div>{t('assets.detail.acquiredDate', 'วันที่ได้มา')}: {formatDetailDate(asset.acquiredDate)}</div>
-                      <div>{t('assets.detail.expiryDate', 'วันหมดอายุ')}: {formatDetailDate(asset.expiryDate)}</div>
-                      <div>{t('assets.detail.alertLeadDays', 'แจ้งเตือนล่วงหน้า')}: {asset.alertLeadDays ?? '-'} {t('common.days', 'วัน')}</div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{asset.notes?.trim() ? asset.notes : t('assets.detail.noNotes', 'ไม่มีหมายเหตุ')}</p>
-                </CardContent>
-              </Card>
-
-              <PermissionGuard perm="asset.manage">
-                <AssetPhotoManager wsId={wsId} assetId={asset.id} photos={asset.photos ?? []} />
-              </PermissionGuard>
-
-              <Card>
-                <CardContent className="space-y-4 p-5 sm:p-6">
-                  <CardTitle className="text-base">{t('assets.detail.relatedBorrowOrders', 'รายการยืมที่เกี่ยวข้อง')}</CardTitle>
-                  {relatedBorrowOrders.length === 0 ? (
-                    <EmptyState
-                      title={t('assets.detail.noBorrowHistory', 'ยังไม่มีรายการยืม')}
-                      description={t('assets.detail.noBorrowHistoryDescription', 'ประวัติการยืมของทรัพย์สินนี้จะแสดงที่นี่เมื่อมีการขอใช้งาน')}
-                    />
-                  ) : (
-                    <div className="component-stack">
-                      {relatedBorrowOrders.slice(0, 5).map((order) => (
-                        <div key={order.id} className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium">{order.purpose ?? order.id}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t('borrowOrders.requestedBy', 'ผู้ขอ')}: {order.requestedBy}
-                        </p>
-                            </div>
-                            <Tag color={statusColor(order.status)}>{statusLabel(order.status)}</Tag>
-                          </div>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <Button asChild variant="outline" size="sm" className="rounded-full">
-                              <Link to={ROUTES.workspaceBorrowOrderDetail(wsId, order.id)}>
-                                <OpenIcon className="h-4 w-4" />
-                                {t('common.open', 'เปิด')}
-                              </Link>
-                            </Button>
-                          </div>
+                </div>
+              ),
+            },
+            {
+              id: 'details',
+              label: 'ข้อมูลรายละเอียด',
+              content: (
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+                  <Card className="overflow-hidden border-border/80 shadow-sm">
+                    <CardContent className="space-y-3 p-5 sm:p-6">
+                      <CardTitle className="text-base">{t('assets.detail.preview', 'ภาพตัวอย่าง')}</CardTitle>
+                      {mainPhoto ? <img src={safeAssetUrl(mainPhoto.url)} referrerPolicy="no-referrer" loading="lazy" alt={t('assets.photo.alt', 'รูปทรัพย์สิน')} className="h-72 w-full rounded-2xl object-cover" /> : <EmptyState title={t('assets.detail.noPhotoTitle', 'ยังไม่มีรูป')} description={t('assets.detail.noPhotoDescription', 'อัปโหลดรูปแรกจากตัวจัดการรูปภาพด้านล่าง')} />}
+                    </CardContent>
+                  </Card>
+                  <div className="component-stack">
+                    <Card className="border-border/80 shadow-sm">
+                      <CardContent className="space-y-3 p-5 sm:p-6">
+                        <CardTitle className="text-base">{t('assets.detail.metadata', 'ข้อมูลทรัพย์สิน')}</CardTitle>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {[
+                            ['สินค้า', asset.productName], ['สถานที่', asset.locationName ?? '-'], ['จุดจัดเก็บ', asset.containerName ?? '-'],
+                            ['Serial number', asset.serialNumber ?? '-'], ['บาร์โค้ด', asset.barcode ?? '-'], ['วันที่ได้มา', formatDetailDate(asset.acquiredDate)],
+                            ['วันหมดอายุ', formatDetailDate(asset.expiryDate)], ['แจ้งเตือนล่วงหน้า', `${asset.alertLeadDays ?? '-'} ${t('common.days', 'วัน')}`],
+                          ].map(([label, value]) => <div key={label} className="rounded-xl border border-border/70 bg-muted/20 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-sm font-medium">{value}</p></div>)}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
+                        <p className="text-sm text-muted-foreground">{asset.notes?.trim() ? asset.notes : t('assets.detail.noNotes', 'ไม่มีหมายเหตุ')}</p>
+                      </CardContent>
+                    </Card>
+                    <PermissionGuard perm="asset.manage"><AssetPhotoManager wsId={wsId} assetId={asset.id} photos={asset.photos ?? []} /></PermissionGuard>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              id: 'activity',
+              label: 'ประวัติการใช้งาน',
+              content: (
+                <Card className="border-border/80 shadow-sm">
+                  <CardContent className="space-y-4 p-5 sm:p-6">
+                    <CardTitle className="text-base">{t('assets.detail.relatedBorrowOrders', 'รายการยืมที่เกี่ยวข้อง')}</CardTitle>
+                    {relatedBorrowOrders.length === 0 ? <EmptyState title={t('assets.detail.noBorrowHistory', 'ยังไม่มีรายการยืม')} description={t('assets.detail.noBorrowHistoryDescription', 'ประวัติการยืมของทรัพย์สินนี้จะแสดงที่นี่เมื่อมีการขอใช้งาน')} /> : <div className="component-stack">{relatedBorrowOrders.slice(0, 5).map((order) => <div key={order.id} className="rounded-2xl border border-border/70 bg-background/70 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div className="space-y-1"><p className="text-sm font-medium">{order.purpose ?? 'รายการยืม'}</p><p className="text-xs text-muted-foreground">{t('borrowOrders.requestedBy', 'ผู้ขอ')}: {memberNameById.get(order.requestedBy) ?? 'สมาชิกใน workspace'}</p></div><Tag color={statusColor(order.status)}>{statusLabel(order.status)}</Tag></div><div className="mt-3"><Button asChild variant="outline" size="sm" className="rounded-full"><Link to={ROUTES.workspaceBorrowOrderDetail(wsId, order.id)}><OpenIcon className="h-4 w-4" />{t('common.open', 'เปิด')}</Link></Button></div></div>)}</div>}
+                  </CardContent>
+                </Card>
+              ),
+            },
+          ]}
+        />
       ) : null}
 
       {asset ? (

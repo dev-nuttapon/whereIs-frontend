@@ -54,7 +54,7 @@ export function ContainerDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <CardTitle className="text-base">
-                    {t('container.detail.containerLabel')} {container?.name ?? containerId}
+                    {t('container.detail.containerLabel')} {container?.name ?? t('container.detail.unknownContainer', 'ไม่พบชื่อภาชนะจัดเก็บ')}
                   </CardTitle>
                   <CardDescription>{formatContainerTypeLabel(container?.typeLabel, t('container.detail.itemlist'))}</CardDescription>
                 </div>
@@ -96,13 +96,13 @@ export function ContainerDetailPage() {
             ) : null}
             <div className="responsive-descriptions">
               <Descriptions bordered column={{ xs: 1, md: 3 }} size="middle">
-                <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? containerId}</Descriptions.Item>
+                <Descriptions.Item label={t('container.detail.containerLabel')}>{container?.name ?? t('container.detail.unknownContainer', 'ไม่พบชื่อภาชนะจัดเก็บ')}</Descriptions.Item>
                 <Descriptions.Item label={t('items.list.count')}>{container?.itemCount ?? 0}</Descriptions.Item>
                 <Descriptions.Item label={t('containers.list.title')}>
                   {container?.parentId ? parentContainerNameById.get(container.parentId) ?? container.parentId : <Tag>{t('container.detail.noParent', 'Root container')}</Tag>}
                 </Descriptions.Item>
                 <Descriptions.Item label={t('container.detail.location', 'Location')}>
-                  {container?.locationId ? locationLabelById.get(container.locationId) ?? container.locationId : <Tag>{t('container.detail.noLocation', 'No location')}</Tag>}
+                  {container?.locationId ? locationLabelById.get(container.locationId) ?? t('container.detail.unknownLocation', 'ไม่พบชื่อสถานที่') : <Tag>{t('container.detail.noLocation', 'No location')}</Tag>}
                 </Descriptions.Item>
               </Descriptions>
             </div>
