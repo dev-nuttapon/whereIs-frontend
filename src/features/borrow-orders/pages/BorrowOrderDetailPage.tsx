@@ -43,9 +43,26 @@ function formatDate(value?: string | null) {
 
 function formatLineLabel(line: BorrowOrderLine) {
   if (line.assetId) {
-    return `${line.assetSerialNumber ?? line.assetId}`;
+    return `${line.assetSerialNumber ?? 'ทรัพย์สิน'}`;
   }
-  return `${line.productName ?? line.productId ?? line.stockEntryId ?? '-'}${line.quantity ? ` x ${line.quantity}` : ''}`;
+  return `${line.productName ?? 'สต็อก'}${line.quantity ? ` x ${line.quantity}` : ''}`;
+}
+
+type BorrowOrderPresentation = BorrowOrder & {
+  requestedByName?: string | null;
+  approvedByName?: string | null;
+  checkedOutByName?: string | null;
+  checkedOutAt?: string | null;
+  checkoutLocationName?: string | null;
+  returnedByName?: string | null;
+  returnLocationName?: string | null;
+  returnedAt?: string | null;
+  attachments?: Array<{ id: string; fileName?: string | null; url: string; context?: string | null }>;
+};
+
+function partyName(value: string | null | undefined, fallback = '-') {
+  if (!value) return fallback;
+  return value.includes('-') && value.length > 20 ? 'สมาชิกใน workspace' : value;
 }
 
 export function BorrowOrderDetailPage() {
@@ -54,6 +71,7 @@ export function BorrowOrderDetailPage() {
   const { t } = useI18n();
   const orderQuery = useBorrowOrder(wsId, orderId);
   const order = orderQuery.data ?? null;
+  const presentation = order as BorrowOrderPresentation | null;
   const approve = useApproveBorrowOrder(wsId, orderId);
   const reject = useRejectBorrowOrder(wsId, orderId);
   const checkout = useCheckOutBorrowOrder(wsId, orderId);
@@ -97,7 +115,7 @@ export function BorrowOrderDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{order.purpose ?? t('borrowOrders.untitled', 'รายการยืม')}</CardTitle>
-                  <CardDescription>{order.requestType === 'issue' ? 'เบิกสินค้าในคลัง' : 'ยืมทรัพย์สิน'} · {order.id}</CardDescription>
+                  <CardDescription>{order.requestType === 'issue' ? 'เบิกสินค้าในคลัง' : 'ยืมทรัพย์สิน'}</CardDescription>
                 </div>
                 <Tag color={statusColor(order.status)}>{order.status}</Tag>
               </div>
@@ -106,7 +124,7 @@ export function BorrowOrderDetailPage() {
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
                     <CardTitle className="text-sm">{t('borrowOrders.requestedBy', 'ผู้ขอ')}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{order.requestedBy}</p>
+                    <p className="text-sm text-muted-foreground">{partyName(presentation?.requestedByName ?? order.requestedBy)}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
@@ -130,7 +148,7 @@ export function BorrowOrderDetailPage() {
                 <Card className="border-border/70 bg-background/70">
                   <CardContent className="space-y-2 p-4">
                     <CardTitle className="text-sm">{t('borrowOrders.approvedBy', 'ผู้อนุมัติ')}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{order.approvedBy ?? '-'}</p>
+                    <p className="text-sm text-muted-foreground">{partyName(presentation?.approvedByName ?? order.approvedBy)}</p>
                   </CardContent>
                 </Card>
                 <Card className="border-border/70 bg-background/70">
@@ -139,6 +157,20 @@ export function BorrowOrderDetailPage() {
                     <p className="text-sm text-muted-foreground">{order.reviewNote ?? '-'}</p>
                   </CardContent>
                 </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              <CardTitle className="text-base">การเบิกและการคืน</CardTitle>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4"><p className="text-xs text-muted-foreground">ผู้เบิก</p><p className="mt-1 text-sm font-medium">{partyName(presentation?.checkedOutByName)}</p></div>
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4"><p className="text-xs text-muted-foreground">เบิกเมื่อ</p><p className="mt-1 text-sm font-medium">{formatDate(presentation?.checkedOutAt)}</p></div>
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4"><p className="text-xs text-muted-foreground">จุดเบิก</p><p className="mt-1 text-sm font-medium">{presentation?.checkoutLocationName ?? '-'}</p></div>
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4"><p className="text-xs text-muted-foreground">ผู้รับคืน</p><p className="mt-1 text-sm font-medium">{partyName(presentation?.returnedByName)}</p></div>
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4"><p className="text-xs text-muted-foreground">คืนเมื่อ</p><p className="mt-1 text-sm font-medium">{formatDate(presentation?.returnedAt)}</p></div>
+                <div className="rounded-xl border border-border/70 bg-muted/20 p-4"><p className="text-xs text-muted-foreground">จุดคืน</p><p className="mt-1 text-sm font-medium">{presentation?.returnLocationName ?? '-'}</p></div>
               </div>
             </CardContent>
           </Card>
@@ -186,12 +218,11 @@ export function BorrowOrderDetailPage() {
                         <Tag color={statusColor(line.status)}>{line.status}</Tag>
                       </div>
                       <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 xl:grid-cols-3">
-                        <p>{t('borrowOrders.line.assetId', 'รหัสทรัพย์สิน')}: {line.assetId ?? '-'}</p>
-                        <p>{t('borrowOrders.line.productId', 'รหัสสินค้า')}: {line.productId ?? '-'}</p>
-                        <p>{t('borrowOrders.line.stockEntryId', 'รหัส stock entry')}: {line.stockEntryId ?? '-'}</p>
+                        <p>ทรัพย์สิน: {line.assetId ? (line.assetSerialNumber ?? 'ทรัพย์สิน') : '-'}</p>
+                        <p>สินค้า: {line.productName ?? '-'}</p>
                         <p>{t('borrowOrders.line.quantity', 'จำนวน')}: {line.quantity ?? '-'}</p>
                         <p>{t('borrowOrders.line.returnedQuantity', 'คืนแล้ว')}: {line.returnedQuantity ?? 0}</p>
-                        <p>{t('borrowOrders.line.returnedAt', 'คืนเมื่อ')}: {line.returnedAt ? formatDate(line.returnedAt) : '-'}</p>
+                        <p>{t('borrowOrders.line.returnedAt', 'คืนเมื่อ')}: {line.returnedAt ? formatDate(line.returnedAt) : formatDate(presentation?.returnedAt)}</p>
                       </div>
                     </div>
                   ))}

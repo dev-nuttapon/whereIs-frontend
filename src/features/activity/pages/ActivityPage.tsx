@@ -1,6 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
 import { PageShell } from '@/components/common/PageShell';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
@@ -10,6 +9,7 @@ import { Tag } from 'antd';
 import { useI18n } from '@/hooks/useI18n';
 import { useActivity } from '@/features/activity/hooks/useActivity';
 import { ROUTES } from '@/constants/routes';
+import { DataTableHead, DataTableRow, DataTableShell, dataTableCellClass } from '@/components/common/DataTableShell';
 
 export function ActivityPage() {
   const { wsId = '' } = useParams();
@@ -60,25 +60,34 @@ export function ActivityPage() {
           icon={<ActivityIcon className="h-5 w-5" />}
         />
       ) : activityQuery.isSuccess ? (
-        <div className="component-stack">
-          {events.map((event) => (
-            <Card key={event.id}>
-              <CardContent className="space-y-1 p-4 sm:p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-base">{eventLabel(event.eventType)}</CardTitle>
-                <Tag>{event.sourceType}</Tag>
-              </div>
-              <CardDescription>
-                  {event.actor.name} · {new Date(event.createdAt).toLocaleString()}
-              </CardDescription>
-              {event.metadata ? (
-                <p className="text-xs text-muted-foreground">{Object.entries(event.metadata).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`).join(' · ')}</p>
-              ) : null}
-              {sourceLink(event.sourceType, event.sourceId) ? <Link className="text-sm font-medium text-primary hover:underline" to={sourceLink(event.sourceType, event.sourceId)!}>{t('common.open', 'เปิดรายการ')}</Link> : null}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <DataTableShell minWidth="min-w-[1050px]">
+          <DataTableHead>
+            <th className={dataTableCellClass}>เวลา</th>
+            <th className={dataTableCellClass}>ผู้ดำเนินการ</th>
+            <th className={dataTableCellClass}>กิจกรรม</th>
+            <th className={dataTableCellClass}>ประเภทรายการ</th>
+            <th className={dataTableCellClass}>รายละเอียด</th>
+            <th className={`${dataTableCellClass} text-right`}>การทำงาน</th>
+          </DataTableHead>
+          <tbody>
+            {events.map((event) => {
+              const link = sourceLink(event.sourceType, event.sourceId);
+              const details = event.metadata
+                ? Object.entries(event.metadata).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`).join(' · ')
+                : '-';
+              return (
+                <DataTableRow key={event.id}>
+                  <td className={`${dataTableCellClass} whitespace-nowrap text-muted-foreground`}>{new Date(event.createdAt).toLocaleString()}</td>
+                  <td className={`${dataTableCellClass} font-medium`}>{event.actor.name}</td>
+                  <td className={dataTableCellClass}>{eventLabel(event.eventType)}</td>
+                  <td className={dataTableCellClass}><Tag>{event.sourceType}</Tag></td>
+                  <td className={`${dataTableCellClass} max-w-[360px] text-muted-foreground`}>{details}</td>
+                  <td className={`${dataTableCellClass} text-right`}>{link ? <Link className="font-medium text-primary hover:underline" to={link}>{t('common.open', 'เปิดรายการ')}</Link> : '-'}</td>
+                </DataTableRow>
+              );
+            })}
+          </tbody>
+        </DataTableShell>
       ) : null}
     </PageShell>
   );
